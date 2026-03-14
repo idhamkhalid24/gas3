@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rocky Hijab • Smart Sync (Anti Ganggu Transaksi)</title>
+    <title>Rocky Hijab • Sync Manual + Auto Jam</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -24,15 +24,6 @@
         .gradient-blue {
             background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
         }
-        .gradient-gold {
-            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-        }
-        .gradient-orange {
-            background: linear-gradient(135deg, #fb923c 0%, #ea580c 100%);
-        }
-        .gradient-green {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        }
         .custom-shadow {
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
         }
@@ -42,40 +33,11 @@
             border-bottom: 3px solid #4f46e5;
             font-weight: 700;
         }
-        .copy-btn {
-            transition: all 0.2s;
-        }
-        .copy-btn:active {
-            transform: scale(0.95);
-        }
-        .trial-badge {
-            background: linear-gradient(135deg, #f97316, #dc2626);
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.8; }
-        }
-        .floating {
-            animation: floating 3s ease-in-out infinite;
-        }
-        @keyframes floating {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-5px); }
-        }
         .btn-press {
             transition: all 0.2s;
         }
         .btn-press:active {
             transform: scale(0.97);
-        }
-        .bg-pattern {
-            background-image: radial-gradient(circle at 10px 10px, rgba(99, 102, 241, 0.05) 2px, transparent 2px);
-            background-size: 30px 30px;
-        }
-        input[type="password"] {
-            -webkit-text-security: disc;
-            autocomplete: off;
         }
         .loading-overlay {
             position: fixed;
@@ -102,60 +64,40 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        .cloud-badge {
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-        }
-        .sync-badge {
-            background: linear-gradient(135deg, #10b981, #059669);
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: linear-gradient(135deg, #f97316, #dc2626);
+            color: white;
+            font-size: 9px;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 999px;
+            min-width: 18px;
+            text-align: center;
             animation: pulse 2s infinite;
         }
-        .offline-badge {
-            background: linear-gradient(135deg, #6b7280, #4b5563);
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
         }
-        .smooth-progress {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 3px;
-            background: rgba(99, 102, 241, 0.1);
-            z-index: 10000;
-            display: none;
+        .sync-progress {
+            height: 4px;
+            background: #e2e8f0;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 8px;
         }
-        .smooth-progress-bar {
+        .sync-progress-bar {
             height: 100%;
             background: linear-gradient(90deg, #6366f1, #8b5cf6);
             width: 0%;
-            transition: width 0.3s ease-out;
-            border-radius: 0 3px 3px 0;
-            box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
-        }
-        .smart-toast {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100%);
-            transition: transform 0.3s ease;
-            z-index: 10001;
-        }
-        .smart-toast.show {
-            transform: translateX(-50%) translateY(0);
-        }
-        .activity-indicator {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 4px;
+            transition: width 0.3s ease;
         }
     </style>
 </head>
 <body class="bg-pattern">
-
-    <!-- Smooth Progress Bar -->
-    <div id="smooth-progress" class="smooth-progress">
-        <div id="smooth-progress-bar" class="smooth-progress-bar"></div>
-    </div>
 
     <!-- Loading Overlay -->
     <div id="loading-overlay" class="loading-overlay hidden">
@@ -165,41 +107,30 @@
         </div>
     </div>
 
-    <!-- Smart Toast -->
-    <div id="smart-toast" class="smart-toast px-6 py-3 backdrop-blur-sm text-white text-[10px] font-bold rounded-full shadow-2xl border border-white/20 pointer-events-none">
-        Toast message
-    </div>
-
     <div class="w-full max-w-md bg-white/95 backdrop-blur-xl rounded-[3rem] shadow-2xl overflow-hidden flex flex-col relative custom-shadow border border-white/20" style="max-height: 95vh;">
         
         <!-- Background Decor -->
         <div class="absolute top-0 left-0 w-full h-48 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 -z-0 opacity-90"></div>
         <div class="absolute top-0 left-0 w-full h-48 bg-black/10 -z-0"></div>
         <div class="absolute -top-24 -right-24 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-        <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-indigo-300/20 rounded-full blur-3xl"></div>
 
         <!-- Header Section -->
         <div class="relative z-10 px-8 pt-8 pb-6 text-white flex justify-between items-start">
-            <div class="floating">
+            <div>
                 <h1 class="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-white to-indigo-100 bg-clip-text text-transparent">Rocky Hijab</h1>
-                <p class="text-indigo-100 text-[9px] font-medium opacity-90 flex items-center gap-1 mt-1" id="current-date">
-                    <span class="w-1 h-1 bg-white rounded-full"></span>
-                    Memuat...
-                </p>
+                <p class="text-indigo-100 text-[9px] font-medium opacity-90 mt-1" id="current-date"></p>
             </div>
-            <div class="flex gap-2">
-                <div id="trial-badge" class="hidden trial-badge text-white text-[9px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg">
-                    <span class="animate-spin">🔄</span> TRIAL
+            <div class="flex items-center gap-3">
+                <!-- Badge Pending Sync -->
+                <div id="pending-sync-container" class="relative hidden">
+                    <div class="bg-orange-500 text-white text-[10px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1">
+                        <span>⏳</span>
+                        <span id="pending-count">0</span>
+                    </div>
+                    <div class="notification-badge" id="pending-badge">!</div>
                 </div>
-                <div id="cloud-badge" class="hidden cloud-badge text-white text-[9px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg">
-                    <span>☁️</span> CLOUD
-                </div>
-                <div id="sync-badge" class="hidden sync-badge text-white text-[9px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg">
-                    <span class="animate-spin">🔄</span> SYNC
-                </div>
-                <div id="offline-badge" class="hidden offline-badge text-white text-[9px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg">
-                    <span>📴</span> OFFLINE
-                </div>
+                
+                <!-- Menu Button -->
                 <button onclick="openMenuModal()" class="p-2.5 bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 transition-all border border-white/30 shadow-lg">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
@@ -220,7 +151,7 @@
         <div id="view-registration" class="relative z-10 p-8">
             <div class="bg-white/90 backdrop-blur-sm rounded-3xl p-6 shadow-xl border border-white/50">
                 <div class="mb-6 text-center">
-                    <div class="w-16 h-16 mx-auto mb-3 gradient-blue rounded-2xl flex items-center justify-center shadow-lg floating">
+                    <div class="w-16 h-16 mx-auto mb-3 gradient-blue rounded-2xl flex items-center justify-center shadow-lg">
                         <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
                     </div>
                     <h2 class="text-xl font-bold text-slate-800">Selamat Datang 👋</h2>
@@ -229,29 +160,12 @@
                 
                 <!-- FORM REGISTRASI -->
                 <div class="space-y-4">
-                    <div class="relative">
-                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">👤</span>
-                        <input type="text" id="reg-name" placeholder="Nama Lengkap (Tidak bisa diubah)" class="w-full pl-10 pr-5 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 outline-none text-sm">
-                    </div>
-                    <div class="relative">
-                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">📍</span>
-                        <input type="text" id="reg-domicile" placeholder="Domisili (Bisa diubah)" class="w-full pl-10 pr-5 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 outline-none text-sm">
-                    </div>
-                    <div class="relative">
-                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">📱</span>
-                        <input type="text" id="reg-wa" placeholder="Nomor WhatsApp Aktif (contoh: 628xxx)" class="w-full pl-10 pr-5 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 outline-none text-sm">
-                    </div>
-                    <button id="btn-register" class="w-full py-4 gradient-blue text-white rounded-2xl font-bold shadow-lg hover:shadow-xl transition-all btn-press uppercase tracking-wider text-sm">
+                    <input type="text" id="reg-name" placeholder="Nama Lengkap" class="w-full px-4 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 outline-none text-sm">
+                    <input type="text" id="reg-domicile" placeholder="Domisili" class="w-full px-4 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 outline-none text-sm">
+                    <input type="text" id="reg-wa" placeholder="Nomor WhatsApp (628xxx)" class="w-full px-4 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 outline-none text-sm">
+                    <button id="btn-register" class="w-full py-4 gradient-blue text-white rounded-2xl font-bold shadow-lg hover:shadow-xl transition-all btn-press">
                         DAFTAR / LOGIN
                     </button>
-                </div>
-                
-                <!-- Informasi untuk staf -->
-                <div class="mt-4 p-3 bg-gradient-to-r from-indigo-50 to-indigo-100/50 rounded-xl border border-indigo-200">
-                    <p class="text-[8px] text-indigo-700 flex items-center gap-2">
-                        <span class="text-indigo-500">ℹ️</span>
-                        <span>Staf: Nama TIDAK bisa diubah. Domisili & WA bisa diubah.</span>
-                    </p>
                 </div>
             </div>
         </div>
@@ -263,17 +177,12 @@
                 <div class="w-14 h-14 rounded-2xl gradient-blue flex items-center justify-center text-white shrink-0 shadow-lg">
                     <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                 </div>
-                <div class="overflow-hidden">
+                <div class="overflow-hidden flex-grow">
                     <h3 id="user-display-name" class="text-base font-bold text-slate-800 truncate">-</h3>
-                    <p id="user-display-domicile" class="text-[10px] text-slate-500 truncate flex items-center gap-1">
-                        <span class="w-1 h-1 bg-indigo-400 rounded-full"></span>
-                        -
-                    </p>
-                    <p id="user-display-wa" class="text-[8px] text-indigo-400 truncate flex items-center gap-1">
-                        <span>📱</span> -
-                    </p>
+                    <p id="user-display-domicile" class="text-[10px] text-slate-500 truncate">-</p>
+                    <p id="user-display-wa" class="text-[8px] text-indigo-400 truncate">-</p>
                 </div>
-                <button onclick="openEditModal()" class="ml-auto p-2 bg-white/80 rounded-full shadow-md hover:bg-white transition-all">
+                <button onclick="openEditModal()" class="p-2 bg-white/80 rounded-full shadow-md hover:bg-white transition-all shrink-0">
                     <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
                     </svg>
@@ -290,644 +199,226 @@
                 <div id="koordinat-container" class="hidden mt-3 pt-3 border-t border-slate-200/50">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-[8px] text-slate-400 flex items-center gap-1">
-                                <span>📍</span> Latitude / Longitude
-                            </p>
-                            <p id="koordinat-text" class="text-[10px] font-mono font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-lg">-6.9445, 106.9369</p>
+                            <p class="text-[8px] text-slate-400">📍 Lat / Lng</p>
+                            <p id="koordinat-text" class="text-[10px] font-mono font-bold text-indigo-600">-6.9445, 106.9369</p>
                         </div>
-                        <button onclick="copyKoordinat()" class="copy-btn bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl px-4 py-2 text-[9px] font-bold flex items-center gap-1.5 transition-all shadow-md">
-                            <span>📋</span> SALIN
+                        <button onclick="copyKoordinat()" class="bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl px-4 py-2 text-[9px] font-bold">
+                            📋 SALIN
                         </button>
                     </div>
-                    <p class="text-[7px] text-slate-400 mt-2 flex items-center gap-1">
-                        <span>💡</span> Klik salin untuk copy koordinat
-                    </p>
                 </div>
             </div>
-            
-            <!-- Informasi Lokasi -->
-            <div class="mb-4 px-3 py-2 bg-indigo-50/50 rounded-xl border border-indigo-100/50">
-                <p class="text-[8px] text-indigo-600 font-medium flex items-center gap-1.5">
-                    <span class="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse"></span>
-                    📍 Area Absensi -Rocky Hijab-
-                </p>
-            </div>
 
-            <button id="btn-absensi" disabled class="w-full py-5 bg-slate-200 text-slate-400 rounded-3xl font-bold text-lg mb-4 transition-all uppercase tracking-wider shadow-lg">Absen Masuk</button>
+            <button id="btn-absensi" disabled class="w-full py-5 bg-slate-200 text-slate-400 rounded-3xl font-bold text-lg mb-4">Absen Masuk</button>
 
             <!-- Tombol Kirim Ulang -->
             <div id="resend-container" class="hidden mb-4">
-                <button id="btn-resend-absen" class="w-full py-3.5 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl text-[10px] font-bold text-blue-600 flex items-center justify-center gap-2 hover:shadow-md transition-all">
-                    <span class="animate-spin">🔄</span> KIRIM ULANG ABSEN/IZIN KE WHATSAPP
+                <button id="btn-resend-absen" class="w-full py-3.5 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl text-[10px] font-bold text-blue-600">
+                    🔄 KIRIM ULANG ABSEN/IZIN
                 </button>
-                <p class="text-[8px] text-slate-400 text-center mt-2">*Untuk mengirim ulang tanpa mengubah data absen asli</p>
             </div> 
 
             <!-- DUA TOMBOL -->
             <div class="grid grid-cols-2 gap-3 mb-6">
-                <button onclick="openModal('modal-izin')" id="btn-izin-trigger" class="py-4 bg-gradient-to-br from-white to-orange-50/50 border border-orange-100 rounded-2xl text-[10px] font-bold text-slate-600 flex flex-col items-center gap-1.5 hover:shadow-md transition-all btn-press">
-                    <span class="text-orange-500 text-xl">📝</span> 
-                    <span>IZIN / SAKIT</span>
+                <button onclick="openModal('modal-izin')" id="btn-izin-trigger" class="py-4 bg-gradient-to-br from-white to-orange-50/50 border border-orange-100 rounded-2xl text-[10px] font-bold">
+                    📝 IZIN / SAKIT
                 </button>
-                
-                <button onclick="openRekapBulanModal()" id="btn-rekap-absen" class="py-4 bg-gradient-to-br from-white to-indigo-50/50 border border-indigo-100 rounded-2xl text-[10px] font-bold text-slate-600 flex flex-col items-center gap-1.5 hover:shadow-md transition-all btn-press">
-                    <span class="text-indigo-500 text-xl">📆</span>
-                    <span>REKAP BULANAN</span>
+                <button onclick="openRekapBulanModal()" class="py-4 bg-gradient-to-br from-white to-indigo-50/50 border border-indigo-100 rounded-2xl text-[10px] font-bold">
+                    📆 REKAP BULANAN
                 </button>
             </div>
 
-            <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-3 ml-1 flex items-center gap-2">
-                <span class="w-1 h-1 bg-indigo-400 rounded-full"></span>
-                Riwayat Terakhir
-            </p>
+            <p class="text-[10px] font-extrabold text-slate-400 uppercase mb-3">Riwayat Terakhir</p>
             <div id="history-list" class="space-y-2"></div>
-
-            <!-- LOG AKTIVITAS -->
-            <div class="mt-6 pt-4 border-t-2 border-dashed border-indigo-200">
-                <div class="flex justify-between items-center mb-3">
-                    <p class="text-[9px] font-extrabold text-indigo-600 uppercase tracking-widest flex items-center gap-2">
-                        <span class="w-1.5 h-1.5 bg-indigo-600 rounded-full animate-pulse"></span>
-                        📋 LOG AKTIVITAS
-                    </p>
-                    <span id="log-month-indicator" class="text-[7px] bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-full font-bold"></span>
-                </div>
-                <div id="activity-log-list" class="space-y-2 max-h-40 overflow-y-auto hide-scroll pr-1">
-                    <div class="text-center py-3 bg-indigo-50/50 rounded-xl">
-                        <p class="text-[8px] text-indigo-400 italic">Memuat aktivitas...</p>
-                    </div>
-                </div>
-                <p class="text-[6px] text-indigo-300 text-right mt-1 italic">*Log otomatis terhapus setiap ganti bulan</p>
-            </div>
         </div>
 
         <!-- VIEW 2: TRANSAKSI -->
         <div id="view-transaction" class="relative z-10 px-8 pb-8 flex-grow overflow-y-auto hide-scroll hidden">
             
-            <div id="transaction-warning" class="bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 rounded-3xl p-4 mb-4 shadow-md">
-                <div class="flex items-center gap-3">
-                    <span class="text-yellow-600 text-xl animate-pulse">⚠️</span>
-                    <div>
-                        <p class="text-[10px] font-bold text-yellow-800 uppercase">Akses Terbatas</p>
-                        <p class="text-[8px] text-yellow-700">Anda harus absen HADIR dan berada dalam radius untuk transaksi</p>
-                    </div>
-                </div>
+            <div id="transaction-warning" class="bg-yellow-50 border border-yellow-200 rounded-3xl p-4 mb-4">
+                <p class="text-[10px] font-bold text-yellow-800">Akses Terbatas</p>
+                <p class="text-[8px] text-yellow-700">Harus absen HADIR dan dalam radius</p>
             </div>
 
             <!-- Reward Staf -->
-            <div class="bg-gradient-to-br from-white to-indigo-50/30 rounded-3xl p-5 mb-6 shadow-xl border border-indigo-100/50 overflow-hidden relative">
-                <div class="absolute top-0 right-0 p-3 opacity-10">
-                    <svg class="w-20 h-20 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                </div>
+            <div class="bg-gradient-to-br from-white to-indigo-50/30 rounded-3xl p-5 mb-6 shadow-xl border border-indigo-100/50">
                 <div class="flex justify-between items-center mb-2">
-                    <h3 class="text-[10px] font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1">
-                        <span>🏆</span> Bonus Bulan Ini
-                    </h3>
-                    <span id="reward-bonus" class="text-[10px] font-black text-green-600 bg-green-50 px-3 py-1 rounded-full border border-green-200">+ Rp 0</span>
+                    <h3 class="text-[10px] font-extrabold text-slate-800">🏆 Bonus Bulan Ini</h3>
+                    <span id="reward-bonus" class="text-[10px] font-black text-green-600 bg-green-50 px-3 py-1 rounded-full">+ Rp 0</span>
                 </div>
-                <p class="text-[8px] text-slate-400 mb-3 italic flex items-center gap-1">
-                    <span>🔄</span> *Akan di-reset otomatis setiap ganti bulan
-                </p>
-                
                 <div class="flex justify-between items-end mb-1">
                     <p id="reward-total-sales" class="text-sm font-bold text-slate-700">Rp 0</p>
-                    <p id="reward-next-target" class="text-[8px] font-bold text-indigo-500 uppercase bg-indigo-50 px-2 py-0.5 rounded-full">Target: Rp 10jt</p>
+                    <p id="reward-next-target" class="text-[8px] font-bold text-indigo-500">Target: Rp 10jt</p>
                 </div>
-
-                <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden mb-1 shadow-inner">
-                    <div id="reward-progress-bar" class="h-full gradient-gold transition-all duration-700" style="width: 0%"></div>
+                <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden mb-1">
+                    <div id="reward-progress-bar" class="h-full gradient-blue" style="width: 0%"></div>
                 </div>
-                <p id="reward-status-text" class="text-[8px] text-center font-medium text-slate-400 mt-2">Jual terus untuk capai bonus!</p>
             </div>
 
-            <!-- Tombol Laporan -->
-            <button onclick="openModal('modal-report')" id="btn-report-trigger" class="w-full mb-6 py-3.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-2xl flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transition-all btn-press">
-                <span class="text-lg">📊</span>
-                <span class="text-xs font-bold uppercase tracking-wider">Kirim Laporan Ke Admin</span>
-            </button>
-
             <!-- Form Input Barang -->
-            <div class="bg-gradient-to-br from-white to-slate-50 rounded-3xl p-5 mb-6 shadow-xl border border-slate-100 space-y-3">
-                <div class="flex justify-between items-center mb-1">
-                    <h3 class="text-xs font-extrabold text-slate-800 uppercase flex items-center gap-1">
-                        <span>🛒</span> Input Barang
-                    </h3>
-                    <span class="text-[9px] bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full font-bold uppercase shadow-sm">Kasir</span>
-                </div>
-                
-                <div class="relative">
-                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></span>
-                    <input type="text" id="tx-nama" placeholder="Nama Barang" class="w-full pl-8 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-100 text-xs outline-none" disabled>
-                </div>
-                
+            <div class="bg-gradient-to-br from-white to-slate-50 rounded-3xl p-5 mb-6 space-y-3">
+                <h3 class="text-xs font-extrabold text-slate-800">🛒 Input Barang</h3>
+                <input type="text" id="tx-nama" placeholder="Nama Barang" class="w-full p-3 rounded-xl bg-slate-50 border text-xs" disabled>
                 <div class="grid grid-cols-2 gap-2">
-                    <div class="relative">
-                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></span>
-                        <input type="text" id="tx-kode" placeholder="Kode Barang" class="w-full pl-8 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-100 text-xs outline-none" disabled>
-                    </div>
-                    <div class="relative">
-                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></span>
-                        <input type="number" id="tx-qty" placeholder="Qty" class="w-full pl-8 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-100 text-xs outline-none" disabled>
-                    </div>
+                    <input type="text" id="tx-kode" placeholder="Kode" class="w-full p-3 rounded-xl bg-slate-50 border text-xs" disabled>
+                    <input type="number" id="tx-qty" placeholder="Qty" class="w-full p-3 rounded-xl bg-slate-50 border text-xs" disabled>
                 </div>
-                
-                <div class="relative">
-                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">💰</span>
-                    <input type="number" id="tx-harga" placeholder="Harga Satuan (Rp)" class="w-full pl-8 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-100 text-xs outline-none" disabled>
-                </div>
-                
-                <button id="btn-add-cart" disabled class="w-full py-3.5 bg-slate-300 text-slate-500 rounded-xl font-bold text-xs shadow-md cursor-not-allowed flex items-center justify-center gap-2 uppercase tracking-wide">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
-                    Masukkan Keranjang
-                </button>
+                <input type="number" id="tx-harga" placeholder="Harga Satuan" class="w-full p-3 rounded-xl bg-slate-50 border text-xs" disabled>
+                <button id="btn-add-cart" disabled class="w-full py-3.5 bg-slate-300 text-slate-500 rounded-xl font-bold text-xs">Masukkan Keranjang</button>
             </div>
 
             <!-- List Keranjang -->
-            <div class="mb-4">
-                <div class="flex justify-between items-end mb-3 px-1">
-                    <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest flex items-center gap-1">
-                        <span>🛍️</span> Keranjang Aktif
-                    </p>
-                    <button onclick="clearCart()" id="btn-clear-cart" disabled class="text-[9px] font-bold text-red-300 uppercase cursor-not-allowed flex items-center gap-1">
-                        <span>🗑️</span> Batal
-                    </button>
-                </div>
-                
-                <div id="cart-list" class="space-y-2 mb-4 min-h-[40px]">
-                    <div class="text-center py-8 border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
-                        <p class="text-[10px] text-slate-400 font-medium italic">Belum ada barang</p>
-                    </div>
-                </div>
+            <div id="cart-list" class="space-y-2 mb-4"></div>
 
-                <!-- Total & Checkout -->
-                <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl p-5 text-white shadow-2xl mb-8">
-                    <div class="flex justify-between items-center mb-4">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-1">
-                            <span>💳</span> Total Bayar
-                        </span>
-                        <span id="cart-total" class="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-indigo-200">Rp 0</span>
-                    </div>
-                    <button id="btn-checkout" disabled class="w-full py-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-2xl font-black text-sm shadow-lg hover:shadow-xl transition-all btn-press uppercase tracking-wider">
-                        Selesaikan Transaksi
-                    </button>
+            <!-- Total & Checkout -->
+            <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl p-5 text-white mb-8">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-[10px] font-bold">Total Bayar</span>
+                    <span id="cart-total" class="text-xl font-black">Rp 0</span>
                 </div>
-
-                <!-- Riwayat Transaksi -->
-                <div class="flex justify-between items-center mb-3 px-1">
-                    <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest flex items-center gap-1">
-                        <span>📜</span> Riwayat Transaksi
-                    </p>
-                    <button onclick="openSecurityModal('clear_all')" id="btn-delete-all" class="text-[9px] font-bold text-red-300 uppercase flex items-center gap-1 cursor-not-allowed">
-                        <span>⚠️</span> Hapus Semua
-                    </button>
-                </div>
-                <div id="tx-history-list" class="space-y-3 pb-4"></div>
+                <button id="btn-checkout" disabled class="w-full py-4 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl font-bold text-sm">Selesaikan Transaksi</button>
             </div>
+
+            <!-- Riwayat Transaksi -->
+            <div id="tx-history-list" class="space-y-3 pb-4"></div>
         </div>
     </div>
 
     <!-- MODAL IZIN -->
-    <div id="modal-izin" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-6 z-[70]">
-        <div class="bg-white/95 backdrop-blur-sm rounded-[2.5rem] p-8 w-full max-w-sm shadow-2xl text-center border border-white/20">
-            <div class="w-16 h-16 mx-auto mb-4 bg-orange-100 rounded-2xl flex items-center justify-center">
-                <span class="text-3xl">📝</span>
-            </div>
-            <h3 class="text-xl font-bold text-slate-800 mb-4">Form Izin / Sakit</h3>
-            <select id="izin-type" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl mb-3 text-sm focus:border-orange-300 focus:ring-2 focus:ring-orange-200 outline-none">
+    <div id="modal-izin" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-6 z-50">
+        <div class="bg-white/95 rounded-[2.5rem] p-8 w-full max-w-sm">
+            <h3 class="text-xl font-bold text-center mb-4">Form Izin / Sakit</h3>
+            <select id="izin-type" class="w-full p-4 bg-slate-50 rounded-2xl mb-3">
                 <option>Sakit</option>
                 <option>Izin Keperluan</option>
                 <option>Setengah Hari</option>
             </select>
-            <textarea id="izin-reason" placeholder="Berikan alasan singkat..." class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl h-24 mb-4 text-sm resize-none outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-200"></textarea>
+            <textarea id="izin-reason" placeholder="Alasan..." class="w-full p-4 bg-slate-50 rounded-2xl h-24 mb-4"></textarea>
             <div class="flex gap-2">
-                <button onclick="closeModal('modal-izin')" class="flex-1 py-3 text-slate-400 font-bold text-xs uppercase hover:text-slate-600 transition-colors">Batal</button>
-                <button id="btn-submit-izin" class="flex-1 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-bold text-xs uppercase hover:shadow-lg transition-all btn-press">Kirim Ke Admin</button>
+                <button onclick="closeModal('modal-izin')" class="flex-1 py-3 text-slate-400 font-bold">Batal</button>
+                <button id="btn-submit-izin" class="flex-1 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-bold">Kirim</button>
             </div>
         </div>
     </div>
 
     <!-- Modal Menu -->
-    <div id="modal-menu" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-6 z-[60]">
-        <div class="bg-white/95 backdrop-blur-sm rounded-[2.5rem] p-8 w-full max-w-sm shadow-2xl border border-white/20">
+    <div id="modal-menu" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-6 z-50">
+        <div class="bg-white/95 rounded-[2.5rem] p-8 w-full max-w-sm">
             <div class="text-center mb-6">
-                <div class="w-16 h-16 mx-auto mb-2 bg-indigo-100 rounded-2xl flex items-center justify-center">
-                    <span class="text-3xl">⚙️</span>
-                </div>
                 <h3 class="text-xl font-bold text-slate-800">Menu</h3>
-                <p class="text-[10px] text-slate-500">Pilih opsi yang diinginkan</p>
             </div>
             
-            <!-- STATISTIK DATA -->
-            <div class="mb-4 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl">
-                <p class="text-[9px] font-bold text-indigo-700 mb-2 flex items-center gap-1">
-                    <span>📊</span> STATISTIK DATA
-                </p>
+            <!-- Status Sync -->
+            <div class="mb-4 p-3 bg-blue-50 rounded-xl">
+                <p class="text-[9px] font-bold text-blue-700 mb-2">📊 STATUS SYNC</p>
                 <div class="space-y-1 text-[8px]">
                     <div class="flex justify-between">
-                        <span>Transaksi:</span>
-                        <span id="stat-tx" class="font-bold">0</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span>Absensi:</span>
-                        <span id="stat-absen" class="font-bold">0</span>
-                    </div>
-                    <div class="flex justify-between border-t border-indigo-200 pt-1 mt-1">
-                        <span>Total:</span>
-                        <span id="stat-total" class="font-bold text-indigo-600">0</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- STATUS SYNC PINTAR -->
-            <div class="mb-4 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl">
-                <p class="text-[9px] font-bold text-indigo-700 mb-2 flex items-center gap-1">
-                    <span>🤖</span> STATUS SYNC PINTAR
-                </p>
-                <div class="space-y-1 text-[8px]">
-                    <div class="flex justify-between items-center">
-                        <span>Mode:</span>
-                        <span id="sync-mode" class="font-bold text-green-600">Adaptif</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span>Aktivitas user:</span>
-                        <span id="user-activity" class="font-bold text-green-600">Santai</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span>Jam sibuk:</span>
-                        <span id="rush-hour-status" class="font-bold text-green-600">Tidak</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span>Next sync:</span>
-                        <span id="next-sync-time" class="font-bold">-</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- STATUS KONEKSI CLOUD -->
-            <div class="mb-4 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl">
-                <p class="text-[9px] font-bold text-blue-700 mb-2 flex items-center gap-1">
-                    <span>☁️</span> STATUS CLOUD
-                </p>
-                <div class="space-y-1 text-[8px]">
-                    <div class="flex justify-between items-center">
-                        <span>Koneksi:</span>
-                        <span id="cloud-connection-status" class="font-bold text-green-600">● Online</span>
+                        <span>Data pending sync:</span>
+                        <span id="menu-pending-count" class="font-bold text-orange-600">0</span>
                     </div>
                     <div class="flex justify-between">
                         <span>Terakhir sync:</span>
-                        <span id="cloud-last-sync" class="font-bold">-</span>
+                        <span id="menu-last-sync" class="font-bold">-</span>
                     </div>
                     <div class="flex justify-between">
-                        <span>Antrian sync:</span>
-                        <span id="sync-queue" class="font-bold text-orange-600">0</span>
+                        <span>Auto sync jam:</span>
+                        <span class="font-bold text-green-600">05:50 WIB</span>
                     </div>
+                </div>
+                <!-- Progress Bar -->
+                <div id="menu-sync-progress" class="sync-progress hidden">
+                    <div id="menu-sync-progress-bar" class="sync-progress-bar"></div>
                 </div>
             </div>
             
-            <div class="space-y-3 mb-6 max-h-60 overflow-y-auto hide-scroll">
-                <!-- TOMBOL TRIAL -->
-                <button onclick="startTrialMode()" class="w-full p-4 bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-2xl flex items-center justify-between group hover:shadow-md transition-all">
+            <div class="space-y-3 mb-6">
+                <!-- TOMBOL SYNC MANUAL -->
+                <button onclick="manualSync()" id="btn-manual-sync" class="w-full p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl flex items-center justify-between">
                     <div class="flex items-center gap-3">
-                        <span class="text-orange-600 text-xl">🔄</span>
+                        <span class="text-green-600 text-xl">🔄</span>
                         <div class="text-left">
-                            <p class="text-xs font-bold text-orange-700 uppercase">Mode Trial</p>
-                            <p class="text-[8px] text-orange-600">Coba aplikasi (data sementara)</p>
+                            <p class="text-xs font-bold text-green-700">Sync Manual Sekarang</p>
+                            <p class="text-[8px] text-green-600">Kirim semua data pending</p>
                         </div>
                     </div>
-                    <span class="text-orange-400 group-hover:translate-x-1 transition-transform">→</span>
-                </button>
-                
-                <!-- TOMBOL SYNC PINTAR -->
-                <button onclick="syncNowSmart()" class="w-full p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl flex items-center justify-between group hover:shadow-md transition-all">
-                    <div class="flex items-center gap-3">
-                        <span class="text-blue-600 text-xl">⚡</span>
-                        <div class="text-left">
-                            <p class="text-xs font-bold text-blue-700 uppercase">Sync Cerdas</p>
-                            <p class="text-[8px] text-blue-600">Prioritas: Tidak ganggu aktivitas</p>
-                        </div>
-                    </div>
-                    <span class="text-blue-400 group-hover:translate-x-1 transition-transform">→</span>
-                </button>
-                
-                <!-- TOMBOL RESTORE DARI GAS -->
-                <button onclick="restoreFromGAS()" class="w-full p-4 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-2xl flex items-center justify-between group hover:shadow-md transition-all">
-                    <div class="flex items-center gap-3">
-                        <span class="text-purple-600 text-xl">⬇️</span>
-                        <div class="text-left">
-                            <p class="text-xs font-bold text-purple-700 uppercase">Ambil dari Cloud</p>
-                            <p class="text-[8px] text-purple-600">Restore data dari Google Sheets</p>
-                        </div>
-                    </div>
-                    <span class="text-purple-400 group-hover:translate-x-1 transition-transform">→</span>
+                    <span class="text-green-400">→</span>
                 </button>
                 
                 <!-- TOMBOL BACKUP VIA WA -->
-                <button onclick="backupViaWA()" class="w-full p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl flex items-center justify-between group hover:shadow-md transition-all">
+                <button onclick="backupViaWA()" class="w-full p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl flex items-center justify-between">
                     <div class="flex items-center gap-3">
-                        <span class="text-green-600 text-xl">📤</span>
+                        <span class="text-blue-600 text-xl">📤</span>
                         <div class="text-left">
-                            <p class="text-xs font-bold text-green-700 uppercase">Backup via WA</p>
-                            <p class="text-[8px] text-green-600">Kirim kode pendek (Base64)</p>
+                            <p class="text-xs font-bold text-blue-700">Backup via WA</p>
+                            <p class="text-[8px] text-blue-600">Kirim kode backup</p>
                         </div>
                     </div>
-                    <span class="text-green-400 group-hover:translate-x-1 transition-transform">→</span>
+                    <span class="text-blue-400">→</span>
                 </button>
                 
                 <!-- TOMBOL RESTORE DARI WA -->
-                <button onclick="restoreFromWA()" class="w-full p-4 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-2xl flex items-center justify-between group hover:shadow-md transition-all">
+                <button onclick="restoreFromWA()" class="w-full p-4 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-2xl flex items-center justify-between">
                     <div class="flex items-center gap-3">
                         <span class="text-purple-600 text-xl">🔄</span>
                         <div class="text-left">
-                            <p class="text-xs font-bold text-purple-700 uppercase">Restore dari WA</p>
-                            <p class="text-[8px] text-purple-600">Tempel kode backup</p>
+                            <p class="text-xs font-bold text-purple-700">Restore dari WA</p>
+                            <p class="text-[8px] text-purple-600">Pulihkan data</p>
                         </div>
                     </div>
-                    <span class="text-purple-400 group-hover:translate-x-1 transition-transform">→</span>
-                </button>
-
-                <!-- Tombol Backup & Restore Lokal -->
-                <button onclick="openBackupModalFromMenu()" class="w-full p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl flex items-center justify-between group hover:shadow-md transition-all">
-                    <div class="flex items-center gap-3">
-                        <span class="text-blue-600 text-xl">💾</span>
-                        <div class="text-left">
-                            <p class="text-xs font-bold text-blue-700 uppercase">Backup & Restore Lokal</p>
-                            <p class="text-[8px] text-blue-600">Cadangkan atau pulihkan data</p>
-                        </div>
-                    </div>
-                    <span class="text-blue-400 group-hover:translate-x-1 transition-transform">→</span>
-                </button>
-
-                <!-- Tombol Reset Data -->
-                <button onclick="openResetModalFromMenu()" class="w-full p-4 bg-gradient-to-r from-red-50 to-rose-50 border border-red-100 rounded-2xl flex items-center justify-between group hover:shadow-md transition-all">
-                    <div class="flex items-center gap-3">
-                        <span class="text-red-600 text-xl">⚠️</span>
-                        <div class="text-left">
-                            <p class="text-xs font-bold text-red-700 uppercase">Reset Data</p>
-                            <p class="text-[8px] text-red-600">Hapus semua data</p>
-                        </div>
-                    </div>
-                    <span class="text-red-400 group-hover:translate-x-1 transition-transform">→</span>
+                    <span class="text-purple-400">→</span>
                 </button>
 
                 <!-- Tombol Logout -->
-                <button onclick="openLogoutModal()" class="w-full p-4 bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-100 rounded-2xl flex items-center justify-between group hover:shadow-md transition-all">
+                <button onclick="logout()" class="w-full p-4 bg-gradient-to-r from-red-50 to-rose-50 border border-red-100 rounded-2xl flex items-center justify-between">
                     <div class="flex items-center gap-3">
-                        <span class="text-indigo-600 text-xl">👋</span>
+                        <span class="text-red-600 text-xl">👋</span>
                         <div class="text-left">
-                            <p class="text-xs font-bold text-indigo-700 uppercase">Keluar Akun</p>
-                            <p class="text-[8px] text-indigo-600">Kembali ke registrasi</p>
+                            <p class="text-xs font-bold text-red-700">Keluar Akun</p>
+                            <p class="text-[8px] text-red-600">Kembali ke registrasi</p>
                         </div>
                     </div>
-                    <span class="text-indigo-400 group-hover:translate-x-1 transition-transform">→</span>
+                    <span class="text-red-400">→</span>
                 </button>
             </div>
             
-            <button onclick="closeModal('modal-menu')" class="w-full py-3 text-slate-400 font-bold text-xs uppercase hover:text-slate-600 transition-colors">Tutup</button>
+            <button onclick="closeModal('modal-menu')" class="w-full py-3 text-slate-400 font-bold text-xs">Tutup</button>
         </div>
     </div>
 
-    <!-- Modal Backup & Import -->
-    <div id="modal-backup" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-6 z-[65]">
-        <div class="bg-white/95 backdrop-blur-sm rounded-[2.5rem] p-8 w-full max-w-sm shadow-2xl border border-white/20">
-            <div class="text-center mb-6">
-                <div class="w-16 h-16 mx-auto mb-2 bg-green-100 rounded-2xl flex items-center justify-center">
-                    <span class="text-3xl">💾</span>
+    <!-- Modal Edit Data -->
+    <div id="modal-edit" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-6 z-50">
+        <div class="bg-white/95 rounded-[2.5rem] p-8 w-full max-w-sm">
+            <h3 class="text-xl font-bold text-center mb-6">Edit Profil</h3>
+            <div class="space-y-4">
+                <div class="p-3 bg-slate-50 rounded-xl">
+                    <p class="text-[8px] text-slate-400">Nama</p>
+                    <p class="text-sm font-bold text-slate-800" id="edit-name-display"></p>
                 </div>
-                <h3 class="text-xl font-bold text-slate-800">Backup & Restore</h3>
-                <p class="text-[10px] text-slate-500">Cadangkan atau pulihkan data Anda melalui clipboard.</p>
-            </div>
-            
-            <div class="space-y-3 mb-6">
-                <button onclick="exportData()" class="w-full p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-100 rounded-2xl flex items-center justify-between group hover:shadow-md transition-all">
-                    <div>
-                        <p class="text-xs font-bold text-green-700 uppercase">Backup Ke Clipboard</p>
-                        <p class="text-[8px] text-green-600 font-medium">Simpan kode untuk ganti HP</p>
-                    </div>
-                    <span class="text-green-400 group-hover:scale-110 transition-transform">💾</span>
-                </button>
-
-                <div class="p-4 bg-slate-50 border border-slate-100 rounded-2xl">
-                    <p class="text-[9px] font-bold text-slate-500 uppercase mb-2 flex items-center gap-1">
-                        <span>📋</span> Import Dari Clipboard
-                    </p>
-                    <textarea id="import-json" placeholder="Tempel kode JSON di sini..." class="w-full p-3 bg-white border border-slate-100 rounded-xl h-20 text-[10px] mb-2 resize-none outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200"></textarea>
-                    <button onclick="importData()" class="w-full py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-xl text-[10px] font-bold uppercase shadow-sm hover:shadow-md transition-all btn-press">Pulihkan Data</button>
-                </div>
-            </div>
-            
-            <button onclick="closeModal('modal-backup'); openMenuModal()" class="w-full py-3 text-slate-400 font-bold text-xs uppercase hover:text-slate-600 transition-colors">Kembali ke Menu</button>
-        </div>
-    </div>
-
-    <!-- Modal Report -->
-    <div id="modal-report" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-6 z-50">
-        <div class="bg-white/95 backdrop-blur-sm rounded-[2.5rem] p-8 w-full max-w-sm shadow-2xl border border-white/20">
-            <div class="text-center mb-6">
-                <div class="w-16 h-16 mx-auto mb-2 bg-indigo-100 rounded-2xl flex items-center justify-center">
-                    <span class="text-3xl">📊</span>
-                </div>
-                <h3 class="text-xl font-bold text-slate-800">Laporan Penjualan</h3>
-                <p class="text-[10px] text-slate-500">Pilih periode laporan</p>
-            </div>
-            <div class="space-y-3 mb-6">
-                <button onclick="sendReport('today')" id="report-today" class="w-full p-4 bg-gradient-to-r from-indigo-50 to-indigo-100/50 border border-indigo-100 rounded-2xl flex items-center justify-between hover:shadow-md transition-all">
-                    <span class="text-xs font-bold text-indigo-700 uppercase flex items-center gap-2">
-                        <span>📅</span> Hari Ini
-                    </span>
-                    <span class="text-indigo-400">→</span>
-                </button>
-                <button onclick="sendReport('month')" id="report-month" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-between hover:shadow-md transition-all">
-                    <span class="text-xs font-bold text-slate-700 uppercase flex items-center gap-2">
-                        <span>📆</span> Bulan Ini
-                    </span>
-                    <span>→</span>
-                </button>
-                <div class="p-4 bg-slate-50 border border-slate-100 rounded-2xl">
-                    <p class="text-[9px] font-bold text-slate-500 mb-2 flex items-center gap-1">
-                        <span>📅</span> Custom Range
-                    </p>
-                    <div class="grid grid-cols-2 gap-2 mb-3">
-                        <input type="date" id="report-start" class="w-full p-2 bg-white rounded-lg text-[10px] outline-none border border-slate-100 focus:border-indigo-300" disabled>
-                        <input type="date" id="report-end" class="w-full p-2 bg-white rounded-lg text-[10px] outline-none border border-slate-100 focus:border-indigo-300" disabled>
-                    </div>
-                    <button onclick="sendReport('custom')" id="report-custom" class="w-full py-2 bg-slate-300 text-white rounded-xl text-[10px] font-bold uppercase cursor-not-allowed" disabled>Kirim Custom</button>
-                </div>
-            </div>
-            <button onclick="closeModal('modal-report')" class="w-full py-3 text-slate-400 font-bold text-xs uppercase hover:text-slate-600 transition-colors">Batal</button>
-        </div>
-    </div>
-
-    <!-- Modal Security -->
-    <div id="modal-security" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-6 z-50">
-        <div class="bg-white/95 backdrop-blur-sm rounded-[2.5rem] p-8 w-full max-w-sm shadow-2xl text-center border border-white/20">
-            <div class="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-2xl flex items-center justify-center">
-                <span class="text-3xl">🔒</span>
-            </div>
-            <h3 class="text-xl font-bold text-slate-800 mb-2">VERIFIKASI ADMIN</h3>
-            <p class="text-[10px] text-red-600 mb-2 uppercase font-bold">HUBUNGI ADMIN UNTUK MENGHAPUS INI !!!</p>
-            <p class="text-[8px] text-slate-500 mb-6">Masukkan sandi admin untuk melanjutkan</p>
-            <input type="password" id="security-pin" placeholder="Sandi Admin" class="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-slate-200 text-center text-sm font-bold outline-none mb-6 focus:border-red-300 focus:ring-2 focus:ring-red-200" autocomplete="off" readonly onfocus="this.removeAttribute('readonly')">
-            <div class="flex gap-2">
-                <button onclick="closeModal('modal-security')" class="flex-1 py-3 text-slate-400 font-bold text-xs uppercase hover:text-slate-600 transition-colors">Batal</button>
-                <button id="btn-verify-delete" class="flex-1 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl font-bold text-xs uppercase hover:shadow-lg transition-all btn-press">Konfirmasi</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Reset -->
-    <div id="modal-reset" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-6 z-[80]">
-        <div class="bg-white/95 backdrop-blur-sm rounded-[2.5rem] p-8 w-full max-w-sm shadow-2xl text-center border border-white/20">
-            <div class="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-red-100 to-rose-100 rounded-3xl flex items-center justify-center">
-                <span class="text-4xl text-red-600 animate-pulse">⚠️</span>
-            </div>
-            <h3 class="text-xl font-bold text-slate-800 mb-2">Reset Semua Data?</h3>
-            <p class="text-[10px] text-red-600 font-bold mb-2 uppercase">HUBUNGI ADMIN UNTUK RESET INI !!!</p>
-            <p class="text-[8px] text-slate-500 mb-4">Tindakan ini akan menghapus SEMUA data aplikasi</p>
-            <ul class="text-[9px] text-left bg-gradient-to-r from-red-50 to-rose-50 p-4 rounded-xl mb-4 space-y-2 border border-red-100">
-                <li class="flex items-center gap-2"><span class="text-red-500">•</span> Seluruh data absensi</li>
-                <li class="flex items-center gap-2"><span class="text-red-500">•</span> Seluruh data transaksi</li>
-                <li class="flex items-center gap-2"><span class="text-red-500">•</span> Riwayat izin/sakit</li>
-                <li class="flex items-center gap-2"><span class="text-red-500">•</span> Bonus dan penjualan</li>
-                <li class="flex items-center gap-2"><span class="text-red-500">•</span> Log aktivitas bulan ini</li>
-            </ul>
-            <p class="text-[10px] font-bold text-red-600 mb-4 bg-red-50 p-2 rounded-lg">Hanya Admin yang tahu sandi!</p>
-            <input type="password" id="reset-pin" placeholder="Sandi Admin" class="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-slate-200 text-center text-sm font-bold outline-none mb-4 focus:border-red-300 focus:ring-2 focus:ring-red-200" autocomplete="off" readonly onfocus="this.removeAttribute('readonly')">
-            <div class="flex gap-2">
-                <button onclick="closeModal('modal-reset')" class="flex-1 py-3 text-slate-400 font-bold text-xs uppercase hover:text-slate-600 transition-colors">Batal</button>
-                <button id="btn-confirm-reset" class="flex-1 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl font-bold text-xs uppercase hover:shadow-lg transition-all btn-press">Reset Data</button>
+                <input type="text" id="edit-domicile" placeholder="Domisili" class="w-full p-3 bg-slate-50 rounded-xl text-sm">
+                <input type="text" id="edit-wa" placeholder="Nomor WhatsApp" class="w-full p-3 bg-slate-50 rounded-xl text-sm">
+                <button onclick="saveEditProfile()" class="w-full py-4 gradient-blue text-white rounded-2xl font-bold">SIMPAN</button>
+                <button onclick="closeModal('modal-edit')" class="w-full py-3 text-slate-400 font-bold text-xs">Batal</button>
             </div>
         </div>
     </div>
 
     <!-- MODAL REKAP BULANAN -->
-    <div id="modal-rekap-bulan" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-6 z-[90]">
-        <div class="bg-white/95 backdrop-blur-sm rounded-[2.5rem] p-8 w-full max-w-sm shadow-2xl border border-white/20">
-            <div class="text-center mb-6">
-                <div class="w-16 h-16 mx-auto mb-2 bg-indigo-100 rounded-2xl flex items-center justify-center">
-                    <span class="text-3xl">📆</span>
-                </div>
-                <h3 class="text-xl font-bold text-slate-800">Rekap Absensi Bulanan</h3>
-                <p class="text-[10px] text-slate-500">Pilih bulan untuk melihat rekap</p>
-            </div>
-            
+    <div id="modal-rekap-bulan" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-6 z-50">
+        <div class="bg-white/95 rounded-[2.5rem] p-8 w-full max-w-sm">
+            <h3 class="text-xl font-bold text-center mb-6">Rekap Absensi Bulanan</h3>
             <div class="space-y-4">
-                <div>
-                    <label class="text-[9px] font-bold text-indigo-600 uppercase mb-1 block">📅 Pilih Bulan</label>
-                    <select id="rekap-bulan" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-indigo-300">
-                        <option value="0">Januari</option><option value="1">Februari</option><option value="2">Maret</option><option value="3">April</option><option value="4">Mei</option><option value="5">Juni</option><option value="6">Juli</option><option value="7">Agustus</option><option value="8">September</option><option value="9">Oktober</option><option value="10">November</option><option value="11">Desember</option>
-                    </select>
-                </div>
-                
-                <div>
-                    <label class="text-[9px] font-bold text-indigo-600 uppercase mb-1 block">📅 Pilih Tahun</label>
-                    <select id="rekap-tahun" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-indigo-300"></select>
-                </div>
-                
-                <button onclick="kirimRekapBulanan()" class="w-full py-4 gradient-blue text-white rounded-2xl font-bold shadow-lg mt-4 hover:shadow-xl transition-all btn-press">
-                    KIRIM REKAP VIA WHATSAPP
-                </button>
-                
-                <button onclick="closeModal('modal-rekap-bulan')" class="w-full py-3 text-slate-400 font-bold text-xs uppercase hover:text-slate-600 transition-colors">
-                    Batal
-                </button>
+                <select id="rekap-bulan" class="w-full p-3 bg-slate-50 rounded-xl">
+                    <option value="0">Januari</option><option value="1">Februari</option><option value="2">Maret</option><option value="3">April</option><option value="4">Mei</option><option value="5">Juni</option><option value="6">Juli</option><option value="7">Agustus</option><option value="8">September</option><option value="9">Oktober</option><option value="10">November</option><option value="11">Desember</option>
+                </select>
+                <select id="rekap-tahun" class="w-full p-3 bg-slate-50 rounded-xl"></select>
+                <button onclick="kirimRekapBulanan()" class="w-full py-4 gradient-blue text-white rounded-2xl font-bold">KIRIM VIA WA</button>
+                <button onclick="closeModal('modal-rekap-bulan')" class="w-full py-3 text-slate-400 font-bold text-xs">Batal</button>
             </div>
         </div>
     </div>
 
-    <!-- Modal Tutorial -->
-    <div id="modal-tutorial" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-6 z-[95]">
-        <div class="bg-white/95 backdrop-blur-sm rounded-[2.5rem] p-8 w-full max-w-sm shadow-2xl max-h-[80vh] overflow-y-auto hide-scroll border border-white/20">
-            <div class="text-center mb-4">
-                <div class="w-20 h-20 mx-auto mb-3 bg-gradient-to-br from-orange-100 to-amber-100 rounded-3xl flex items-center justify-center">
-                    <span class="text-4xl">📚</span>
-                </div>
-                <h3 class="text-xl font-bold text-slate-800">Mode Trial</h3>
-                <p class="text-[10px] text-slate-500">Pelajari cara menggunakan aplikasi</p>
-            </div>
-            
-            <div class="space-y-3 text-[10px]">
-                <div class="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
-                    <p class="font-bold text-blue-700 mb-1">📌 Fitur Trial:</p>
-                    <ul class="list-disc pl-4 text-blue-600">
-                        <li>Data hanya disimpan sementara</li>
-                        <li>Refresh halaman akan menghapus data</li>
-                        <li>Cocok untuk pembelajaran</li>
-                    </ul>
-                </div>
-                
-                <div class="p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-100">
-                    <p class="font-bold text-green-700 mb-1">✅ Langkah-langkah:</p>
-                    <ol class="list-decimal pl-4 text-green-600">
-                        <li>Isi nama dan Domisili</li>
-                        <li>Klik "DAFTAR / LOGIN"</li>
-                        <li>Aktifkan GPS untuk absen</li>
-                        <li>Coba absen masuk (dalam radius 100m)</li>
-                        <li>Coba fitur izin/sakit</li>
-                        <li>Coba transaksi penjualan</li>
-                        <li>Kirim laporan ke WhatsApp</li>
-                    </ol>
-                </div>
-            </div>
-            
-            <button onclick="closeModal('modal-tutorial')" class="w-full mt-4 py-3 gradient-blue text-white rounded-xl font-bold text-xs uppercase hover:shadow-lg transition-all btn-press">
-                Mulai Trial
-            </button>
-        </div>
-    </div>
-
-    <!-- Modal Logout -->
-    <div id="modal-logout" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-6 z-[85]">
-        <div class="bg-white/95 backdrop-blur-sm rounded-[2.5rem] p-8 w-full max-w-sm shadow-2xl text-center border border-white/20">
-            <div class="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-indigo-100 to-blue-100 rounded-3xl flex items-center justify-center">
-                <span class="text-4xl">👋</span>
-            </div>
-            <h3 class="text-xl font-bold text-slate-800 mb-2">Keluar Akun?</h3>
-            <p class="text-[10px] text-slate-500 mb-4">Anda akan kembali ke halaman registrasi</p>
-            <p class="text-[8px] bg-indigo-50 text-indigo-600 mb-4 font-bold p-2 rounded-lg border border-indigo-100">Nama dan Domisili akan tetap sama seperti sebelumnya</p>
-            <div class="flex gap-2">
-                <button onclick="closeModal('modal-logout')" class="flex-1 py-3 text-slate-400 font-bold text-xs uppercase hover:text-slate-600 transition-colors">Batal</button>
-                <button onclick="logout()" class="flex-1 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-xl font-bold text-xs uppercase hover:shadow-lg transition-all btn-press">Keluar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Edit Data -->
-    <div id="modal-edit" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-6 z-[75]">
-        <div class="bg-white/95 backdrop-blur-sm rounded-[2.5rem] p-8 w-full max-w-sm shadow-2xl border border-white/20">
-            <div class="text-center mb-6">
-                <div class="w-16 h-16 mx-auto mb-2 bg-indigo-100 rounded-2xl flex items-center justify-center">
-                    <span class="text-3xl">✏️</span>
-                </div>
-                <h3 class="text-xl font-bold text-slate-800">Edit Profil</h3>
-                <p class="text-[10px] text-slate-500">Ubah data yang bisa diedit</p>
-            </div>
-            
-            <div class="space-y-4">
-                <div class="p-3 bg-slate-50 rounded-xl">
-                    <p class="text-[8px] text-slate-400 mb-1">Nama (Tidak bisa diubah)</p>
-                    <p class="text-sm font-bold text-slate-800" id="edit-name-display"></p>
-                </div>
-                
-                <div>
-                    <label class="text-[9px] font-bold text-indigo-600 mb-1 block">📍 Domisili</label>
-                    <input type="text" id="edit-domicile" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-indigo-300">
-                </div>
-                
-                <div>
-                    <label class="text-[9px] font-bold text-indigo-600 mb-1 block">📱 Nomor WhatsApp</label>
-                    <input type="text" id="edit-wa" placeholder="628xxx" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-indigo-300">
-                    <p class="text-[7px] text-slate-400 mt-1">Gunakan format 628xxx (tanpa + dan spasi)</p>
-                </div>
-                
-                <button onclick="saveEditProfile()" class="w-full py-4 gradient-blue text-white rounded-2xl font-bold shadow-lg hover:shadow-xl transition-all btn-press">
-                    SIMPAN PERUBAHAN
-                </button>
-                
-                <button onclick="closeModal('modal-edit')" class="w-full py-3 text-slate-400 font-bold text-xs uppercase hover:text-slate-600 transition-colors">
-                    Batal
-                </button>
-            </div>
-        </div>
-    </div>
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 px-6 py-3 bg-slate-800/90 text-white text-[10px] font-bold rounded-full shadow-2xl opacity-0 transition-all z-[100]">Berhasil</div>
 
     <script>
         // ==================== KONFIGURASI ====================
@@ -935,557 +426,49 @@
         const TARGET_LOC = { lat: -6.767845, lng: 106.801203 };
         const RADIUS = 100;
         const SECURITY_PIN = "rockyhijab123";
-        const RESET_HOUR = 6;
-        
-        // ============= KONFIGURASI GOOGLE APPS SCRIPT =============
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbxNBqct6JE_rqOgM98y0BfQTjqC2t-Z_lY7DpPx3xaakY73MSFZKNUEiuebft_hQ8bO/exec';
-        
-        // ============= KONFIGURASI SYNC PINTAR =============
-        const SYNC_SMART_CONFIG = {
-            DETECT_TYPING: true,
-            DETECT_CLICKING: true,
-            DETECT_SCROLLING: true,
-            COOLDOWN_AFTER_ACTIVITY: 5000,
-            MAX_DELAY_SYNC: 300000,
-            PRIORITAS_TRANSAKSI: true,
-            DELAY_IF_CART_NOT_EMPTY: true,
-            RUSH_HOURS: [
-                { start: 10, end: 12 },
-                { start: 14, end: 16 }
-            ],
-            ADAPTIVE_SYNC: true,
-            MAX_SYNC_PER_HOUR: 6,
-            DELAY_BETWEEN_ITEMS: 300,
-            MAX_RETRIES: 3,
-            SHOW_PROGRESS: true
-        };
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbxPcPx9B3Hixy6dkcXXgExcWtsOoGXNEnIY4towVLlTUErX807zYjtfwcR1PbV2AKMm/exec';
 
         // ==================== VARIABEL GLOBAL ====================
         let cart = [];
         let userData = { name: "", domicile: "", wa: "" };
         let userPos = { lat: 0, lng: 0 };
-        let pendingDeleteAction = null;
         let lastAbsenData = null;
-        let isTrialMode = false;
-        let lastSyncTime = null;
-        let isOnline = true;
         let syncQueue = [];
         let isSyncing = false;
-        let shouldCancelSync = false;
-        let smartSyncTimeout = null;
-        let toastTimeout = null;
-        let pendingToasts = [];
+        let lastSyncTime = null;
 
-        // IndexedDB Configuration
+        // IndexedDB
         const DB_NAME = 'RockyHijabDB';
-        const DB_VERSION = 2;
+        const DB_VERSION = 1;
         let db = null;
         
         const STORES = {
             ATTENDANCE: 'attendance',
             TRANSACTIONS: 'transactions',
-            ACTIVITY_LOGS: 'activityLogs',
-            USER_DATA: 'userData',
-            TRIAL_USER_DATA: 'trialUserData',
-            SYNC_QUEUE: 'syncQueue'
+            USER_DATA: 'userData'
         };
 
-        // ==================== ACTIVITY DETECTOR ====================
-        class ActivityDetector {
-            constructor() {
-                this.lastActivity = Date.now();
-                this.lastTransactionActivity = 0;
-                this.activityCount = 0;
-                this.isActive = false;
-                this.rushHour = false;
-                this.hasCartItems = false;
-                this.syncCountThisHour = 0;
-                this.setupListeners();
-                this.checkRushHour();
-                this.resetSyncCount();
-            }
-            
-            setupListeners() {
-                const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click'];
-                events.forEach(event => {
-                    document.addEventListener(event, () => this.onActivity(), { passive: true });
-                });
-                
-                const txInputs = ['tx-nama', 'tx-kode', 'tx-qty', 'tx-harga'];
-                txInputs.forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el) {
-                        el.addEventListener('focus', () => this.onTransactionActivity());
-                        el.addEventListener('input', () => this.onTransactionActivity());
-                    }
-                });
-                
-                setInterval(() => this.checkCart(), 1000);
-            }
-            
-            onActivity() {
-                this.lastActivity = Date.now();
-                this.activityCount++;
-                this.isActive = true;
-                
-                clearTimeout(this.activeTimeout);
-                this.activeTimeout = setTimeout(() => {
-                    this.isActive = false;
-                }, 3000);
-            }
-            
-            onTransactionActivity() {
-                this.lastTransactionActivity = Date.now();
-            }
-            
-            checkCart() {
-                this.hasCartItems = cart.length > 0;
-            }
-            
-            checkRushHour() {
-                const now = new Date();
-                const hour = now.getHours();
-                
-                this.rushHour = SYNC_SMART_CONFIG.RUSH_HOURS.some(
-                    period => hour >= period.start && hour < period.end
-                );
-                
-                setTimeout(() => this.checkRushHour(), 60 * 60 * 1000);
-            }
-            
-            resetSyncCount() {
-                setInterval(() => {
-                    this.syncCountThisHour = 0;
-                }, 60 * 60 * 1000);
-            }
-            
-            canSync() {
-                const now = Date.now();
-                const timeSinceLastActivity = now - this.lastActivity;
-                const timeSinceLastTx = now - this.lastTransactionActivity;
-                
-                if (SYNC_SMART_CONFIG.DELAY_IF_CART_NOT_EMPTY && this.hasCartItems) {
-                    return false;
-                }
-                
-                if (timeSinceLastActivity < SYNC_SMART_CONFIG.COOLDOWN_AFTER_ACTIVITY) {
-                    return false;
-                }
-                
-                if (timeSinceLastTx < 10000) {
-                    return false;
-                }
-                
-                if (this.rushHour && this.syncCountThisHour >= SYNC_SMART_CONFIG.MAX_SYNC_PER_HOUR) {
-                    return false;
-                }
-                
-                return true;
-            }
-            
-            getRecommendedInterval() {
-                if (this.rushHour) {
-                    return 15 * 60 * 1000;
-                }
-                
-                if (this.activityCount > 100) {
-                    return 10 * 60 * 1000;
-                }
-                
-                if (this.activityCount > 50) {
-                    return 7 * 60 * 1000;
-                }
-                
-                return 5 * 60 * 1000;
-            }
-            
-            incrementSyncCount() {
-                this.syncCountThisHour++;
-            }
-        }
-
-        const activityDetector = new ActivityDetector();
-
-        // ==================== FUNGSI HELPER ====================
-        function sleep(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
-
-        function getDeviceInfo() {
-            return {
-                userAgent: navigator.userAgent,
-                platform: navigator.platform,
-                language: navigator.language,
-                screen: `${screen.width}x${screen.height}`,
-                timestamp: new Date().toISOString()
-            };
-        }
-
-        function getPriority(action) {
-            switch(action) {
-                case 'saveAttendance': return 1;
-                case 'saveTransaction': return 2;
-                case 'saveUser': return 3;
-                default: return 4;
-            }
-        }
-
-        // ==================== SMART TOAST ====================
-        function showSmartToast(message, type = 'info', duration = 2000) {
-            if (activityDetector.isActive && type !== 'error') {
-                pendingToasts.push({ message, type, duration });
-                return;
-            }
-            
-            const toast = document.getElementById('smart-toast');
-            if (!toast) return;
-            
-            toast.className = `smart-toast px-6 py-3 backdrop-blur-sm text-white text-[10px] font-bold rounded-full shadow-2xl border border-white/20 ${
-                type === 'error' ? 'bg-red-600/90' :
-                type === 'success' ? 'bg-green-600/90' :
-                type === 'warning' ? 'bg-orange-600/90' :
-                'bg-indigo-600/90'
-            }`;
-            
-            toast.innerText = message;
-            toast.classList.add('show');
-            
-            clearTimeout(toastTimeout);
-            toastTimeout = setTimeout(() => {
-                toast.classList.remove('show');
-                
-                setTimeout(() => {
-                    if (pendingToasts.length > 0 && !activityDetector.isActive) {
-                        const next = pendingToasts.shift();
-                        showSmartToast(next.message, next.type, next.duration);
-                    }
-                }, 500);
-            }, duration);
-        }
-
-        // ==================== PROGRESS BAR ====================
-        function updateSmoothProgress(current, total) {
-            const progressBar = document.getElementById('smooth-progress-bar');
-            const container = document.getElementById('smooth-progress');
-            
-            if (current === 0) {
-                container.style.display = 'block';
-            }
-            
-            const percent = (current / total) * 100;
-            progressBar.style.width = percent + '%';
-            
-            if (current >= total) {
-                setTimeout(() => {
-                    container.style.display = 'none';
-                    progressBar.style.width = '0%';
-                }, 500);
-            }
-        }
-
-        // ==================== UPDATE STATUS ====================
-        function updateConnectionStatus() {
-            isOnline = navigator.onLine;
-            const statusEl = document.getElementById('cloud-connection-status');
-            const syncBadge = document.getElementById('sync-badge');
-            const offlineBadge = document.getElementById('offline-badge');
-            
-            if (isOnline) {
-                if (statusEl) {
-                    statusEl.innerHTML = '● Online';
-                    statusEl.className = 'font-bold text-green-600';
-                }
-                if (syncBadge) syncBadge.classList.add('hidden');
-                if (offlineBadge) offlineBadge.classList.add('hidden');
-                
-                if (syncQueue.length > 0 && !isSyncing) {
-                    scheduleSmartSync();
-                }
-            } else {
-                if (statusEl) {
-                    statusEl.innerHTML = '● Offline';
-                    statusEl.className = 'font-bold text-red-600';
-                }
-                if (syncBadge) syncBadge.classList.remove('hidden');
-                if (offlineBadge) offlineBadge.classList.remove('hidden');
-            }
-        }
-
-        function updateSyncQueueDisplay() {
-            const queueEl = document.getElementById('sync-queue');
-            if (queueEl) {
-                queueEl.innerText = syncQueue.length;
-            }
-        }
-
-        // Update tampilan status setiap detik
-        setInterval(() => {
-            const activityEl = document.getElementById('user-activity');
-            if (activityEl) {
-                if (activityDetector.isActive) {
-                    activityEl.innerText = 'Sibuk';
-                    activityEl.className = 'font-bold text-orange-600';
-                } else {
-                    activityEl.innerText = 'Santai';
-                    activityEl.className = 'font-bold text-green-600';
-                }
-            }
-            
-            const rushHourEl = document.getElementById('rush-hour-status');
-            if (rushHourEl) {
-                rushHourEl.innerText = activityDetector.rushHour ? 'Ya' : 'Tidak';
-                rushHourEl.className = activityDetector.rushHour ? 'font-bold text-red-600' : 'font-bold text-green-600';
-            }
-            
-            if (smartSyncTimeout) {
-                const nextSyncTime = new Date(Date.now() + smartSyncTimeout._idleTimeout);
-                const timeStr = nextSyncTime.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-                document.getElementById('next-sync-time').innerText = timeStr;
-            }
-        }, 1000);
-
-        // ==================== FUNGSI GAS ====================
-        async function sendToGAS(action, data) {
-            try {
-                const formData = new URLSearchParams();
-                formData.append('action', action);
-                
-                for (let key in data) {
-                    if (data[key] !== undefined && data[key] !== null) {
-                        formData.append(key, String(data[key]));
-                    }
-                }
-                
-                formData.append('deviceInfo', JSON.stringify(getDeviceInfo()));
-                
-                await fetch(GAS_URL, {
-                    method: 'POST',
-                    body: formData,
-                    mode: 'no-cors'
-                });
-                
-                return { success: true };
-            } catch (error) {
-                console.error('GAS Error:', error);
-                return { success: false, error: error.message };
-            }
-        }
-
-        // ==================== SYNC QUEUE ====================
-        async function addToSyncQueue(action, data) {
-            if (isTrialMode) return;
-            
-            const queueItem = {
-                id: Date.now() + Math.random(),
-                action: action,
-                data: data,
-                timestamp: new Date().toISOString(),
-                retries: 0,
-                size: JSON.stringify(data).length,
-                priority: getPriority(action)
-            };
-            
-            syncQueue.push(queueItem);
-            await saveSyncQueue();
-            updateSyncQueueDisplay();
-            
-            scheduleSmartSync();
-        }
-
-        async function saveSyncQueue() {
-            try {
-                await clearStore(STORES.SYNC_QUEUE);
-                for (const item of syncQueue) {
-                    await addToStore(STORES.SYNC_QUEUE, item);
-                }
-            } catch (error) {
-                console.error('Error saving sync queue:', error);
-            }
-        }
-
-        async function loadSyncQueue() {
-            try {
-                syncQueue = await getAllFromStore(STORES.SYNC_QUEUE);
-                updateSyncQueueDisplay();
-            } catch (error) {
-                console.error('Error loading sync queue:', error);
-                syncQueue = [];
-            }
-        }
-
-        // ==================== SMART SYNC ====================
-        async function smartSync() {
-            if (!activityDetector.canSync()) {
-                scheduleSmartSync();
-                return;
-            }
-            
-            if (isSyncing || syncQueue.length === 0 || !isOnline || isTrialMode) return;
-            
-            isSyncing = true;
-            shouldCancelSync = false;
-            
-            const total = syncQueue.length;
-            const maxDuration = 30000;
-            const estimatedTimePerItem = SYNC_SMART_CONFIG.DELAY_BETWEEN_ITEMS;
-            const maxItemsThisSession = Math.floor(maxDuration / estimatedTimePerItem);
-            
-            const itemsToSync = syncQueue.slice(0, maxItemsThisSession);
-            const remainingItems = syncQueue.slice(maxItemsThisSession);
-            
-            if (SYNC_SMART_CONFIG.SHOW_PROGRESS) {
-                showSmartToast(`🔄 Sync ${itemsToSync.length} data... (sisa ${remainingItems.length})`, 'info', 1500);
-                updateSmoothProgress(0, itemsToSync.length);
-            }
-            
-            const sortedItems = [...itemsToSync].sort((a, b) => a.size - b.size);
-            const failedItems = [];
-            
-            for (let i = 0; i < sortedItems.length; i++) {
-                if (activityDetector.isActive || shouldCancelSync) {
-                    const unfinished = sortedItems.slice(i);
-                    failedItems.push(...unfinished, ...remainingItems);
-                    showSmartToast('⏸️ Sync dijeda karena aktivitas user', 'warning', 1500);
-                    break;
-                }
-                
-                const item = sortedItems[i];
-                
-                try {
-                    await sendToGAS(item.action, item.data);
-                    
-                    if (SYNC_SMART_CONFIG.SHOW_PROGRESS) {
-                        updateSmoothProgress(i + 1, itemsToSync.length);
-                    }
-                    
-                    if (i < sortedItems.length - 1) {
-                        await sleep(SYNC_SMART_CONFIG.DELAY_BETWEEN_ITEMS);
-                    }
-                    
-                } catch (error) {
-                    console.error('Sync error:', error);
-                    item.retries++;
-                    if (item.retries < SYNC_SMART_CONFIG.MAX_RETRIES) {
-                        failedItems.push(item);
-                    }
-                }
-            }
-            
-            syncQueue = [...failedItems, ...remainingItems];
-            await saveSyncQueue();
-            updateSyncQueueDisplay();
-            
-            if (SYNC_SMART_CONFIG.SHOW_PROGRESS) {
-                updateSmoothProgress(itemsToSync.length, itemsToSync.length);
-                setTimeout(() => {
-                    document.getElementById('smooth-progress').style.display = 'none';
-                }, 500);
-            }
-            
-            const syncedCount = itemsToSync.length - failedItems.length;
-            if (syncedCount > 0) {
-                lastSyncTime = new Date().toLocaleTimeString('id-ID');
-                document.getElementById('cloud-last-sync').innerText = lastSyncTime;
-                activityDetector.incrementSyncCount();
-                
-                if (remainingItems.length > 0) {
-                    showSmartToast(`✅ ${syncedCount} data tersync. Sisa ${remainingItems.length} akan menyusul`, 'success', 2000);
-                } else {
-                    showSmartToast(`✅ Semua data (${syncedCount}) tersinkronisasi!`, 'success', 2000);
-                }
-            }
-            
-            isSyncing = false;
-            
-            if (syncQueue.length > 0) {
-                scheduleSmartSync();
-            }
-        }
-
-        function scheduleSmartSync() {
-            clearTimeout(smartSyncTimeout);
-            
-            const interval = activityDetector.getRecommendedInterval();
-            
-            smartSyncTimeout = setTimeout(() => {
-                if (syncQueue.length > 0 && isOnline && !isSyncing) {
-                    smartSync();
-                }
-            }, interval);
-        }
-
-        async function syncNowSmart() {
-            if (!isOnline) {
-                showSmartToast("❌ Tidak ada koneksi internet", 'error', 2000);
-                return;
-            }
-            
-            if (syncQueue.length === 0) {
-                showSmartToast("📦 Tidak ada data yang perlu disync", 'info', 2000);
-                return;
-            }
-            
-            if (activityDetector.isActive) {
-                if (!confirm("Anda sedang aktif. Tetap sync sekarang?")) {
-                    return;
-                }
-            }
-            
-            await smartSync();
-            closeModal('modal-menu');
-        }
-
-        // ==================== INDEXEDDB ====================
+        // ==================== INIT DATABASE ====================
         function initDB() {
             return new Promise((resolve, reject) => {
                 const request = indexedDB.open(DB_NAME, DB_VERSION);
                 
-                request.onerror = (event) => {
-                    console.error('Database error:', event.target.error);
-                    reject('Gagal membuka database');
-                };
-                
+                request.onerror = () => reject('Gagal membuka database');
                 request.onsuccess = (event) => {
                     db = event.target.result;
-                    console.log('Database opened successfully');
-                    
-                    db.onversionchange = () => {
-                        db.close();
-                        setTimeout(() => location.reload(), 1000);
-                    };
-                    
                     resolve(db);
                 };
                 
                 request.onupgradeneeded = (event) => {
                     const db = event.target.result;
-                    
                     if (!db.objectStoreNames.contains(STORES.ATTENDANCE)) {
-                        const attendanceStore = db.createObjectStore(STORES.ATTENDANCE, { keyPath: 'id' });
-                        attendanceStore.createIndex('rawDate', 'rawDate', { unique: false });
+                        db.createObjectStore(STORES.ATTENDANCE, { keyPath: 'id' });
                     }
-                    
                     if (!db.objectStoreNames.contains(STORES.TRANSACTIONS)) {
-                        const txStore = db.createObjectStore(STORES.TRANSACTIONS, { keyPath: 'id' });
-                        txStore.createIndex('rawDate', 'rawDate', { unique: false });
+                        db.createObjectStore(STORES.TRANSACTIONS, { keyPath: 'id' });
                     }
-                    
-                    if (!db.objectStoreNames.contains(STORES.ACTIVITY_LOGS)) {
-                        const logStore = db.createObjectStore(STORES.ACTIVITY_LOGS, { keyPath: 'id' });
-                        logStore.createIndex('rawDate', 'rawDate', { unique: false });
-                    }
-                    
                     if (!db.objectStoreNames.contains(STORES.USER_DATA)) {
-                        const userStore = db.createObjectStore(STORES.USER_DATA, { keyPath: 'name' });
-                    }
-                    
-                    if (!db.objectStoreNames.contains(STORES.TRIAL_USER_DATA)) {
-                        const trialStore = db.createObjectStore(STORES.TRIAL_USER_DATA, { keyPath: 'sessionId' });
-                    }
-                    
-                    if (!db.objectStoreNames.contains(STORES.SYNC_QUEUE)) {
-                        const queueStore = db.createObjectStore(STORES.SYNC_QUEUE, { keyPath: 'id' });
-                        queueStore.createIndex('timestamp', 'timestamp', { unique: false });
+                        db.createObjectStore(STORES.USER_DATA, { keyPath: 'name' });
                     }
                 };
             });
@@ -1493,15 +476,9 @@
 
         async function getAllFromStore(storeName) {
             return new Promise((resolve, reject) => {
-                if (!db) {
-                    reject('Database not initialized');
-                    return;
-                }
-                
-                const transaction = db.transaction([storeName], 'readonly');
-                const store = transaction.objectStore(storeName);
+                const tx = db.transaction(storeName, 'readonly');
+                const store = tx.objectStore(storeName);
                 const request = store.getAll();
-                
                 request.onsuccess = () => resolve(request.result);
                 request.onerror = () => reject(request.error);
             });
@@ -1509,230 +486,193 @@
 
         async function addToStore(storeName, data) {
             return new Promise((resolve, reject) => {
-                if (!db) {
-                    reject('Database not initialized');
-                    return;
-                }
-                
-                const transaction = db.transaction([storeName], 'readwrite');
-                const store = transaction.objectStore(storeName);
+                const tx = db.transaction(storeName, 'readwrite');
+                const store = tx.objectStore(storeName);
                 const request = store.add(data);
-                
-                request.onsuccess = () => resolve(request.result);
-                request.onerror = () => reject(request.error);
-            });
-        }
-
-        async function clearStore(storeName) {
-            return new Promise((resolve, reject) => {
-                if (!db) {
-                    reject('Database not initialized');
-                    return;
-                }
-                
-                const transaction = db.transaction([storeName], 'readwrite');
-                const store = transaction.objectStore(storeName);
-                const request = store.clear();
-                
                 request.onsuccess = () => resolve();
                 request.onerror = () => reject(request.error);
             });
         }
 
+        async function clearStore(storeName) {
+            const tx = db.transaction(storeName, 'readwrite');
+            const store = tx.objectStore(storeName);
+            return store.clear();
+        }
+
         // ==================== STORAGE FUNCTIONS ====================
         async function getStorage(key, defaultValue = "[]") {
             try {
-                if (isTrialMode) {
-                    if (key === 'rocky_user_name' || key === 'rocky_user_dom' || key === 'rocky_user_wa') {
-                        return sessionStorage.getItem(key) || '';
+                if (key === 'rocky_user_name' || key === 'rocky_user_dom' || key === 'rocky_user_wa') {
+                    const users = await getAllFromStore(STORES.USER_DATA);
+                    if (users.length > 0) {
+                        if (key === 'rocky_user_name') return users[0].name || '';
+                        if (key === 'rocky_user_dom') return users[0].domicile || '';
+                        if (key === 'rocky_user_wa') return users[0].wa || '';
                     }
-                    
-                    if (key === 'rocky_history') {
-                        const data = await getAllFromStore(STORES.ATTENDANCE);
-                        const sessionId = sessionStorage.getItem('rocky_session_id') || 'default';
-                        const filtered = data.filter(item => item.sessionId === sessionId);
-                        return JSON.stringify(filtered);
-                    }
-                    
-                    if (key === 'rocky_tx_history') {
-                        const data = await getAllFromStore(STORES.TRANSACTIONS);
-                        const sessionId = sessionStorage.getItem('rocky_session_id') || 'default';
-                        const filtered = data.filter(item => item.sessionId === sessionId);
-                        return JSON.stringify(filtered);
-                    }
-                    
-                    if (key === 'rocky_activity_logs') {
-                        const data = await getAllFromStore(STORES.ACTIVITY_LOGS);
-                        const sessionId = sessionStorage.getItem('rocky_session_id') || 'default';
-                        const filtered = data.filter(item => item.sessionId === sessionId);
-                        return JSON.stringify(filtered);
-                    }
-                    
-                    return sessionStorage.getItem(key) || defaultValue;
-                } else {
-                    if (key === 'rocky_user_name' || key === 'rocky_user_dom' || key === 'rocky_user_wa') {
-                        const users = await getAllFromStore(STORES.USER_DATA);
-                        if (users.length > 0) {
-                            const user = users[0];
-                            if (key === 'rocky_user_name') return user.name || '';
-                            if (key === 'rocky_user_dom') return user.domicile || '';
-                            if (key === 'rocky_user_wa') return user.wa || '';
-                        }
-                        return '';
-                    }
-                    
-                    if (key === 'rocky_history') {
-                        const data = await getAllFromStore(STORES.ATTENDANCE);
-                        return JSON.stringify(data);
-                    }
-                    
-                    if (key === 'rocky_tx_history') {
-                        const data = await getAllFromStore(STORES.TRANSACTIONS);
-                        return JSON.stringify(data);
-                    }
-                    
-                    if (key === 'rocky_activity_logs') {
-                        const data = await getAllFromStore(STORES.ACTIVITY_LOGS);
-                        return JSON.stringify(data);
-                    }
-                    
-                    return localStorage.getItem(key) || defaultValue;
+                    return '';
                 }
-            } catch (error) {
-                console.error('Error in getStorage:', error);
+                if (key === 'rocky_history') {
+                    const data = await getAllFromStore(STORES.ATTENDANCE);
+                    return JSON.stringify(data);
+                }
+                if (key === 'rocky_tx_history') {
+                    const data = await getAllFromStore(STORES.TRANSACTIONS);
+                    return JSON.stringify(data);
+                }
+                return localStorage.getItem(key) || defaultValue;
+            } catch {
                 return defaultValue;
             }
         }
 
         async function setStorage(key, value) {
             try {
-                if (isTrialMode) {
-                    if (key === 'rocky_history') {
-                        const items = JSON.parse(value);
-                        const sessionId = sessionStorage.getItem('rocky_session_id') || 'default';
-                        
-                        const existing = await getAllFromStore(STORES.ATTENDANCE);
-                        for (const item of existing) {
-                            if (item.sessionId === sessionId) {
-                                await deleteFromStore(STORES.ATTENDANCE, item.id);
-                            }
-                        }
-                        
-                        for (const item of items) {
-                            item.sessionId = sessionId;
-                            await addToStore(STORES.ATTENDANCE, item);
-                        }
-                    } else if (key === 'rocky_tx_history') {
-                        const items = JSON.parse(value);
-                        const sessionId = sessionStorage.getItem('rocky_session_id') || 'default';
-                        
-                        const existing = await getAllFromStore(STORES.TRANSACTIONS);
-                        for (const item of existing) {
-                            if (item.sessionId === sessionId) {
-                                await deleteFromStore(STORES.TRANSACTIONS, item.id);
-                            }
-                        }
-                        
-                        for (const item of items) {
-                            item.sessionId = sessionId;
-                            await addToStore(STORES.TRANSACTIONS, item);
-                        }
-                    } else if (key === 'rocky_activity_logs') {
-                        const items = JSON.parse(value);
-                        const sessionId = sessionStorage.getItem('rocky_session_id') || 'default';
-                        
-                        const existing = await getAllFromStore(STORES.ACTIVITY_LOGS);
-                        for (const item of existing) {
-                            if (item.sessionId === sessionId) {
-                                await deleteFromStore(STORES.ACTIVITY_LOGS, item.id);
-                            }
-                        }
-                        
-                        for (const item of items) {
-                            item.sessionId = sessionId;
-                            await addToStore(STORES.ACTIVITY_LOGS, item);
-                        }
-                    } else {
-                        sessionStorage.setItem(key, value);
+                if (key === 'rocky_history') {
+                    await clearStore(STORES.ATTENDANCE);
+                    const items = JSON.parse(value);
+                    for (const item of items) {
+                        await addToStore(STORES.ATTENDANCE, item);
                     }
+                } else if (key === 'rocky_tx_history') {
+                    await clearStore(STORES.TRANSACTIONS);
+                    const items = JSON.parse(value);
+                    for (const item of items) {
+                        await addToStore(STORES.TRANSACTIONS, item);
+                    }
+                } else if (key === 'rocky_user_name' || key === 'rocky_user_dom' || key === 'rocky_user_wa') {
+                    await clearStore(STORES.USER_DATA);
+                    const user = { 
+                        name: await getStorage('rocky_user_name') || '',
+                        domicile: await getStorage('rocky_user_dom') || '',
+                        wa: await getStorage('rocky_user_wa') || ''
+                    };
+                    if (key === 'rocky_user_name') user.name = value;
+                    if (key === 'rocky_user_dom') user.domicile = value;
+                    if (key === 'rocky_user_wa') user.wa = value;
+                    await addToStore(STORES.USER_DATA, user);
                 } else {
-                    if (key === 'rocky_history') {
-                        const items = JSON.parse(value);
-                        await clearStore(STORES.ATTENDANCE);
-                        for (const item of items) {
-                            await addToStore(STORES.ATTENDANCE, item);
-                            await addToSyncQueue('saveAttendance', {
-                                id: item.id,
-                                nama: userData.name,
-                                type: item.type,
-                                note: item.note,
-                                time: item.time,
-                                date: item.date,
-                                rawDate: item.rawDate
-                            });
-                        }
-                    } else if (key === 'rocky_tx_history') {
-                        const items = JSON.parse(value);
-                        await clearStore(STORES.TRANSACTIONS);
-                        for (const item of items) {
-                            await addToStore(STORES.TRANSACTIONS, item);
-                            await addToSyncQueue('saveTransaction', {
-                                id: item.id,
-                                nama: userData.name,
-                                date: item.date,
-                                time: item.time,
-                                items: JSON.stringify(item.items),
-                                total: item.total,
-                                rawDate: item.rawDate
-                            });
-                        }
-                    } else if (key === 'rocky_activity_logs') {
-                        const items = JSON.parse(value);
-                        await clearStore(STORES.ACTIVITY_LOGS);
-                        for (const item of items) {
-                            await addToStore(STORES.ACTIVITY_LOGS, item);
-                            await addToSyncQueue('saveActivityLog', {
-                                id: item.id,
-                                nama: userData.name,
-                                action: item.action,
-                                detail: item.detail,
-                                time: item.time,
-                                rawDate: item.rawDate
-                            });
-                        }
-                    } else if (key === 'rocky_user_name' || key === 'rocky_user_dom' || key === 'rocky_user_wa') {
-                        const users = await getAllFromStore(STORES.USER_DATA);
-                        if (users.length > 0) {
-                            const user = users[0];
-                            if (key === 'rocky_user_name') user.name = value;
-                            if (key === 'rocky_user_dom') user.domicile = value;
-                            if (key === 'rocky_user_wa') user.wa = value;
-                            await addToStore(STORES.USER_DATA, user);
-                            await addToSyncQueue('saveUser', {
-                                nama: user.name,
-                                domisili: user.domicile,
-                                wa: user.wa
-                            });
-                        } else {
-                            const user = { name: '', domicile: '', wa: '' };
-                            if (key === 'rocky_user_name') user.name = value;
-                            if (key === 'rocky_user_dom') user.domicile = value;
-                            if (key === 'rocky_user_wa') user.wa = value;
-                            await addToStore(STORES.USER_DATA, user);
-                            await addToSyncQueue('saveUser', {
-                                nama: user.name,
-                                domisili: user.domicile,
-                                wa: user.wa
-                            });
-                        }
-                    } else {
-                        localStorage.setItem(key, value);
-                    }
+                    localStorage.setItem(key, value);
                 }
             } catch (error) {
                 console.error('Error in setStorage:', error);
             }
         }
+
+        // ==================== SYNC MANAGEMENT ====================
+        
+        // Fungsi untuk menambah ke antrian sync
+        async function addToSyncQueue(data) {
+            syncQueue.push({
+                id: Date.now() + Math.random(),
+                ...data,
+                added: new Date().toISOString()
+            });
+            updatePendingBadge();
+            showToast("📦 Data tersimpan, segera sync manual atau tunggu auto sync jam 05:50");
+        }
+
+        // Update badge pending
+        function updatePendingBadge() {
+            const count = syncQueue.length;
+            const container = document.getElementById('pending-sync-container');
+            const pendingCount = document.getElementById('pending-count');
+            const menuPendingCount = document.getElementById('menu-pending-count');
+            
+            if (count > 0) {
+                container.classList.remove('hidden');
+                pendingCount.innerText = count;
+                if (menuPendingCount) menuPendingCount.innerText = count;
+            } else {
+                container.classList.add('hidden');
+                if (menuPendingCount) menuPendingCount.innerText = '0';
+            }
+        }
+
+        // Sync manual
+        async function manualSync() {
+            if (syncQueue.length === 0) {
+                showToast("📦 Tidak ada data pending");
+                return;
+            }
+            
+            if (!navigator.onLine) {
+                showToast("❌ Tidak ada koneksi internet");
+                return;
+            }
+            
+            // Tampilkan progress di menu
+            const progressDiv = document.getElementById('menu-sync-progress');
+            const progressBar = document.getElementById('menu-sync-progress-bar');
+            progressDiv.classList.remove('hidden');
+            
+            isSyncing = true;
+            const total = syncQueue.length;
+            let success = 0;
+            
+            showToast(`🔄 Mulai sync ${total} data...`);
+            
+            for (let i = 0; i < syncQueue.length; i++) {
+                const item = syncQueue[i];
+                try {
+                    // Kirim ke GAS
+                    const formData = new URLSearchParams();
+                    formData.append('action', item.action);
+                    for (let key in item.data) {
+                        formData.append(key, item.data[key]);
+                    }
+                    
+                    await fetch(GAS_URL, {
+                        method: 'POST',
+                        body: formData,
+                        mode: 'no-cors'
+                    });
+                    
+                    success++;
+                    
+                    // Update progress
+                    const percent = ((i + 1) / total) * 100;
+                    progressBar.style.width = percent + '%';
+                    
+                } catch (error) {
+                    console.error('Sync error:', error);
+                }
+            }
+            
+            // Hapus data yang berhasil dari antrian
+            syncQueue = syncQueue.slice(success);
+            updatePendingBadge();
+            
+            lastSyncTime = new Date().toLocaleString('id-ID');
+            document.getElementById('menu-last-sync').innerText = lastSyncTime;
+            
+            showToast(`✅ ${success} data berhasil disinkronkan`);
+            
+            setTimeout(() => {
+                progressDiv.classList.add('hidden');
+                progressBar.style.width = '0%';
+            }, 1000);
+            
+            isSyncing = false;
+        }
+
+        // Cek dan jalankan auto sync jam 05:50
+        function checkAutoSync() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            
+            // Jam 05:50
+            if (hours === 5 && minutes === 50) {
+                if (syncQueue.length > 0 && navigator.onLine) {
+                    showToast("⏰ Auto sync jam 05:50 dimulai...");
+                    manualSync();
+                }
+            }
+        }
+
+        // Set interval cek auto sync setiap menit
+        setInterval(checkAutoSync, 60000);
 
         // ==================== RENDER FUNCTIONS ====================
         async function renderHistory() {
@@ -1741,17 +681,9 @@
             const absensiHist = hist.filter(h => h.type !== 'Transaksi');
             if (list) {
                 list.innerHTML = absensiHist.reverse().slice(0, 5).map(h => `
-                    <div class="relative flex items-center gap-3 p-3 bg-gradient-to-r from-white to-slate-50 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all group">
-                        <button onclick="confirmDeleteHistory(${h.id})" class="absolute top-1 right-1 w-6 h-6 bg-white rounded-full shadow flex items-center justify-center text-red-400 hover:text-red-600 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                            </svg>
-                        </button>
-                        <div class="w-8 h-8 rounded-lg ${h.type === 'Hadir' ? 'bg-gradient-to-br from-green-50 to-green-100 text-green-600' : 'bg-gradient-to-br from-orange-50 to-orange-100 text-orange-600'} flex items-center justify-center text-[10px] font-bold shadow-sm">${h.type[0]}</div>
-                        <div class="flex-grow min-w-0 pr-6">
-                            <p class="text-[9px] font-bold text-slate-700 uppercase">${h.type} <span class="text-slate-300 ml-1">${h.time}</span></p>
-                            <p class="text-[8px] text-slate-400 truncate">${h.note}</p>
-                        </div>
+                    <div class="p-3 bg-gradient-to-r from-white to-slate-50 rounded-2xl border border-slate-100">
+                        <p class="text-[9px] font-bold text-slate-700">${h.type} <span class="text-slate-300 ml-1">${h.time}</span></p>
+                        <p class="text-[8px] text-slate-400 truncate">${h.note}</p>
                     </div>
                 `).join('');
             }
@@ -1761,190 +693,122 @@
             const txHist = JSON.parse(await getStorage('rocky_tx_history') || "[]");
             const list = document.getElementById('tx-history-list');
             if (txHist.length === 0) { 
-                if (list) list.innerHTML = `<p class="text-center text-[9px] text-slate-300 py-6 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">Belum ada transaksi</p>`; 
+                if (list) list.innerHTML = '<p class="text-center text-[9px] text-slate-300 py-6">Belum ada transaksi</p>'; 
                 return; 
             }
             if (list) {
-                list.innerHTML = txHist.reverse().map(tx => `
-                    <div class="p-4 bg-gradient-to-r from-white to-indigo-50/30 rounded-2xl border border-indigo-100/50 shadow-sm relative hover:shadow-md transition-all">
-                        <button onclick="openSecurityModal(${tx.id})" class="absolute top-4 right-4 text-red-300 hover:text-red-500">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                        </button>
-                        <p class="text-[10px] font-black text-slate-800 uppercase"><span class="text-indigo-600">#${tx.id.toString().slice(-4)}</span> <span class="text-[8px] text-slate-300">${tx.date}</span></p>
-                        <p class="text-[11px] font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 mb-2">Rp ${tx.total.toLocaleString()}</p>
-                        <div class="border-t border-indigo-100/50 pt-2 space-y-1">
-                            ${tx.items.map(item => `<div class="flex justify-between text-[8px] text-slate-500 uppercase"><span>${item.nama} x${item.qty}</span></div>`).join('')}
-                        </div>
+                list.innerHTML = txHist.reverse().slice(0, 5).map(tx => `
+                    <div class="p-3 bg-gradient-to-r from-white to-indigo-50/30 rounded-2xl border border-indigo-100/50">
+                        <p class="text-[10px] font-bold">Rp ${tx.total.toLocaleString()}</p>
+                        <p class="text-[8px] text-slate-400">${tx.date} - ${tx.time}</p>
                     </div>
                 `).join('');
             }
         }
 
-        async function renderActivityLog() {
-            const logs = JSON.parse(await getStorage('rocky_activity_logs') || "[]");
-            const list = document.getElementById('activity-log-list');
-            if (!list) return;
-            
-            if (logs.length === 0) {
-                list.innerHTML = `<div class="text-center py-3 bg-indigo-50/50 rounded-xl"><p class="text-[8px] text-indigo-400 italic">Belum ada aktivitas bulan ini</p></div>`;
-                return;
-            }
-            
-            const recentLogs = [...logs].reverse().slice(0, 15);
-            list.innerHTML = recentLogs.map(log => {
-                let bgColor = "bg-indigo-50/30";
-                let icon = "📌";
-                
-                if (log.action === 'Hadir') { bgColor = "bg-green-50"; icon = "✅"; }
-                else if (log.action === 'Sakit') { bgColor = "bg-orange-50"; icon = "🟡"; }
-                else if (log.action === 'Izin Keperluan' || log.action === 'Setengah Hari') { bgColor = "bg-yellow-50"; icon = "📝"; }
-                else if (log.action === 'Transaksi') { bgColor = "bg-purple-50"; icon = "💰"; }
-                else if (log.action.includes('Hapus')) { bgColor = "bg-red-50"; icon = "🗑️"; }
-                else if (log.action === 'Sistem') { bgColor = "bg-blue-50"; icon = "⚙️"; }
-                else if (log.action === 'Backup') { bgColor = "bg-emerald-50"; icon = "📤"; }
-                else if (log.action === 'Sync Cloud') { bgColor = "bg-green-50"; icon = "🔄"; }
-                
-                return `
-                    <div class="flex items-center gap-2 p-2 ${bgColor} rounded-xl border border-indigo-100/30">
-                        <span class="text-[10px]">${icon}</span>
-                        <div class="flex-grow min-w-0">
-                            <p class="text-[8px] font-bold text-slate-700 truncate">${log.action} - ${log.detail}</p>
-                            <p class="text-[6px] text-slate-400">${log.time}</p>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        async function saveActivityLog(action, detail) {
-            const logs = JSON.parse(await getStorage('rocky_activity_logs') || "[]");
-            const log = {
-                id: Date.now(),
-                action: action,
-                detail: detail,
-                time: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}),
-                rawDate: new Date().toISOString()
-            };
-            logs.push(log);
-            if (logs.length > 30) logs.shift();
-            await setStorage('rocky_activity_logs', JSON.stringify(logs));
-            await renderActivityLog();
-        }
-
-        async function saveRecord(type, note, txId = null) {
+        async function saveRecord(type, note) {
             const hist = JSON.parse(await getStorage('rocky_history') || "[]");
             const record = { 
-                type, note, txId,
+                type, note,
                 id: Date.now(),
                 time: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}),
-                date: new Date().toLocaleDateString('id-ID', {day:'2-digit', month:'short'}),
+                date: new Date().toLocaleDateString('id-ID'),
                 rawDate: new Date().toISOString()
             };
             hist.push(record);
             await setStorage('rocky_history', JSON.stringify(hist));
             
-            if (type !== 'Transaksi') {
-                lastAbsenData = record;
-                await saveActivityLog(type, note);
-            }
+            // Tambah ke antrian sync
+            await addToSyncQueue({
+                action: 'saveAttendance',
+                data: {
+                    id: record.id,
+                    nama: userData.name,
+                    type: type,
+                    note: note,
+                    time: record.time,
+                    date: record.date,
+                    rawDate: record.rawDate
+                }
+            });
             
             await renderHistory();
-            updateDataStats();
         }
 
         async function saveTxRecord(id, items, total) {
             const txHist = JSON.parse(await getStorage('rocky_tx_history') || "[]");
-            txHist.push({
+            const record = {
                 id: id,
                 date: new Date().toLocaleDateString('id-ID'),
                 time: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}),
-                items: JSON.parse(JSON.stringify(items)),
+                items: items,
                 total: total,
                 rawDate: new Date().toISOString()
-            });
+            };
+            txHist.push(record);
             await setStorage('rocky_tx_history', JSON.stringify(txHist));
+            
+            // Tambah ke antrian sync
+            await addToSyncQueue({
+                action: 'saveTransaction',
+                data: {
+                    id: record.id,
+                    nama: userData.name,
+                    date: record.date,
+                    time: record.time,
+                    items: JSON.stringify(items),
+                    total: total,
+                    rawDate: record.rawDate
+                }
+            });
+            
             await renderTxHistory();
-            await saveActivityLog('Transaksi', `Penjualan Rp ${total.toLocaleString()}`);
-            updateRewardSystem();
-            updateDataStats();
         }
 
         async function hasTodayAttendance() {
             const hist = JSON.parse(await getStorage('rocky_history') || "[]");
             const today = new Date().toLocaleDateString('id-ID');
-            return hist.some(h => {
-                if (h.type === 'Transaksi') return false;
-                return new Date(h.rawDate).toLocaleDateString('id-ID') === today;
-            });
+            return hist.some(h => h.date === today && h.type !== 'Transaksi');
         }
 
         async function hasTodayPresent() {
             const hist = JSON.parse(await getStorage('rocky_history') || "[]");
             const today = new Date().toLocaleDateString('id-ID');
-            return hist.some(h => {
-                if (h.type !== 'Hadir') return false;
-                return new Date(h.rawDate).toLocaleDateString('id-ID') === today;
-            });
+            return hist.some(h => h.date === today && h.type === 'Hadir');
         }
 
         async function checkTodayAbsen() {
-            const hist = JSON.parse(await getStorage('rocky_history') || "[]");
-            const today = new Date().toLocaleDateString('id-ID');
-            
-            const todayAttendance = hist.find(h => {
-                if (h.type === 'Transaksi') return false;
-                return new Date(h.rawDate).toLocaleDateString('id-ID') === today;
-            });
-            
+            const hasAttendance = await hasTodayAttendance();
             const btnAbsen = document.getElementById('btn-absensi');
             const btnIzin = document.getElementById('btn-izin-trigger');
-            const resendContainer = document.getElementById('resend-container');
             
-            if (todayAttendance) {
+            if (hasAttendance) {
                 if (btnAbsen) {
                     btnAbsen.disabled = true;
-                    btnAbsen.className = "w-full py-5 bg-gradient-to-r from-green-400 to-green-500 text-white rounded-3xl font-bold text-lg mb-4 shadow-lg uppercase tracking-wider";
-                    
-                    lastAbsenData = todayAttendance;
-                    
-                    if (resendContainer) resendContainer.classList.remove('hidden');
-                    
-                    if (todayAttendance.type === 'Hadir') {
-                        btnAbsen.innerText = "بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ ";
-                    } else if (todayAttendance.type === 'Sakit') {
-                        btnAbsen.innerText = "🟡 CEPAT SEMBUH YA KAK 🤒";
-                    } else {
-                        btnAbsen.innerText = "📝 SEMOGA HARI MU MENYENANGKAN ✨";
-                    }
+                    btnAbsen.className = "w-full py-5 bg-gradient-to-r from-green-400 to-green-500 text-white rounded-3xl font-bold text-lg mb-4";
+                    btnAbsen.innerText = "Sudah Absen Hari Ini";
                 }
-                
                 if (btnIzin) {
                     btnIzin.disabled = true;
                     btnIzin.classList.add('opacity-50', 'cursor-not-allowed');
                 }
+                document.getElementById('resend-container')?.classList.remove('hidden');
             } else {
-                if (btnAbsen) btnAbsen.innerText = "📍 ABSEN MASUK";
+                if (btnAbsen) btnAbsen.innerText = "Absen Masuk";
                 if (btnIzin) {
                     btnIzin.disabled = false;
                     btnIzin.classList.remove('opacity-50', 'cursor-not-allowed');
                 }
-                
-                if (resendContainer) resendContainer.classList.add('hidden');
-                lastAbsenData = null;
+                document.getElementById('resend-container')?.classList.add('hidden');
                 
                 if (userPos.lat !== 0 && btnAbsen) {
                     const dist = calculateDistance(userPos.lat, userPos.lng, TARGET_LOC.lat, TARGET_LOC.lng);
                     if (dist <= RADIUS) {
                         btnAbsen.disabled = false;
-                        btnAbsen.className = "w-full py-5 gradient-blue text-white rounded-3xl font-bold text-lg mb-4 shadow-lg hover:shadow-xl transition-all btn-press uppercase tracking-wider";
-                    } else {
-                        btnAbsen.disabled = true;
-                        btnAbsen.className = "w-full py-5 bg-slate-200 text-slate-400 rounded-3xl font-bold text-lg mb-4 uppercase tracking-wider shadow-lg";
+                        btnAbsen.className = "w-full py-5 gradient-blue text-white rounded-3xl font-bold text-lg mb-4 shadow-lg hover:shadow-xl transition-all btn-press";
                     }
                 }
             }
-            
-            updateTransactionAccess();
         }
 
         async function updateTransactionAccess() {
@@ -1952,89 +816,18 @@
             const withinRadius = isWithinRadius();
             const canTransact = hasPresent && withinRadius;
             
-            const transactionInputs = [
-                document.getElementById('tx-nama'),
-                document.getElementById('tx-kode'),
-                document.getElementById('tx-qty'),
-                document.getElementById('tx-harga')
-            ];
+            const inputs = ['tx-nama', 'tx-kode', 'tx-qty', 'tx-harga'];
+            inputs.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.disabled = !canTransact;
+            });
             
-            const btnAddCart = document.getElementById('btn-add-cart');
-            const btnClearCart = document.getElementById('btn-clear-cart');
-            const btnCheckout = document.getElementById('btn-checkout');
-            const btnDeleteAll = document.getElementById('btn-delete-all');
-            const btnReportTrigger = document.getElementById('btn-report-trigger');
-            const transactionWarning = document.getElementById('transaction-warning');
+            ['btn-add-cart', 'btn-checkout'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.disabled = !canTransact;
+            });
             
-            if (transactionWarning) {
-                let warningText = "";
-                if (!hasPresent) warningText = "Anda harus absen HADIR hari ini";
-                else if (!withinRadius) warningText = "Anda harus berada dalam radius area";
-                else warningText = "Akses transaksi tersedia";
-                
-                const warningParagraph = transactionWarning.querySelector('p:last-child');
-                if (warningParagraph) warningParagraph.innerText = warningText;
-            }
-            
-            if (canTransact) {
-                if (transactionWarning) transactionWarning.classList.add('hidden');
-                transactionInputs.forEach(input => {
-                    if (input) {
-                        input.disabled = false;
-                        input.classList.remove('bg-slate-50', 'text-slate-400');
-                        input.classList.add('bg-white', 'text-slate-800');
-                    }
-                });
-                if (btnAddCart) {
-                    btnAddCart.disabled = false;
-                    btnAddCart.className = "w-full py-3.5 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-xl font-bold text-xs shadow-md hover:shadow-lg transition-all btn-press flex items-center justify-center gap-2 uppercase tracking-wide";
-                }
-                if (btnClearCart) {
-                    btnClearCart.disabled = false;
-                    btnClearCart.className = "text-[9px] font-bold text-red-400 hover:text-red-600 uppercase flex items-center gap-1";
-                }
-                if (btnCheckout) {
-                    btnCheckout.disabled = false;
-                    btnCheckout.className = "w-full py-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-2xl font-black text-sm shadow-lg hover:shadow-xl transition-all btn-press uppercase tracking-wider";
-                }
-                if (btnDeleteAll) {
-                    btnDeleteAll.disabled = false;
-                    btnDeleteAll.className = "text-[9px] font-bold text-red-500 hover:text-red-700 uppercase flex items-center gap-1";
-                }
-                if (btnReportTrigger) {
-                    btnReportTrigger.disabled = false;
-                    btnReportTrigger.className = "w-full mb-6 py-3.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-2xl flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transition-all btn-press";
-                }
-            } else {
-                if (transactionWarning) transactionWarning.classList.remove('hidden');
-                transactionInputs.forEach(input => {
-                    if (input) {
-                        input.disabled = true;
-                        input.classList.remove('bg-white', 'text-slate-800');
-                        input.classList.add('bg-slate-50', 'text-slate-400');
-                    }
-                });
-                if (btnAddCart) {
-                    btnAddCart.disabled = true;
-                    btnAddCart.className = "w-full py-3.5 bg-slate-300 text-slate-500 rounded-xl font-bold text-xs shadow-md cursor-not-allowed flex items-center justify-center gap-2 uppercase tracking-wide";
-                }
-                if (btnClearCart) {
-                    btnClearCart.disabled = true;
-                    btnClearCart.className = "text-[9px] font-bold text-red-300 uppercase cursor-not-allowed flex items-center gap-1";
-                }
-                if (btnCheckout) {
-                    btnCheckout.disabled = true;
-                    btnCheckout.className = "w-full py-4 bg-slate-300 text-slate-500 rounded-2xl font-black text-sm shadow-lg cursor-not-allowed uppercase tracking-wider";
-                }
-                if (btnDeleteAll) {
-                    btnDeleteAll.disabled = true;
-                    btnDeleteAll.className = "text-[9px] font-bold text-red-300 uppercase flex items-center gap-1 cursor-not-allowed";
-                }
-                if (btnReportTrigger) {
-                    btnReportTrigger.disabled = true;
-                    btnReportTrigger.className = "w-full mb-6 py-3.5 bg-slate-100 border border-slate-200 rounded-2xl flex items-center justify-center gap-2 opacity-50 cursor-not-allowed";
-                }
-            }
+            document.getElementById('btn-clear-cart').disabled = !canTransact;
         }
 
         async function updateRewardSystem() {
@@ -2051,24 +844,10 @@
             const totalSalesMonth = monthlyTx.reduce((sum, tx) => sum + tx.total, 0);
             const bonusAmount = Math.floor(totalSalesMonth / 10000000) * 100000;
             const progressPercent = Math.min((totalSalesMonth % 10000000) / 10000000 * 100, 100);
-            const nextTierTarget = (Math.floor(totalSalesMonth / 10000000) + 1) * 10;
 
             document.getElementById('reward-bonus').innerText = `+ Rp ${bonusAmount.toLocaleString()}`;
             document.getElementById('reward-total-sales').innerText = `Rp ${totalSalesMonth.toLocaleString()}`;
-            document.getElementById('reward-next-target').innerText = `Target: Rp ${nextTierTarget}jt`;
             document.getElementById('reward-progress-bar').style.width = `${progressPercent}%`;
-            
-            const statusEl = document.getElementById('reward-status-text');
-            statusEl.innerText = bonusAmount > 0 ? `🏆 Bonus Rp ${bonusAmount.toLocaleString()}!` : "Cetak penjualan 10jt untuk bonus!";
-        }
-
-        async function updateDataStats() {
-            const txHist = JSON.parse(await getStorage('rocky_tx_history') || "[]");
-            const absHist = JSON.parse(await getStorage('rocky_history') || "[]");
-            
-            document.getElementById('stat-tx').innerText = txHist.length.toLocaleString();
-            document.getElementById('stat-absen').innerText = absHist.length.toLocaleString();
-            document.getElementById('stat-total').innerText = (txHist.length + absHist.length).toLocaleString();
         }
 
         // ==================== GPS FUNCTIONS ====================
@@ -2080,7 +859,8 @@
 
         function calculateDistance(lat1, lon1, lat2, lon2) {
             const R = 6371e3;
-            const p1 = lat1 * Math.PI/180, p2 = lat2 * Math.PI/180;
+            const p1 = lat1 * Math.PI/180;
+            const p2 = lat2 * Math.PI/180;
             const a = Math.sin((lat2-lat1)*Math.PI/360)**2 + Math.cos(p1)*Math.cos(p2)*Math.sin((lon2-lon1)*Math.PI/360)**2;
             return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         }
@@ -2101,124 +881,302 @@
                 }
                 
                 if (dist <= RADIUS) {
-                    if (indicator) indicator.className = "w-2.5 h-2.5 rounded-full bg-green-500 animate-ping";
-                    if (text) text.innerHTML = `<span class="text-green-600 font-bold"><span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span> Dalam Area</span>`;
-                    
+                    if (indicator) indicator.className = "w-2.5 h-2.5 rounded-full bg-green-500";
+                    if (text) text.innerHTML = '📍 Dalam Area';
                     checkTodayAbsen();
-                    updateTransactionAccess();
                 } else {
                     if (indicator) indicator.className = "w-2.5 h-2.5 rounded-full bg-red-500";
-                    if (text) text.innerHTML = `<span class="text-red-500 font-bold"><span class="w-1.5 h-1.5 bg-red-500 rounded-full"></span> Luar Jangkauan</span>`;
-                    checkTodayAbsen();
-                    updateTransactionAccess();
+                    if (text) text.innerHTML = '📍 Luar Jangkauan';
                 }
             }, null, { enableHighAccuracy: true });
         }
 
-        // ==================== CART FUNCTIONS ====================
         function renderCart() {
             const list = document.getElementById('cart-list');
             const totalEl = document.getElementById('cart-total');
             if (cart.length === 0) {
-                if (list) list.innerHTML = `<div class="text-center py-8 border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50/50"><p class="text-[10px] text-slate-400 italic">Keranjang kosong</p></div>`;
+                if (list) list.innerHTML = '<p class="text-center text-[10px] text-slate-400 py-4">Keranjang kosong</p>';
                 if (totalEl) totalEl.innerText = "Rp 0";
                 return;
             }
             let total = 0;
             if (list) {
-                list.innerHTML = cart.map((item) => {
+                list.innerHTML = cart.map(item => {
                     total += item.subtotal;
-                    return `<div class="flex items-center justify-between p-3 bg-gradient-to-r from-white to-slate-50 rounded-2xl border border-slate-100 shadow-sm">
-                        <div><p class="text-[10px] font-bold">${item.nama}</p><p class="text-[8px] text-slate-500">${item.qty} x Rp ${item.harga.toLocaleString()}</p></div>
-                        <button onclick="removeItem(${item.id})" class="text-red-400 hover:text-red-600 text-[10px]">🗑️ Hapus</button>
+                    return `<div class="flex justify-between p-2 bg-white rounded-xl border">
+                        <span class="text-[10px] font-bold">${item.nama} x${item.qty}</span>
+                        <span class="text-[10px]">Rp ${item.harga.toLocaleString()}</span>
                     </div>`;
                 }).join('');
             }
             if (totalEl) totalEl.innerText = `Rp ${total.toLocaleString()}`;
         }
 
-        function removeItem(id) { 
-            cart = cart.filter(i => i.id !== id); 
-            renderCart(); 
-        }
-        
-        function clearCart() { 
-            cart = []; 
-            renderCart(); 
-        }
-
-        // ==================== UI FUNCTIONS ====================
         function copyKoordinat() {
-            const koordinatText = document.getElementById('koordinat-text');
-            if (!koordinatText) return;
-            
-            const koordinat = koordinatText.innerText;
-            navigator.clipboard.writeText(koordinat).then(() => {
-                showSmartToast("✅ Koordinat berhasil disalin!", 'success', 1500);
-            }).catch(() => {
-                const tempInput = document.createElement("textarea");
-                tempInput.value = koordinat;
-                document.body.appendChild(tempInput);
-                tempInput.select();
-                document.execCommand("copy");
-                document.body.removeChild(tempInput);
-                showSmartToast("✅ Koordinat berhasil disalin!", 'success', 1500);
-            });
+            const koordinat = document.getElementById('koordinat-text').innerText;
+            navigator.clipboard.writeText(koordinat).then(() => showToast("✅ Koordinat disalin"));
         }
 
         function switchTab(tab) {
             document.getElementById('view-attendance').classList.toggle('hidden', tab !== 'absensi');
             document.getElementById('view-transaction').classList.toggle('hidden', tab !== 'transaksi');
-            document.getElementById('tab-absensi').className = `flex-1 py-2.5 text-xs font-bold transition-all uppercase tracking-wider rounded-xl ${tab === 'absensi' ? 'active-tab bg-indigo-50 text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`;
-            document.getElementById('tab-transaksi').className = `flex-1 py-2.5 text-xs font-bold transition-all uppercase tracking-wider rounded-xl ${tab === 'transaksi' ? 'active-tab bg-indigo-50 text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`;
-            
-            if(tab === 'transaksi') {
-                updateRewardSystem();
-                updateTransactionAccess();
-            }
         }
 
         function isiPilihanTahun() {
             const tahunSelect = document.getElementById('rekap-tahun');
-            if (!tahunSelect) return;
-            
             const tahunSekarang = new Date().getFullYear();
             let options = '';
             for (let tahun = tahunSekarang; tahun >= tahunSekarang - 4; tahun--) {
-                const selected = (tahun === tahunSekarang) ? 'selected' : '';
-                options += `<option value="${tahun}" ${selected}>${tahun}</option>`;
+                options += `<option value="${tahun}">${tahun}</option>`;
             }
             tahunSelect.innerHTML = options;
         }
 
-        // ==================== MODAL FUNCTIONS ====================
-        function openModal(id) { 
-            const el = document.getElementById(id);
-            if (el) {
-                el.classList.remove('hidden');
-                el.classList.add('flex');
-                
-                if (id === 'modal-security' || id === 'modal-reset') {
-                    const pinInput = document.getElementById(id === 'modal-security' ? 'security-pin' : 'reset-pin');
-                    if (pinInput) {
-                        pinInput.value = '';
-                        pinInput.removeAttribute('readonly');
-                    }
+        // ==================== ACTION FUNCTIONS ====================
+        document.getElementById('btn-register').onclick = async () => {
+            const n = document.getElementById('reg-name').value.trim();
+            const d = document.getElementById('reg-domicile').value.trim();
+            const w = document.getElementById('reg-wa').value.trim();
+            
+            if(!n || !d || !w) return showToast("❌ Lengkapi semua data!");
+            if (!/^62\d+$/.test(w)) return showToast("❌ Format WA harus 628xxx");
+            
+            document.getElementById('loading-overlay').classList.remove('hidden');
+            try {
+                const savedName = await getStorage('rocky_user_name');
+                if (savedName && savedName !== n) {
+                    showToast("Nama tidak bisa diubah!");
+                    return;
                 }
+                
+                await setStorage('rocky_user_name', n);
+                await setStorage('rocky_user_dom', d);
+                await setStorage('rocky_user_wa', w);
+                userData = { name: n, domicile: d, wa: w };
+                
+                document.getElementById('view-registration').classList.add('hidden');
+                document.getElementById('main-nav').classList.remove('hidden');
+                document.getElementById('view-attendance').classList.remove('hidden');
+                
+                document.getElementById('user-display-name').innerText = n;
+                document.getElementById('user-display-domicile').innerHTML = `📍 ${d}`;
+                document.getElementById('user-display-wa').innerHTML = `📱 ${w}`;
+                
+                await renderHistory();
+                await renderTxHistory();
+                updateRewardSystem();
+                startGPS();
+                checkTodayAbsen();
+                updateTransactionAccess();
+                
+            } finally {
+                document.getElementById('loading-overlay').classList.add('hidden');
             }
+        };
+
+        document.getElementById('btn-absensi').onclick = async () => {
+            if (await hasTodayAttendance()) return showToast("Anda sudah absen hari ini!");
+            if (calculateDistance(userPos.lat, userPos.lng, TARGET_LOC.lat, TARGET_LOC.lng) > RADIUS) {
+                return showToast("Anda di luar area!");
+            }
+            
+            await saveRecord('Hadir', 'Absen Masuk');
+            
+            const waktu = new Date().toLocaleString('id-ID');
+            const msg = `✅ ABSENSI\n👤 ${userData.name}\n📍 ${userData.domicile}\n📱 ${userData.wa}\n🕐 ${waktu}`;
+            
+            window.location.href = `https://api.whatsapp.com/send?phone=${WA_ADMIN}&text=${encodeURIComponent(msg)}`;
+            
+            setTimeout(checkTodayAbsen, 500);
+        };
+
+        document.getElementById('btn-submit-izin').onclick = async () => {
+            if (await hasTodayAttendance()) {
+                showToast("Anda sudah absen/izin hari ini!");
+                closeModal('modal-izin');
+                return;
+            }
+            
+            const type = document.getElementById('izin-type').value;
+            const reason = document.getElementById('izin-reason').value.trim() || 'Tanpa alasan';
+            
+            await saveRecord(type, reason);
+            
+            const waktu = new Date().toLocaleString('id-ID');
+            const msg = `📋 IZIN/SAKIT\n👤 ${userData.name}\n📍 ${userData.domicile}\n📱 ${userData.wa}\n📌 ${type}\n📝 ${reason}\n🕐 ${waktu}`;
+            
+            window.location.href = `https://api.whatsapp.com/send?phone=${WA_ADMIN}&text=${encodeURIComponent(msg)}`;
+            closeModal('modal-izin');
+            showToast("✅ Izin berhasil dikirim");
+            setTimeout(checkTodayAbsen, 500);
+        };
+
+        document.getElementById('btn-resend-absen').onclick = async () => {
+            const hist = JSON.parse(await getStorage('rocky_history') || "[]");
+            const today = new Date().toLocaleDateString('id-ID');
+            const todayData = hist.find(h => h.date === today && h.type !== 'Transaksi');
+            
+            if (!todayData) return showToast("Tidak ada data untuk dikirim ulang");
+            
+            const waktu = new Date(todayData.rawDate).toLocaleString('id-ID');
+            const msg = `🔄 KIRIM ULANG\n👤 ${userData.name}\n📍 ${userData.domicile}\n📱 ${userData.wa}\n📌 ${todayData.type}\n📝 ${todayData.note}\n🕐 ${waktu}`;
+            
+            window.location.href = `https://api.whatsapp.com/send?phone=${WA_ADMIN}&text=${encodeURIComponent(msg)}`;
+            showToast("✅ Mengirim ulang...");
+        };
+
+        document.getElementById('btn-add-cart').onclick = async () => {
+            if (!await hasTodayPresent()) return showToast("Anda harus absen HADIR hari ini!");
+            
+            const nama = document.getElementById('tx-nama').value;
+            const qty = parseInt(document.getElementById('tx-qty').value);
+            const harga = parseInt(document.getElementById('tx-harga').value);
+            if (!nama || !qty || !harga) return showToast("Data tidak lengkap!");
+            
+            cart.push({ id: Date.now(), nama, qty, harga, subtotal: qty * harga });
+            document.getElementById('tx-nama').value = "";
+            document.getElementById('tx-qty').value = "";
+            document.getElementById('tx-harga').value = "";
+            renderCart();
+            showToast("✅ Barang masuk keranjang");
+        };
+
+        document.getElementById('btn-checkout').onclick = async () => {
+            if (!await hasTodayPresent()) return showToast("Anda harus absen HADIR hari ini!");
+            if (cart.length === 0) return showToast("Pilih barang dulu!");
+            
+            let total = 0;
+            cart.forEach(item => total += item.subtotal);
+            const recordId = Date.now();
+            await saveTxRecord(recordId, cart, total);
+            await saveRecord('Transaksi', `Penjualan: Rp ${total.toLocaleString()}`);
+            cart = [];
+            renderCart();
+            updateRewardSystem();
+            showToast("✅ Penjualan Berhasil!");
+        };
+
+        async function saveEditProfile() {
+            const newDomicile = document.getElementById('edit-domicile').value.trim();
+            const newWA = document.getElementById('edit-wa').value.trim();
+            
+            if (!newDomicile || !newWA) return showToast("❌ Data harus diisi!");
+            if (!/^62\d+$/.test(newWA)) return showToast("❌ Format WA harus 628xxx");
+            
+            userData.domicile = newDomicile;
+            userData.wa = newWA;
+            
+            await setStorage('rocky_user_dom', newDomicile);
+            await setStorage('rocky_user_wa', newWA);
+            
+            document.getElementById('user-display-domicile').innerHTML = `📍 ${newDomicile}`;
+            document.getElementById('user-display-wa').innerHTML = `📱 ${newWA}`;
+            
+            closeModal('modal-edit');
+            showToast("✅ Profil diperbarui");
+        }
+
+        async function logout() {
+            userData = { name: "", domicile: "", wa: "" };
+            document.getElementById('main-nav').classList.add('hidden');
+            document.getElementById('view-attendance').classList.add('hidden');
+            document.getElementById('view-transaction').classList.add('hidden');
+            document.getElementById('view-registration').classList.remove('hidden');
+            closeModal('modal-menu');
+            showToast("Berhasil keluar");
+        }
+
+        async function backupViaWA() {
+            if (!userData.wa) return showToast("❌ Nomor WA belum terdaftar!");
+            
+            const attendance = await getAllFromStore(STORES.ATTENDANCE);
+            const transactions = await getAllFromStore(STORES.TRANSACTIONS);
+            
+            const allData = {
+                u: userData.name,
+                d: userData.domicile,
+                w: userData.wa,
+                t: transactions,
+                a: attendance
+            };
+            
+            const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(allData))));
+            const msg = `🔐 BACKUP ROCKY\n${userData.name}\n\n${encoded}`;
+            
+            window.location.href = `https://api.whatsapp.com/send?phone=${userData.wa}&text=${encodeURIComponent(msg)}`;
+            showToast("✅ Backup terkirim!");
+            closeModal('modal-menu');
+        }
+
+        async function restoreFromWA() {
+            const input = prompt("Tempel kode backup:");
+            if (!input) return;
+            
+            try {
+                const lines = input.split('\n');
+                let code = '';
+                for (const line of lines) {
+                    if (line.length > 100) code = line;
+                }
+                
+                const jsonString = decodeURIComponent(escape(atob(code)));
+                const data = JSON.parse(jsonString);
+                
+                if (!data.u || !data.t || !data.a) throw new Error("Format salah");
+                
+                await clearStore(STORES.ATTENDANCE);
+                for (const item of data.a) await addToStore(STORES.ATTENDANCE, item);
+                
+                await clearStore(STORES.TRANSACTIONS);
+                for (const item of data.t) await addToStore(STORES.TRANSACTIONS, item);
+                
+                showToast("✅ Restore berhasil!");
+                setTimeout(() => location.reload(), 1500);
+            } catch (e) {
+                showToast("❌ Gagal restore: Kode rusak!");
+            }
+        }
+
+        async function kirimRekapBulanan() {
+            const bulan = parseInt(document.getElementById('rekap-bulan').value);
+            const tahun = parseInt(document.getElementById('rekap-tahun').value);
+            const namaBulan = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'][bulan];
+            
+            const hist = JSON.parse(await getStorage('rocky_history') || "[]");
+            const dataBulan = hist.filter(item => {
+                const d = new Date(item.rawDate);
+                return d.getMonth() === bulan && d.getFullYear() === tahun && item.type !== 'Transaksi';
+            });
+            
+            if (dataBulan.length === 0) {
+                showToast(`Tidak ada data ${namaBulan} ${tahun}`);
+                closeModal('modal-rekap-bulan');
+                return;
+            }
+            
+            let hadir=0, sakit=0, izin=0;
+            dataBulan.forEach(i => {
+                if(i.type==='Hadir') hadir++;
+                else if(i.type==='Sakit') sakit++;
+                else izin++;
+            });
+            
+            let text = `📊 REKAP ${namaBulan} ${tahun}\n👤 ${userData.name}\n✅ Hadir: ${hadir}\n🟡 Sakit: ${sakit}\n📝 Izin: ${izin}\n📆 Total: ${dataBulan.length} hari`;
+            
+            window.location.href = `https://api.whatsapp.com/send?phone=${WA_ADMIN}&text=${encodeURIComponent(text)}`;
+            closeModal('modal-rekap-bulan');
+            showToast(`✅ Rekap ${namaBulan} ${tahun} terkirim`);
+        }
+
+        // ==================== UTILITY FUNCTIONS ====================
+        function openModal(id) { 
+            document.getElementById(id)?.classList.remove('hidden');
+            document.getElementById(id)?.classList.add('flex');
         }
 
         function closeModal(id) { 
-            const el = document.getElementById(id);
-            if (el) {
-                el.classList.add('hidden');
-                el.classList.remove('flex');
-            }
-        }
-
-        function openMenuModal() {
-            updateDataStats();
-            openModal('modal-menu');
+            document.getElementById(id)?.classList.add('hidden');
+            document.getElementById(id)?.classList.remove('flex');
         }
 
         function openEditModal() {
@@ -2233,717 +1191,42 @@
             openModal('modal-rekap-bulan'); 
         }
 
-        function openResetModal() { 
-            document.getElementById('reset-pin').value = "";
-            openModal('modal-reset');
+        function openMenuModal() {
+            updatePendingBadge();
+            openModal('modal-menu');
         }
 
-        function openSecurityModal(id) { 
-            pendingDeleteAction = id; 
-            document.getElementById('security-pin').value = "";
-            openModal('modal-security');
+        function showToast(m) { 
+            const t = document.getElementById('toast'); 
+            t.innerText = m; 
+            t.classList.replace('opacity-0', 'opacity-100'); 
+            setTimeout(() => t.classList.replace('opacity-100', 'opacity-0'), 2000);
         }
 
-        function openBackupModalFromMenu() {
-            closeModal('modal-menu');
-            openModal('modal-backup');
-        }
-
-        function openResetModalFromMenu() {
-            closeModal('modal-menu');
-            openResetModal();
-        }
-
-        function openLogoutModal() {
-            closeModal('modal-menu');
-            openModal('modal-logout');
-        }
-
-        // ==================== ACTION FUNCTIONS ====================
-        document.getElementById('btn-register').onclick = async () => {
-            const n = document.getElementById('reg-name').value.trim();
-            const d = document.getElementById('reg-domicile').value.trim();
-            const w = document.getElementById('reg-wa').value.trim();
-            
-            if(!n || !d || !w) return showSmartToast("❌ Lengkapi semua data!", 'error');
-            if (!/^62\d+$/.test(w)) return showSmartToast("❌ Format WA harus 628xxx", 'error');
-            
-            document.getElementById('loading-overlay').classList.remove('hidden');
-            try {
-                if (isTrialMode) {
-                    await setStorage('rocky_user_name', n);
-                    await setStorage('rocky_user_dom', d);
-                    await setStorage('rocky_user_wa', w);
-                    userData = { name: n, domicile: d, wa: w }; 
-                    await initApp();
-                } else {
-                    const savedName = await getStorage('rocky_user_name');
-                    if (savedName) {
-                        if (savedName !== n) return showSmartToast("Nama tidak bisa diubah!", 'error');
-                        userData = { name: savedName, domicile: d, wa: w };
-                        await setStorage('rocky_user_dom', d);
-                        await setStorage('rocky_user_wa', w);
-                    } else {
-                        await setStorage('rocky_user_name', n);
-                        await setStorage('rocky_user_dom', d);
-                        await setStorage('rocky_user_wa', w);
-                        userData = { name: n, domicile: d, wa: w };
-                    }
-                    
-                    await initApp();
-                }
-            } finally {
-                document.getElementById('loading-overlay').classList.add('hidden');
-            }
-        };
-
-        document.getElementById('btn-absensi').onclick = async () => {
-            if (await hasTodayAttendance()) return showSmartToast("Anda sudah absen hari ini!", 'warning');
-            if (calculateDistance(userPos.lat, userPos.lng, TARGET_LOC.lat, TARGET_LOC.lng) > RADIUS) {
-                return showSmartToast("Anda di luar area!", 'error');
-            }
-            
-            await setStorage('rocky_last_absen', new Date().toLocaleDateString());
-            await saveRecord('Hadir', 'Absen Masuk (GPS) - Cicurug');
-            
-            const waktu = new Date().toLocaleString('id-ID', { 
-                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', 
-                hour: '2-digit', minute: '2-digit' 
-            });
-            const hash = btoa(`${userData.name}|Hadir|${waktu}|${userPos.lat},${userPos.lng}`);
-            
-            const msg = `✅ ABSENSI\n👤 ${userData.name}\n📍 ${userData.domicile}\n📱 ${userData.wa}\n🕐 ${waktu}\n🌐 https://maps.google.com/?q=${userPos.lat},${userPos.lng}\n🔐 ${hash}`;
-            
-            window.location.href = `https://api.whatsapp.com/send?phone=${WA_ADMIN}&text=${encodeURIComponent(msg)}`;
-            
-            setTimeout(async () => {
-                await checkTodayAbsen();
-                updateTransactionAccess();
-            }, 500);
-        };
-
-        document.getElementById('btn-submit-izin').onclick = async () => {
-            if (await hasTodayAttendance()) {
-                showSmartToast("Anda sudah absen/izin hari ini!", 'warning');
-                closeModal('modal-izin');
-                return;
-            }
-            
-            const type = document.getElementById('izin-type').value;
-            const reason = document.getElementById('izin-reason').value.trim() || 'Tanpa alasan';
-            
-            await saveRecord(type, reason);
-            
-            const waktu = new Date().toLocaleString('id-ID', { 
-                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', 
-                hour: '2-digit', minute: '2-digit' 
-            });
-            const dataAsli = `${userData.name}|${type}|${reason}|${waktu}|${userPos.lat},${userPos.lng}`;
-            const hash = btoa(dataAsli);
-            
-            const msg = `📋 *IZIN/SAKIT*\n👤 ${userData.name}\n📍 ${userData.domicile}\n📱 ${userData.wa}\n📌 ${type}\n📝 ${reason}\n🕐 ${waktu}\n🌐 https://maps.google.com/?q=${userPos.lat},${userPos.lng}\n🔐 ${hash}`;
-            
-            window.location.href = `https://api.whatsapp.com/send?phone=${WA_ADMIN}&text=${encodeURIComponent(msg)}`;
-            closeModal('modal-izin');
-            showSmartToast("✅ Izin berhasil dikirim", 'success');
-            setTimeout(async () => await checkTodayAbsen(), 500);
-        };
-
-        document.getElementById('btn-resend-absen').onclick = async () => {
-            if (!lastAbsenData) return showSmartToast("Tidak ada data untuk dikirim ulang", 'warning');
-            
-            const waktuAsli = new Date(lastAbsenData.rawDate).toLocaleString('id-ID', {weekday:'long', year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit'});
-            const waktuKirim = new Date().toLocaleString('id-ID', {weekday:'long', year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit'});
-            const dataAsli = `${userData.name}|${lastAbsenData.type}|${lastAbsenData.note}|${waktuAsli}|${userPos.lat},${userPos.lng}`;
-            const hash = btoa(dataAsli);
-            
-            const msg = `🔄 KIRIM ULANG\n👤 ${userData.name}\n📍 ${userData.domicile}\n📱 ${userData.wa}\n📌 ${lastAbsenData.type}\n📝 ${lastAbsenData.note}\n⏰ ${waktuAsli}\n⏱️ ${waktuKirim}\n🌐 https://maps.google.com/?q=${userPos.lat},${userPos.lng}\n🔐 ${hash}`;
-            
-            window.location.href = `https://api.whatsapp.com/send?phone=${WA_ADMIN}&text=${encodeURIComponent(msg)}`;
-            showSmartToast(`✅ Mengirim ulang...`, 'info');
-        };
-
-        document.getElementById('btn-add-cart').onclick = async () => {
-            if (!await hasTodayPresent()) {
-                showSmartToast("Anda harus absen HADIR hari ini!", 'warning');
-                return;
-            }
-            if (!isWithinRadius()) {
-                showSmartToast("Anda harus berada dalam radius area!", 'error');
-                return;
-            }
-            
-            const nama = document.getElementById('tx-nama').value;
-            const kode = document.getElementById('tx-kode').value;
-            const qty = parseInt(document.getElementById('tx-qty').value);
-            const harga = parseInt(document.getElementById('tx-harga').value);
-            if (!nama || !qty || !harga) return showSmartToast("Data tidak lengkap!", 'error');
-            
-            cart.push({ id: Date.now(), nama, kode: kode || '-', qty, harga, subtotal: qty * harga });
-            document.getElementById('tx-nama').value = "";
-            document.getElementById('tx-kode').value = "";
-            document.getElementById('tx-qty').value = "";
-            document.getElementById('tx-harga').value = "";
-            renderCart();
-            showSmartToast("✅ Barang masuk keranjang", 'success', 1000);
-        };
-
-        document.getElementById('btn-checkout').onclick = async () => {
-            if (!await hasTodayPresent()) {
-                showSmartToast("Anda harus absen HADIR hari ini!", 'warning');
-                return;
-            }
-            if (!isWithinRadius()) {
-                showSmartToast("Anda harus berada dalam radius area!", 'error');
-                return;
-            }
-            if (cart.length === 0) return showSmartToast("Pilih barang dulu!", 'warning');
-            
-            let total = 0;
-            cart.forEach(item => total += item.subtotal);
-            const recordId = Date.now();
-            await saveTxRecord(recordId, cart, total);
-            await saveRecord('Transaksi', `Penjualan: Rp ${total.toLocaleString()}`, recordId);
-            cart = [];
-            renderCart();
-            updateRewardSystem();
-            showSmartToast("✅ Penjualan Berhasil!", 'success');
-        };
-
-        async function saveEditProfile() {
-            const newDomicile = document.getElementById('edit-domicile').value.trim();
-            const newWA = document.getElementById('edit-wa').value.trim();
-            
-            if (!newDomicile || !newWA) {
-                showSmartToast("❌ Domisili dan WA harus diisi!", 'error');
-                return;
-            }
-            
-            if (!/^62\d+$/.test(newWA)) {
-                showSmartToast("❌ Format WA harus 628xxx", 'error');
-                return;
-            }
-            
-            userData.domicile = newDomicile;
-            userData.wa = newWA;
-            
-            await setStorage('rocky_user_dom', newDomicile);
-            await setStorage('rocky_user_wa', newWA);
-            
-            document.getElementById('user-display-domicile').innerHTML = `<span class="w-1 h-1 bg-indigo-400 rounded-full"></span> ${newDomicile}`;
-            document.getElementById('user-display-wa').innerHTML = `<span>📱</span> ${newWA}`;
-            
-            closeModal('modal-edit');
-            showSmartToast("✅ Profil berhasil diperbarui", 'success');
-            await saveActivityLog('Edit Profil', 'Mengubah domisili/WA');
-        }
-
-        async function logout() {
-            document.getElementById('loading-overlay').classList.remove('hidden');
-            try {
-                userData = { name: "", domicile: "", wa: "" };
-                isTrialMode = false;
-                
-                document.getElementById('main-nav').classList.add('hidden');
-                document.getElementById('view-attendance').classList.add('hidden');
-                document.getElementById('view-transaction').classList.add('hidden');
-                document.getElementById('view-registration').classList.remove('hidden');
-                document.getElementById('trial-badge').classList.add('hidden');
-                document.getElementById('cloud-badge').classList.add('hidden');
-                
-                const savedName = await getStorage('rocky_user_name');
-                if (savedName) {
-                    document.getElementById('reg-name').value = savedName;
-                    document.getElementById('reg-name').disabled = true;
-                    document.getElementById('reg-domicile').value = await getStorage('rocky_user_dom') || "";
-                    document.getElementById('reg-wa').value = await getStorage('rocky_user_wa') || "";
-                    document.getElementById('reg-domicile').disabled = false;
-                    document.getElementById('reg-wa').disabled = false;
-                    document.getElementById('btn-register').innerText = "LOGIN KEMBALI";
-                } else {
-                    document.getElementById('reg-name').disabled = false;
-                    document.getElementById('reg-domicile').disabled = false;
-                    document.getElementById('reg-wa').disabled = false;
-                    document.getElementById('reg-name').value = "";
-                    document.getElementById('reg-domicile').value = "";
-                    document.getElementById('reg-wa').value = "";
-                    document.getElementById('btn-register').innerText = "DAFTAR / LOGIN";
-                }
-                
-                closeModal('modal-logout');
-                closeModal('modal-menu');
-                showSmartToast("Berhasil keluar", 'success');
-            } finally {
-                document.getElementById('loading-overlay').classList.add('hidden');
-            }
-        }
-
-        async function backupViaWA() {
-            if (!userData.wa) {
-                showSmartToast("❌ Nomor WhatsApp belum terdaftar!", 'error');
-                setTimeout(() => {
-                    if (confirm("Apakah Anda ingin mengisi nomor WA sekarang?")) {
-                        openEditModal();
-                    }
-                }, 1000);
-                return;
-            }
-            
-            showSmartToast("⏳ Menyiapkan backup...", 'info');
-            document.getElementById('loading-overlay').classList.remove('hidden');
-            
-            try {
-                const attendance = await getAllFromStore(STORES.ATTENDANCE);
-                const transactions = await getAllFromStore(STORES.TRANSACTIONS);
-                const activityLogs = await getAllFromStore(STORES.ACTIVITY_LOGS);
-                
-                const allData = {
-                    u: userData.name,
-                    d: userData.domicile,
-                    w: userData.wa,
-                    t: transactions,
-                    a: attendance,
-                    l: activityLogs,
-                    date: new Date().toISOString()
-                };
-                
-                const totalTx = transactions.length;
-                const totalAbs = attendance.length;
-                
-                const jsonString = JSON.stringify(allData);
-                const encoded = btoa(unescape(encodeURIComponent(jsonString)));
-                
-                const maxLength = 60000;
-                
-                if (encoded.length > maxLength) {
-                    const totalParts = Math.ceil(encoded.length / maxLength);
-                    let fullMessage = `🔐 BACKUP ROCKY (${totalParts} BAGIAN)\n`;
-                    fullMessage += `${userData.name} | ${userData.domicile}\n`;
-                    fullMessage += `T:${totalTx} A:${totalAbs}\n\n`;
-                    
-                    for (let i = 0; i < totalParts; i++) {
-                        const start = i * maxLength;
-                        const end = Math.min(start + maxLength, encoded.length);
-                        fullMessage += `---${i+1}/${totalParts}---\n`;
-                        fullMessage += encoded.substring(start, end) + '\n\n';
-                    }
-                    
-                    window.location.href = `https://api.whatsapp.com/send?phone=${userData.wa}&text=${encodeURIComponent(fullMessage)}`;
-                    showSmartToast(`✅ Backup terkirim (${totalParts} bagian)`, 'success');
-                } else {
-                    const msg = `🔐 BACKUP ROCKY\n${userData.name} | ${userData.domicile}\nT:${totalTx} A:${totalAbs}\n\n${encoded}`;
-                    window.location.href = `https://api.whatsapp.com/send?phone=${userData.wa}&text=${encodeURIComponent(msg)}`;
-                    showSmartToast("✅ Backup terkirim!", 'success');
-                }
-                
-                await saveActivityLog('Backup', `Backup data via WA (${totalTx + totalAbs} entri)`);
-                closeModal('modal-menu');
-            } catch (error) {
-                console.error('Backup error:', error);
-                showSmartToast("❌ Gagal backup!", 'error');
-            } finally {
-                document.getElementById('loading-overlay').classList.add('hidden');
-            }
-        }
-
-        async function restoreFromWA() {
-            const input = prompt("Tempel kode backup dari WhatsApp di sini:");
-            if (!input) return;
-            
-            showSmartToast("⏳ Memproses restore...", 'info');
-            document.getElementById('loading-overlay').classList.remove('hidden');
-            
-            try {
-                let cleanInput = input;
-                const lines = input.split('\n');
-                let possibleBase64 = '';
-                
-                for (const line of lines) {
-                    const trimmed = line.trim();
-                    if (/^[A-Za-z0-9+/=]+$/.test(trimmed) && trimmed.length > 100) {
-                        possibleBase64 = trimmed;
-                        break;
-                    }
-                }
-                
-                if (!possibleBase64) {
-                    possibleBase64 = input.replace(/[^A-Za-z0-9+/=]/g, '');
-                }
-                
-                const jsonString = decodeURIComponent(escape(atob(possibleBase64)));
-                const data = JSON.parse(jsonString);
-                
-                if (!data.u || !data.t || !data.a) {
-                    throw new Error("Format data tidak valid");
-                }
-                
-                if (data.u !== userData.name) {
-                    if (!confirm(`Nama berbeda (${data.u} ≠ ${userData.name}). Lanjutkan restore?`)) {
-                        return;
-                    }
-                }
-                
-                userData.domicile = data.d || userData.domicile;
-                userData.wa = data.w || userData.wa;
-                
-                await clearStore(STORES.ATTENDANCE);
-                for (const item of data.a) {
-                    await addToStore(STORES.ATTENDANCE, item);
-                    await addToSyncQueue('saveAttendance', {
-                        id: item.id,
-                        nama: userData.name,
-                        type: item.type,
-                        note: item.note,
-                        time: item.time,
-                        date: item.date,
-                        rawDate: item.rawDate
-                    });
-                }
-                
-                await clearStore(STORES.TRANSACTIONS);
-                for (const item of data.t) {
-                    await addToStore(STORES.TRANSACTIONS, item);
-                    await addToSyncQueue('saveTransaction', {
-                        id: item.id,
-                        nama: userData.name,
-                        date: item.date,
-                        time: item.time,
-                        items: JSON.stringify(item.items),
-                        total: item.total,
-                        rawDate: item.rawDate
-                    });
-                }
-                
-                if (data.l) {
-                    await clearStore(STORES.ACTIVITY_LOGS);
-                    for (const item of data.l) {
-                        await addToStore(STORES.ACTIVITY_LOGS, item);
-                        await addToSyncQueue('saveActivityLog', {
-                            id: item.id,
-                            nama: userData.name,
-                            action: item.action,
-                            detail: item.detail,
-                            time: item.time,
-                            rawDate: item.rawDate
-                        });
-                    }
-                }
-                
-                await setStorage('rocky_user_dom', userData.domicile);
-                await setStorage('rocky_user_wa', data.w || userData.wa);
-                
-                await addToSyncQueue('saveUser', {
-                    nama: userData.name,
-                    domisili: userData.domicile,
-                    wa: userData.wa
-                });
-                
-                document.getElementById('user-display-domicile').innerHTML = `<span class="w-1 h-1 bg-indigo-400 rounded-full"></span> ${userData.domicile}`;
-                document.getElementById('user-display-wa').innerHTML = `<span>📱</span> ${userData.wa}`;
-                
-                await renderTxHistory();
-                await renderHistory();
-                await renderActivityLog();
-                
-                showSmartToast("✅ Restore berhasil! Data akan di-sync ke cloud.", 'success');
-                setTimeout(() => location.reload(), 1500);
-                
-                await saveActivityLog('Restore', `Restore data dari backup (${data.t.length + data.a.length} entri)`);
-            } catch (e) {
-                console.error(e);
-                showSmartToast("❌ Gagal restore: Kode rusak!", 'error');
-            } finally {
-                document.getElementById('loading-overlay').classList.add('hidden');
-            }
-        }
-
-        async function exportData() {
-            document.getElementById('loading-overlay').classList.remove('hidden');
-            try {
-                const attendance = await getAllFromStore(STORES.ATTENDANCE);
-                const transactions = await getAllFromStore(STORES.TRANSACTIONS);
-                const activityLogs = await getAllFromStore(STORES.ACTIVITY_LOGS);
-                
-                const data = {
-                    user: {
-                        name: userData.name,
-                        domicile: userData.domicile,
-                        wa: userData.wa
-                    },
-                    history: attendance,
-                    tx_history: transactions,
-                    activity_logs: activityLogs,
-                    export_date: new Date().toISOString()
-                };
-                
-                const tempInput = document.createElement("textarea");
-                tempInput.value = JSON.stringify(data);
-                document.body.appendChild(tempInput);
-                tempInput.select();
-                document.execCommand("copy");
-                document.body.removeChild(tempInput);
-                showSmartToast("✅ Backup disalin!", 'success');
-            } finally {
-                document.getElementById('loading-overlay').classList.add('hidden');
-            }
-        }
-
-        async function importData() {
-            const jsonInput = document.getElementById('import-json').value.trim();
-            if (!jsonInput) return showSmartToast("❌ Tempel kode!", 'error');
-            
-            document.getElementById('loading-overlay').classList.remove('hidden');
-            try {
-                const data = JSON.parse(jsonInput);
-                
-                if (data.user) {
-                    userData = data.user;
-                    await setStorage('rocky_user_name', data.user.name || '');
-                    await setStorage('rocky_user_dom', data.user.domicile || '');
-                    await setStorage('rocky_user_wa', data.user.wa || '');
-                }
-                
-                if (data.history) {
-                    await clearStore(STORES.ATTENDANCE);
-                    for (const item of data.history) {
-                        await addToStore(STORES.ATTENDANCE, item);
-                        await addToSyncQueue('saveAttendance', {
-                            id: item.id,
-                            nama: userData.name,
-                            type: item.type,
-                            note: item.note,
-                            time: item.time,
-                            date: item.date,
-                            rawDate: item.rawDate
-                        });
-                    }
-                }
-                
-                if (data.tx_history) {
-                    await clearStore(STORES.TRANSACTIONS);
-                    for (const item of data.tx_history) {
-                        await addToStore(STORES.TRANSACTIONS, item);
-                        await addToSyncQueue('saveTransaction', {
-                            id: item.id,
-                            nama: userData.name,
-                            date: item.date,
-                            time: item.time,
-                            items: JSON.stringify(item.items),
-                            total: item.total,
-                            rawDate: item.rawDate
-                        });
-                    }
-                }
-                
-                if (data.activity_logs) {
-                    await clearStore(STORES.ACTIVITY_LOGS);
-                    for (const item of data.activity_logs) {
-                        await addToStore(STORES.ACTIVITY_LOGS, item);
-                        await addToSyncQueue('saveActivityLog', {
-                            id: item.id,
-                            nama: userData.name,
-                            action: item.action,
-                            detail: item.detail,
-                            time: item.time,
-                            rawDate: item.rawDate
-                        });
-                    }
-                }
-                
-                await addToSyncQueue('saveUser', {
-                    nama: userData.name,
-                    domisili: userData.domicile,
-                    wa: userData.wa
-                });
-                
-                showSmartToast("✅ Berhasil! Data akan di-sync ke cloud.", 'success');
-                setTimeout(() => location.reload(), 1500);
-            } catch (e) { 
-                console.error(e);
-                showSmartToast("❌ Data rusak!", 'error'); 
-            } finally {
-                document.getElementById('loading-overlay').classList.add('hidden');
-            }
-        }
-
-        async function restoreFromGAS() {
-            if (isTrialMode) {
-                showSmartToast("❌ Mode trial tidak bisa restore dari cloud", 'error');
-                return;
-            }
-            
-            if (!confirm("Restore dari cloud akan menimpa data lokal. Lanjutkan?")) {
-                return;
-            }
-            
-            document.getElementById('loading-overlay').classList.remove('hidden');
-            try {
-                showSmartToast("⚠️ Fitur restore otomatis terbatas. Gunakan Backup via WA untuk restore.", 'warning');
-                alert("Untuk restore data dari cloud:\n\n1. Buka Google Sheets\n2. Copy data yang diperlukan\n3. Gunakan fitur 'Restore dari WA' dengan menempel data");
-                closeModal('modal-menu');
-            } catch (error) {
-                console.error('Restore GAS error:', error);
-                showSmartToast("❌ Gagal restore dari cloud", 'error');
-            } finally {
-                document.getElementById('loading-overlay').classList.add('hidden');
-            }
-        }
-
-        async function startTrialMode() {
-            closeModal('modal-menu');
-            
-            if (confirm("Mode Trial akan menghapus data sementara dan menggunakan session baru. Lanjutkan?")) {
-                document.getElementById('loading-overlay').classList.remove('hidden');
-                try {
-                    const sessionId = sessionStorage.getItem('rocky_session_id');
-                    if (sessionId) {
-                        const attendance = await getAllFromStore(STORES.ATTENDANCE);
-                        for (const item of attendance) {
-                            if (item.sessionId === sessionId) {
-                                await deleteFromStore(STORES.ATTENDANCE, item.id);
-                            }
-                        }
-                        
-                        const transactions = await getAllFromStore(STORES.TRANSACTIONS);
-                        for (const item of transactions) {
-                            if (item.sessionId === sessionId) {
-                                await deleteFromStore(STORES.TRANSACTIONS, item.id);
-                            }
-                        }
-                        
-                        const logs = await getAllFromStore(STORES.ACTIVITY_LOGS);
-                        for (const item of logs) {
-                            if (item.sessionId === sessionId) {
-                                await deleteFromStore(STORES.ACTIVITY_LOGS, item.id);
-                            }
-                        }
-                    }
-                    
-                    isTrialMode = true;
-                    sessionStorage.setItem('rocky_session_id', 'session_' + Date.now());
-                    userData = { name: "", domicile: "", wa: "" };
-                    
-                    document.getElementById('trial-badge').classList.remove('hidden');
-                    document.getElementById('cloud-badge').classList.add('hidden');
-                    
-                    document.getElementById('main-nav').classList.add('hidden');
-                    document.getElementById('view-attendance').classList.add('hidden');
-                    document.getElementById('view-transaction').classList.add('hidden');
-                    document.getElementById('view-registration').classList.remove('hidden');
-                    
-                    document.getElementById('reg-name').disabled = false;
-                    document.getElementById('reg-domicile').disabled = false;
-                    document.getElementById('reg-wa').disabled = false;
-                    document.getElementById('reg-name').value = "";
-                    document.getElementById('reg-domicile').value = "";
-                    document.getElementById('reg-wa').value = "";
-                    document.getElementById('btn-register').innerText = "DAFTAR / LOGIN";
-                    
-                    showSmartToast("Mode Trial aktif! Silakan daftar.", 'info');
-                    
-                    setTimeout(() => {
-                        openModal('modal-tutorial');
-                    }, 500);
-                } finally {
-                    document.getElementById('loading-overlay').classList.add('hidden');
-                }
-            }
-        }
-
-        async function initApp() {
-            document.getElementById('loading-overlay').classList.remove('hidden');
-            try {
-                document.getElementById('view-registration').classList.add('hidden');
-                document.getElementById('main-nav').classList.remove('hidden');
-                document.getElementById('view-attendance').classList.remove('hidden');
-                document.getElementById('user-display-name').innerText = userData.name;
-                document.getElementById('user-display-domicile').innerHTML = `<span class="w-1 h-1 bg-indigo-400 rounded-full"></span> ${userData.domicile}`;
-                document.getElementById('user-display-wa').innerHTML = `<span>📱</span> ${userData.wa || "(belum diisi)"}`;
-                
-                if (isTrialMode) {
-                    document.getElementById('trial-badge').classList.remove('hidden');
-                    document.getElementById('cloud-badge').classList.add('hidden');
-                } else {
-                    document.getElementById('trial-badge').classList.add('hidden');
-                    document.getElementById('cloud-badge').classList.remove('hidden');
-                }
-                
-                await renderHistory();
-                await renderTxHistory();
-                await renderActivityLog();
-                updateRewardSystem();
-                startGPS();
-                checkTodayAbsen();
-                updateTransactionAccess();
-                updateDataStats();
-            } finally {
-                document.getElementById('loading-overlay').classList.add('hidden');
-            }
-        }
-
-        // ==================== INITIALIZATION ====================
+        // ==================== INIT ====================
         window.onload = async () => {
-            const options = { weekday: 'long', day: 'numeric', month: 'long' };
-            document.getElementById('current-date').innerText = new Date().toLocaleDateString('id-ID', options);
+            document.getElementById('current-date').innerText = new Date().toLocaleDateString('id-ID', {
+                weekday: 'long', day: 'numeric', month: 'long'
+            });
             
-            document.getElementById('loading-overlay').classList.remove('hidden');
-            try {
-                await initDB();
-                isiPilihanTahun();
-                await loadSyncQueue();
+            await initDB();
+            
+            const savedName = await getStorage('rocky_user_name');
+            if (savedName) {
+                userData.name = savedName;
+                userData.domicile = await getStorage('rocky_user_dom') || "";
+                userData.wa = await getStorage('rocky_user_wa') || "";
                 
-                window.addEventListener('online', updateConnectionStatus);
-                window.addEventListener('offline', updateConnectionStatus);
-                updateConnectionStatus();
+                document.getElementById('reg-name').value = savedName;
+                document.getElementById('reg-domicile').value = userData.domicile;
+                document.getElementById('reg-wa').value = userData.wa;
                 
-                const savedName = await getStorage('rocky_user_name');
-                
-                if (savedName) {
-                    isTrialMode = false;
-                    userData.name = savedName;
-                    userData.domicile = await getStorage('rocky_user_dom') || "";
-                    userData.wa = await getStorage('rocky_user_wa') || "";
-                    
-                    document.getElementById('reg-name').value = savedName;
-                    document.getElementById('reg-domicile').value = userData.domicile;
-                    document.getElementById('reg-wa').value = userData.wa;
-                    
-                    await initApp();
-                    document.getElementById('cloud-badge').classList.remove('hidden');
-                } else {
-                    isTrialMode = false;
-                    document.getElementById('trial-badge').classList.add('hidden');
-                    document.getElementById('cloud-badge').classList.add('hidden');
-                }
-
-                let visibilityTimeout;
-                document.addEventListener('visibilitychange', async () => {
-                    if (!document.hidden) {
-                        clearTimeout(visibilityTimeout);
-                        visibilityTimeout = setTimeout(() => {
-                            if (syncQueue.length > 0 && isOnline && !isSyncing) {
-                                smartSync();
-                            }
-                        }, SYNC_SMART_CONFIG.COOLDOWN_AFTER_ACTIVITY);
-                    }
-                });
-                
-                setInterval(() => {
-                    if (isOnline && syncQueue.length > 0 && !isSyncing && activityDetector.canSync()) {
-                        smartSync();
-                    }
-                }, 5 * 60 * 1000);
-                
-                if ('requestIdleCallback' in window) {
-                    requestIdleCallback(() => {
-                        if (syncQueue.length > 0 && isOnline && !isSyncing) {
-                            smartSync();
-                        }
-                    }, { timeout: 10000 });
-                }
-                
-            } finally {
-                document.getElementById('loading-overlay').classList.add('hidden');
+                document.getElementById('btn-register').click();
+            }
+            
+            // Update last sync display
+            if (lastSyncTime) {
+                document.getElementById('menu-last-sync').innerText = lastSyncTime;
             }
         };
     </script>
