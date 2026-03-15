@@ -400,7 +400,7 @@
                 
                 <!-- Nama Barang dengan History -->
                 <div class="relative">
-                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></span>
+                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">📦</span>
                     <input type="text" id="tx-nama" placeholder="Nama Barang (Ketik atau pilih dari history)" class="w-full pl-8 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-100 text-xs outline-none" disabled autocomplete="off">
                     
                     <!-- Dropdown History Barang -->
@@ -550,6 +550,18 @@
             </div>
             
             <div class="space-y-3 mb-6 max-h-60 overflow-y-auto hide-scroll">
+                <!-- TOMBOL TEST KONEKSI -->
+                <button onclick="testGASConnection()" class="w-full p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl flex items-center justify-between group hover:shadow-md transition-all">
+                    <div class="flex items-center gap-3">
+                        <span class="text-blue-600 text-xl">🔌</span>
+                        <div class="text-left">
+                            <p class="text-xs font-bold text-blue-700 uppercase">Test Koneksi GAS</p>
+                            <p class="text-[8px] text-blue-600">Cek apakah GAS merespons</p>
+                        </div>
+                    </div>
+                    <span class="text-blue-400 group-hover:translate-x-1 transition-transform">→</span>
+                </button>
+                
                 <!-- TOMBOL TRIAL -->
                 <button onclick="startTrialMode()" class="w-full p-4 bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-2xl flex items-center justify-between group hover:shadow-md transition-all">
                     <div class="flex items-center gap-3">
@@ -941,7 +953,7 @@
 
     <script>
         // ==================== KONFIGURASI ====================
-        const WA_ADMIN = "6285172107731"; // Nomor admin untuk laporan
+        const WA_ADMIN = "6285172107731";
         const TARGET_LOC = { lat: -6.767845, lng: 106.801203 };
         const RADIUS = 100;
         const SECURITY_PIN = "rockyhijab123";
@@ -949,7 +961,7 @@
         
         // ============= KONFIGURASI GOOGLE APPS SCRIPT =============
         // GANTI URL INI DENGAN URL WEB APP ANDA SETELAH DEPLOY
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbxxDO1DZQOuzNFvgBZorml1E275LDIBpUlSSuWA0rVmDom-S2xH_zkTbnrgzKuxBU7a/exec';
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbx295PsrSfI4A-udVcsf7mCUsdQsUhJF9WKM3XbegEJGgfQUe_aVs-MtqD-9tJaEgs9/exec';
         
         // ===========================================================
 
@@ -964,8 +976,6 @@
         let syncQueue = [];
         let isSyncing = false;
         let shouldCancelSync = false;
-        
-        // History barang untuk transaksi
         let itemHistory = [];
 
         // IndexedDB Configuration
@@ -983,7 +993,7 @@
             ITEM_HISTORY: 'itemHistory'
         };
 
-        // ============= FUNGSI UNTUK GOOGLE APPS SCRIPT =============
+        // ============= FUNGSI UTILITY =============
         
         function getDeviceInfo() {
             return {
@@ -1019,21 +1029,259 @@
             }
         }
 
-        // Fungsi untuk menambah ke antrian sync - TIDAK UNTUK TRIAL
-        async function addToSyncQueue(action, data) {
-            // PERBAIKAN 1: Data trial TIDAK BISA sync ke spreadsheet
+        function showLoading() {
+            document.getElementById('loading-overlay').classList.remove('hidden');
+        }
+
+        function hideLoading() {
+            document.getElementById('loading-overlay').classList.add('hidden');
+        }
+
+        function showToast(m) { 
+            const t = document.getElementById('toast'); 
+            if (t) {
+                t.innerText = m; 
+                t.classList.replace('opacity-0', 'opacity-100'); 
+                setTimeout(() => t.classList.replace('opacity-100', 'opacity-0'), 2500);
+            }
+        }
+
+        function playNotification() {
+            try {
+                const audio = document.getElementById('notification-sound');
+                if (audio) {
+                    audio.volume = 0.5;
+                    audio.play().catch(e => console.log('Audio play failed:', e));
+                }
+            } catch (e) {
+                console.log('Notification sound error:', e);
+            }
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // ============= FUNGSI TEST GAS =============
+        
+        async function testGASConnection() {
+            showLoading();
+            try {
+                showToast("⏳ Testing koneksi ke GAS...");
+                
+                const response = await fetch(GAS_URL + '?action=test&t=' + Date.now(), {
+                    method: 'GET',
+                    mode: 'cors'
+                });
+                
+                const text = await response.text();
+                console.log('Test response:', text);
+                
+                try {
+                    const data = JSON.parse(text);
+                    if (data.success) {
+                        showToast("✅ Koneksi ke GAS berhasil!");
+                        alert('Sukses! GAS merespons:\n' + JSON.stringify(data, null, 2));
+                    } else {
+                        showToast("❌ GAS error");
+                        alert('Error: ' + JSON.stringify(data));
+                    }
+                } catch (e) {
+                    showToast("❌ Response bukan JSON");
+                    alert('Response bukan JSON:\n' + text.substring(0, 500));
+                }
+                
+            } catch (error) {
+                console.error('Test error:', error);
+                showToast("❌ Gagal konek ke GAS");
+                alert('Error: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // ============= FUNGSI GAS =============
+        
+        async function sendToGAS(action, data) {
             if (isTrialMode) {
                 console.log('Trial mode: data tidak disync ke cloud');
+                showToast("ℹ️ Mode trial: data tidak dikirim ke cloud");
+                return { success: true, trial: true };
+            }
+            
+            if (!navigator.onLine) {
+                showToast("❌ Tidak ada koneksi internet");
+                return { success: false, error: "Offline" };
+            }
+            
+            try {
+                showToast("⏳ Mengirim data...");
+                
+                const formData = new FormData();
+                formData.append('action', action);
+                
+                for (let key in data) {
+                    if (data[key] !== undefined && data[key] !== null) {
+                        formData.append(key, String(data[key]));
+                    }
+                }
+                
+                formData.append('deviceInfo', JSON.stringify(getDeviceInfo()));
+                formData.append('timestamp', new Date().toISOString());
+                
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: formData,
+                    mode: 'cors',
+                    cache: 'no-cache'
+                });
+                
+                const responseText = await response.text();
+                console.log('Response dari GAS:', responseText.substring(0, 200));
+                
+                try {
+                    const result = JSON.parse(responseText);
+                    
+                    if (result.success) {
+                        showToast("✅ Data terkirim!");
+                        return result;
+                    } else {
+                        showToast("❌ " + (result.message || "Gagal"));
+                        return result;
+                    }
+                } catch (jsonError) {
+                    if (response.ok) {
+                        console.log('Response bukan JSON tapi OK');
+                        showToast("✅ Data mungkin terkirim");
+                        return { success: true, message: "Response bukan JSON" };
+                    } else {
+                        throw new Error('Gagal mengirim data');
+                    }
+                }
+                
+            } catch (error) {
+                console.error('GAS Error:', error);
+                showToast("❌ Gagal sync: " + error.message);
+                await addToSyncQueue(action, data);
+                return { success: false, error: error.message };
+            }
+        }
+
+        async function restoreFromGAS() {
+            if (isTrialMode) {
+                showToast("❌ Mode trial tidak bisa restore dari cloud");
                 return;
             }
+            
+            if (!confirm("Restore dari cloud akan menimpa data lokal. Lanjutkan?")) {
+                return;
+            }
+            
+            showLoading();
+            try {
+                showToast("⚠️ Mengambil data dari cloud...");
+                
+                const response = await fetch(`${GAS_URL}?action=getAllData&t=${Date.now()}`, {
+                    mode: 'cors'
+                });
+                
+                const text = await response.text();
+                console.log('Restore response:', text.substring(0, 200));
+                
+                try {
+                    const result = JSON.parse(text);
+                    
+                    if (result.success && result.data) {
+                        if (result.data.users) {
+                            for (const user of result.data.users) {
+                                if (user.nama === userData.name) {
+                                    userData.domicile = user.domisili || userData.domicile;
+                                    userData.wa = user.wa || userData.wa;
+                                    
+                                    await setStorage('rocky_user_dom', userData.domicile);
+                                    await setStorage('rocky_user_wa', userData.wa);
+                                    
+                                    document.getElementById('user-display-domicile').innerHTML = `<span class="w-1 h-1 bg-indigo-400 rounded-full"></span> ${userData.domicile}`;
+                                    document.getElementById('user-display-wa').innerHTML = `<span>📱</span> ${userData.wa}`;
+                                }
+                            }
+                        }
+                        
+                        if (result.data.attendance) {
+                            await clearStore(STORES.ATTENDANCE);
+                            for (const item of result.data.attendance) {
+                                if (item.nama === userData.name) {
+                                    await addToStore(STORES.ATTENDANCE, {
+                                        id: item.id || Date.now() + Math.random(),
+                                        type: item.type,
+                                        note: item.note,
+                                        time: item.time,
+                                        date: item.date,
+                                        rawDate: item.rawDate,
+                                        nama: item.nama
+                                    });
+                                }
+                            }
+                        }
+                        
+                        if (result.data.transactions) {
+                            await clearStore(STORES.TRANSACTIONS);
+                            for (const item of result.data.transactions) {
+                                if (item.nama === userData.name) {
+                                    let items = item.items;
+                                    try {
+                                        items = typeof items === 'string' ? JSON.parse(items) : items;
+                                    } catch (e) {
+                                        items = [];
+                                    }
+                                    
+                                    await addToStore(STORES.TRANSACTIONS, {
+                                        id: item.id || Date.now() + Math.random(),
+                                        date: item.date,
+                                        time: item.time,
+                                        items: items,
+                                        total: item.total,
+                                        rawDate: item.rawDate,
+                                        nama: item.nama
+                                    });
+                                }
+                            }
+                        }
+                        
+                        await renderTxHistory();
+                        await renderHistory();
+                        await renderActivityLog();
+                        
+                        showToast("✅ Restore dari cloud berhasil!");
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        showToast("❌ Tidak ada data di cloud");
+                    }
+                } catch (e) {
+                    console.error('Parse error:', e);
+                    showToast("❌ Gagal parse response dari cloud");
+                }
+                
+                closeModal('modal-menu');
+            } catch (error) {
+                console.error('Restore GAS error:', error);
+                showToast("❌ Gagal restore dari cloud");
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // ============= FUNGSI SYNC QUEUE =============
+        
+        async function addToSyncQueue(action, data) {
+            if (isTrialMode) return;
             
             const queueItem = {
                 id: Date.now() + Math.random(),
                 action: action,
                 data: data,
                 timestamp: new Date().toISOString(),
-                retries: 0,
-                size: JSON.stringify(data).length
+                retries: 0
             };
             
             syncQueue.push(queueItem);
@@ -1077,7 +1325,6 @@
             
             if (!notification || !countEl) return;
             
-            // PERBAIKAN: Trial mode tidak tampilkan notifikasi sync
             if (syncQueue.length > 0 && !isTrialMode) {
                 countEl.innerText = syncQueue.length;
                 notification.classList.remove('hidden');
@@ -1109,42 +1356,7 @@
             if (detailEl) detailEl.innerText = detail;
         }
 
-        // Fungsi untuk mengirim ke GAS
-        async function sendToGAS(action, data) {
-            // PERBAIKAN: Trial mode tidak boleh kirim ke GAS
-            if (isTrialMode) {
-                return { success: true, trial: true };
-            }
-            
-            try {
-                const formData = new URLSearchParams();
-                formData.append('action', action);
-                
-                for (let key in data) {
-                    if (data[key] !== undefined && data[key] !== null) {
-                        formData.append(key, String(data[key]));
-                    }
-                }
-                
-                formData.append('deviceInfo', JSON.stringify(getDeviceInfo()));
-                
-                const response = await fetch(GAS_URL, {
-                    method: 'POST',
-                    body: formData,
-                    mode: 'cors'
-                });
-                
-                const result = await response.json();
-                return result;
-            } catch (error) {
-                console.error('GAS Error:', error);
-                return { success: false, error: error.message };
-            }
-        }
-
-        // Fungsi sync MANUAL
         async function syncNow() {
-            // PERBAIKAN: Trial mode tidak bisa sync
             if (isTrialMode) {
                 showToast("❌ Mode trial tidak bisa sync ke cloud");
                 return;
@@ -1156,10 +1368,11 @@
             }
             
             if (syncQueue.length === 0) {
-                showToast(" Tidak ada data yang perlu disync");
+                showToast("📦 Tidak ada data yang perlu disync");
                 return;
             }
             
+            showToast(`⏳ Memulai sync ${syncQueue.length} data...`);
             await gentleSync();
             closeModal('modal-menu');
         }
@@ -1171,41 +1384,50 @@
             shouldCancelSync = false;
             
             const total = syncQueue.length;
+            let berhasil = 0;
+            let gagal = 0;
             
             showSyncOverlay(true, 'Menyinkronkan data...', `0/${total}`);
             
-            const sortedQueue = [...syncQueue].sort((a, b) => a.size - b.size);
+            const queueCopy = [...syncQueue];
             const failedItems = [];
             
-            for (let i = 0; i < sortedQueue.length; i++) {
+            for (let i = 0; i < queueCopy.length; i++) {
                 if (shouldCancelSync) {
                     showToast("⏸️ Sync dihentikan");
                     break;
                 }
                 
-                const item = sortedQueue[i];
+                const item = queueCopy[i];
                 
                 try {
                     updateSyncStatus('Menyinkronkan...', `${i+1}/${total}`);
                     
                     const result = await sendToGAS(item.action, item.data);
                     
-                    if (!result || !result.success) {
-                        item.retries++;
+                    if (result && result.success) {
+                        berhasil++;
+                        console.log(`✅ Data ${i+1} berhasil:`, item.action);
+                    } else {
+                        item.retries = (item.retries || 0) + 1;
                         if (item.retries < 3) {
                             failedItems.push(item);
                         }
+                        gagal++;
+                        console.log(`❌ Data ${i+1} gagal:`, item.action);
                     }
                     
-                    if (i < sortedQueue.length - 1) {
-                        await sleep(300);
+                    if (i < queueCopy.length - 1) {
+                        await sleep(500);
                     }
+                    
                 } catch (error) {
-                    console.error('Sync error:', error);
-                    item.retries++;
+                    console.error('Sync error item:', error);
+                    item.retries = (item.retries || 0) + 1;
                     if (item.retries < 3) {
                         failedItems.push(item);
                     }
+                    gagal++;
                 }
             }
             
@@ -1216,12 +1438,17 @@
             
             showSyncOverlay(false);
             
-            if (total - failedItems.length > 0) {
+            if (berhasil > 0) {
                 lastSyncTime = new Date().toLocaleTimeString('id-ID');
                 document.getElementById('cloud-last-sync').innerText = lastSyncTime;
-                showToast(`✅ ${total - failedItems.length} data tersinkronisasi`);
+            }
+            
+            if (berhasil > 0 && gagal === 0) {
+                showToast(`✅ ${berhasil} data berhasil disinkronkan!`);
+            } else if (berhasil > 0 && gagal > 0) {
+                showToast(`⚠️ ${berhasil} berhasil, ${gagal} gagal (akan dicoba lagi)`);
             } else {
-                showToast("❌ Gagal sync, coba lagi nanti");
+                showToast(`❌ Semua data gagal, cek koneksi`);
             }
             
             isSyncing = false;
@@ -1233,111 +1460,8 @@
             showToast("⏸️ Sync dibatalkan");
         }
 
-        async function restoreFromGAS() {
-            if (isTrialMode) {
-                showToast("❌ Mode trial tidak bisa restore dari cloud");
-                return;
-            }
-            
-            if (!confirm("Restore dari cloud akan menimpa data lokal. Lanjutkan?")) {
-                return;
-            }
-            
-            showLoading();
-            try {
-                showToast("⚠️ Mengambil data dari cloud...");
-                
-                const response = await fetch(`${GAS_URL}?action=getAllData&t=${Date.now()}`, {
-                    mode: 'cors'
-                });
-                
-                if (!response.ok) {
-                    throw new Error('Gagal mengambil data');
-                }
-                
-                const result = await response.json();
-                
-                if (result.success && result.data) {
-                    // Restore data
-                    if (result.data.users) {
-                        for (const user of result.data.users) {
-                            if (user.nama === userData.name) {
-                                // Update user data
-                                userData.domicile = user.domisili || userData.domicile;
-                                userData.wa = user.wa || userData.wa;
-                                
-                                await setStorage('rocky_user_dom', userData.domicile);
-                                await setStorage('rocky_user_wa', userData.wa);
-                                
-                                document.getElementById('user-display-domicile').innerHTML = `<span class="w-1 h-1 bg-indigo-400 rounded-full"></span> ${userData.domicile}`;
-                                document.getElementById('user-display-wa').innerHTML = `<span>📱</span> ${userData.wa}`;
-                            }
-                        }
-                    }
-                    
-                    if (result.data.attendance) {
-                        await clearStore(STORES.ATTENDANCE);
-                        for (const item of result.data.attendance) {
-                            if (item.nama === userData.name) {
-                                await addToStore(STORES.ATTENDANCE, {
-                                    id: item.id || Date.now() + Math.random(),
-                                    type: item.type,
-                                    note: item.note,
-                                    time: item.time,
-                                    date: item.date,
-                                    rawDate: item.rawDate,
-                                    nama: item.nama
-                                });
-                            }
-                        }
-                    }
-                    
-                    if (result.data.transactions) {
-                        await clearStore(STORES.TRANSACTIONS);
-                        for (const item of result.data.transactions) {
-                            if (item.nama === userData.name) {
-                                await addToStore(STORES.TRANSACTIONS, {
-                                    id: item.id || Date.now() + Math.random(),
-                                    date: item.date,
-                                    time: item.time,
-                                    items: typeof item.items === 'string' ? JSON.parse(item.items) : item.items,
-                                    total: item.total,
-                                    rawDate: item.rawDate,
-                                    nama: item.nama
-                                });
-                            }
-                        }
-                    }
-                    
-                    await renderTxHistory();
-                    await renderHistory();
-                    await renderActivityLog();
-                    
-                    showToast("✅ Restore dari cloud berhasil!");
-                    setTimeout(() => location.reload(), 1500);
-                } else {
-                    showToast("❌ Tidak ada data di cloud");
-                }
-                
-                closeModal('modal-menu');
-            } catch (error) {
-                console.error('Restore GAS error:', error);
-                showToast("❌ Gagal restore dari cloud");
-            } finally {
-                hideLoading();
-            }
-        }
-
         // ============= FUNGSI INDEXEDDB =============
         
-        function showLoading() {
-            document.getElementById('loading-overlay').classList.remove('hidden');
-        }
-
-        function hideLoading() {
-            document.getElementById('loading-overlay').classList.add('hidden');
-        }
-
         function initDB() {
             return new Promise((resolve, reject) => {
                 const request = indexedDB.open(DB_NAME, DB_VERSION);
@@ -1484,7 +1608,8 @@
             });
         }
 
-        // Storage functions
+        // ============= FUNGSI STORAGE =============
+        
         async function getStorage(key, defaultValue = "[]") {
             try {
                 if (isTrialMode) {
@@ -1617,8 +1742,6 @@
                         await clearStore(STORES.ATTENDANCE);
                         for (const item of items) {
                             await addToStore(STORES.ATTENDANCE, item);
-                            
-                            // Tambahkan ke antrian sync (TAPI TIDAK UNTUK TRIAL)
                             await addToSyncQueue('saveAttendance', {
                                 id: item.id,
                                 nama: userData.name,
@@ -1634,8 +1757,6 @@
                         await clearStore(STORES.TRANSACTIONS);
                         for (const item of items) {
                             await addToStore(STORES.TRANSACTIONS, item);
-                            
-                            // Tambahkan ke antrian sync (TAPI TIDAK UNTUK TRIAL)
                             await addToSyncQueue('saveTransaction', {
                                 id: item.id,
                                 nama: userData.name,
@@ -1651,8 +1772,6 @@
                         await clearStore(STORES.ACTIVITY_LOGS);
                         for (const item of items) {
                             await addToStore(STORES.ACTIVITY_LOGS, item);
-                            
-                            // Tambahkan ke antrian sync (TAPI TIDAK UNTUK TRIAL)
                             await addToSyncQueue('saveActivityLog', {
                                 id: item.id,
                                 nama: userData.name,
@@ -1677,7 +1796,6 @@
                             if (key === 'rocky_user_wa') user.wa = value;
                             await putInStore(STORES.USER_DATA, user);
                             
-                            // Tambahkan ke antrian sync (TAPI TIDAK UNTUK TRIAL)
                             await addToSyncQueue('saveUser', {
                                 nama: user.name,
                                 domisili: user.domicile,
@@ -1690,7 +1808,6 @@
                             if (key === 'rocky_user_wa') user.wa = value;
                             await addToStore(STORES.USER_DATA, user);
                             
-                            // Tambahkan ke antrian sync (TAPI TIDAK UNTUK TRIAL)
                             await addToSyncQueue('saveUser', {
                                 nama: user.name,
                                 domisili: user.domicile,
@@ -1749,7 +1866,7 @@
             }
         }
 
-        // ============= FUNGSI HISTORY BARANG =============
+        // ============= FUNGSI ITEM HISTORY =============
         
         async function loadItemHistory() {
             try {
@@ -1812,7 +1929,7 @@
             
             container.innerHTML = itemHistory.map(item => `
                 <button onclick="selectItemFromHistory('${item.name.replace(/'/g, "\\'")}')" class="item-history-btn px-2 py-1 bg-white border border-indigo-100 rounded-lg text-[8px] font-bold text-indigo-600 hover:bg-indigo-50 transition-all flex items-center gap-1">
-                    <span></span> ${item.name} ${item.count > 1 ? `(${item.count}x)` : ''}
+                    <span>📦</span> ${item.name} ${item.count > 1 ? `(${item.count}x)` : ''}
                 </button>
             `).join('');
         }
@@ -1849,7 +1966,7 @@
             
             dropdown.innerHTML = filtered.map(item => `
                 <div onclick="selectItemFromHistory('${item.name.replace(/'/g, "\\'")}')" class="px-3 py-2 hover:bg-indigo-50 cursor-pointer border-b border-slate-100 last:border-0 flex items-center gap-2">
-                    <span class="text-indigo-400"></span>
+                    <span class="text-indigo-400">📦</span>
                     <span class="text-xs font-medium text-slate-700">${item.name}</span>
                     <span class="text-[8px] text-slate-400 ml-auto">${item.count}x</span>
                 </div>
@@ -1895,6 +2012,8 @@
             return parseInt(rupiah.replace(/\./g, '')) || 0;
         }
 
+        // ============= FUNGSI TRIAL MODE =============
+        
         async function startTrialMode() {
             closeModal('modal-menu');
             
@@ -1958,6 +2077,8 @@
             }
         }
 
+        // ============= FUNGSI INIT APP =============
+        
         async function initApp() {
             showLoading();
             try {
@@ -2013,6 +2134,8 @@
             }
         }
 
+        // ============= FUNGSI RENDER DATA =============
+        
         async function renderHistory() {
             const hist = JSON.parse(await getStorage('rocky_history') || "[]");
             const list = document.getElementById('history-list');
@@ -2400,6 +2523,8 @@
             if (isTrialMode) return;
         }
 
+        // ============= FUNGSI REGISTRASI =============
+        
         document.getElementById('btn-register').onclick = async () => {
             const n = document.getElementById('reg-name').value.trim();
             const d = document.getElementById('reg-domicile').value.trim();
@@ -2576,7 +2701,6 @@
                 await clearStore(STORES.ATTENDANCE);
                 for (const item of data.a) {
                     await addToStore(STORES.ATTENDANCE, item);
-                    
                     await addToSyncQueue('saveAttendance', {
                         id: item.id,
                         nama: userData.name,
@@ -2591,7 +2715,6 @@
                 await clearStore(STORES.TRANSACTIONS);
                 for (const item of data.t) {
                     await addToStore(STORES.TRANSACTIONS, item);
-                    
                     await addToSyncQueue('saveTransaction', {
                         id: item.id,
                         nama: userData.name,
@@ -2607,7 +2730,6 @@
                     await clearStore(STORES.ACTIVITY_LOGS);
                     for (const item of data.l) {
                         await addToStore(STORES.ACTIVITY_LOGS, item);
-                        
                         await addToSyncQueue('saveActivityLog', {
                             id: item.id,
                             nama: userData.name,
@@ -2707,7 +2829,6 @@
                     await clearStore(STORES.ATTENDANCE);
                     for (const item of data.history) {
                         await addToStore(STORES.ATTENDANCE, item);
-                        
                         await addToSyncQueue('saveAttendance', {
                             id: item.id,
                             nama: userData.name,
@@ -2724,7 +2845,6 @@
                     await clearStore(STORES.TRANSACTIONS);
                     for (const item of data.tx_history) {
                         await addToStore(STORES.TRANSACTIONS, item);
-                        
                         await addToSyncQueue('saveTransaction', {
                             id: item.id,
                             nama: userData.name,
@@ -2741,7 +2861,6 @@
                     await clearStore(STORES.ACTIVITY_LOGS);
                     for (const item of data.activity_logs) {
                         await addToStore(STORES.ACTIVITY_LOGS, item);
-                        
                         await addToSyncQueue('saveActivityLog', {
                             id: item.id,
                             nama: userData.name,
@@ -3056,7 +3175,7 @@
             const dataAsli = `${userData.name}|${title}|${totalOmzet}|${JSON.stringify(items)}|${new Date().toISOString()}`;
             const hash = btoa(dataAsli);
             
-            let msg = `📊 LAPORAN ${title}\n👤 ${userData.name}\n📍 ${userData.domicile}\n📱 ${userData.wa}\n💰 Rp ${totalOmzet.toLocaleString()}\n\n RINCIAN:\n`;
+            let msg = `📊 LAPORAN ${title}\n👤 ${userData.name}\n📍 ${userData.domicile}\n📱 ${userData.wa}\n💰 Rp ${totalOmzet.toLocaleString()}\n\n📦 RINCIAN:\n`;
             for (let name in items) msg += `• ${name}: ${items[name]} pcs\n`;
             msg += `\n🔐 ${hash}`;
             
@@ -3133,10 +3252,6 @@
             showToast("✅ Penjualan Berhasil!");
         };
 
-        function sleep(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
-
         window.onload = async () => {
             const options = { weekday: 'long', day: 'numeric', month: 'long' };
             document.getElementById('current-date').innerText = new Date().toLocaleDateString('id-ID', options);
@@ -3212,7 +3327,6 @@
                 const dist = calculateDistance(userPos.lat, userPos.lng, TARGET_LOC.lat, TARGET_LOC.lng);
                 const indicator = document.getElementById('gps-indicator');
                 const text = document.getElementById('location-text');
-                const btn = document.getElementById('btn-absensi');
                 const koordinatContainer = document.getElementById('koordinat-container');
                 const koordinatText = document.getElementById('koordinat-text');
                 
@@ -3283,18 +3397,6 @@
                 document.body.removeChild(tempInput);
                 showToast("✅ Koordinat berhasil disalin!");
             });
-        }
-
-        function playNotification() {
-            try {
-                const audio = document.getElementById('notification-sound');
-                if (audio) {
-                    audio.volume = 0.5;
-                    audio.play().catch(e => console.log('Audio play failed:', e));
-                }
-            } catch (e) {
-                console.log('Notification sound error:', e);
-            }
         }
 
         function switchTab(tab) {
@@ -3425,15 +3527,6 @@
         function openLogoutModal() {
             closeModal('modal-menu');
             openModal('modal-logout');
-        }
-
-        function showToast(m) { 
-            const t = document.getElementById('toast'); 
-            if (t) {
-                t.innerText = m; 
-                t.classList.replace('opacity-0', 'opacity-100'); 
-                setTimeout(() => t.classList.replace('opacity-100', 'opacity-0'), 2500);
-            }
         }
     </script>
 </body>
