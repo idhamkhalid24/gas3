@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rocky Hijab • Cloud Sync</title>
+    <title>Rocky Hijab • Cloud Sync (IndexedDB + GAS)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -27,6 +27,9 @@
         .gradient-gold {
             background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
         }
+        .gradient-orange {
+            background: linear-gradient(135deg, #fb923c 0%, #ea580c 100%);
+        }
         .gradient-green {
             background: linear-gradient(135deg, #10b981 0%, #059669 100%);
         }
@@ -39,15 +42,15 @@
             border-bottom: 3px solid #4f46e5;
             font-weight: 700;
         }
+        .copy-btn {
+            transition: all 0.2s;
+        }
+        .copy-btn:active {
+            transform: scale(0.95);
+        }
         .trial-badge {
             background: linear-gradient(135deg, #f97316, #dc2626);
             animation: pulse 2s infinite;
-        }
-        .cloud-badge {
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-        }
-        .offline-badge {
-            background: linear-gradient(135deg, #6b7280, #4b5563);
         }
         @keyframes pulse {
             0%, 100% { opacity: 1; }
@@ -60,12 +63,27 @@
             0%, 100% { transform: translateY(0px); }
             50% { transform: translateY(-5px); }
         }
+        .btn-press {
+            transition: all 0.2s;
+        }
         .btn-press:active {
             transform: scale(0.97);
         }
         .bg-pattern {
             background-image: radial-gradient(circle at 10px 10px, rgba(99, 102, 241, 0.05) 2px, transparent 2px);
             background-size: 30px 30px;
+        }
+        input[type="password"] {
+            -webkit-text-security: disc;
+            autocomplete: off;
+        }
+        input[type="password"]:-webkit-autofill,
+        input[type="password"]:-webkit-autofill:hover,
+        input[type="password"]:-webkit-autofill:focus,
+        input[type="password"]:-webkit-autofill:active {
+            -webkit-box-shadow: 0 0 0 30px #f8fafc inset !important;
+            -webkit-text-fill-color: #1e293b !important;
+            transition: background-color 5000s ease-in-out 0s;
         }
         .loading-overlay {
             position: fixed;
@@ -92,50 +110,60 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        .sync-notification {
-            background: linear-gradient(135deg, #f97316, #f59e0b);
-            cursor: pointer;
-            transition: all 0.2s;
-            min-width: 70px;
+        .trial-menu-badge {
+            background: linear-gradient(135deg, #f97316, #dc2626);
         }
-        .sync-notification:hover {
-            transform: scale(1.05);
-            box-shadow: 0 10px 25px -5px rgba(249, 115, 22, 0.5);
+        .cloud-badge {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
         }
-        .sync-notification .count {
-            background: white;
-            color: #f97316;
-            border-radius: 999px;
-            padding: 2px 6px;
-            font-size: 8px;
-            font-weight: 900;
-            margin-left: 4px;
-            min-width: 18px;
-            text-align: center;
+        .sync-badge {
+            background: linear-gradient(135deg, #10b981, #059669);
+            animation: pulse 2s infinite;
         }
-        .format-rupiah {
-            font-feature-settings: "tnum";
+        .offline-badge {
+            background: linear-gradient(135deg, #6b7280, #4b5563);
         }
-        .suggestion-dropdown {
-            max-height: 200px;
-            overflow-y: auto;
-            scrollbar-width: thin;
-            scrollbar-color: #cbd5e1 #f1f5f9;
+        .smooth-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: rgba(99, 102, 241, 0.1);
+            z-index: 10000;
+            display: none;
         }
-        .suggestion-dropdown::-webkit-scrollbar {
-            width: 4px;
+        .smooth-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #6366f1, #8b5cf6);
+            width: 0%;
+            transition: width 0.3s ease-out;
+            border-radius: 0 3px 3px 0;
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
         }
-        .suggestion-dropdown::-webkit-scrollbar-track {
-            background: #f1f5f9;
-            border-radius: 10px;
+        .toast-smooth {
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
         }
-        .suggestion-dropdown::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 10px;
+        .toast-smooth.show {
+            transform: translateY(0);
+        }
+        .sync-pulse {
+            animation: softPulse 2s infinite;
+        }
+        @keyframes softPulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
         }
     </style>
 </head>
 <body class="bg-pattern">
+
+    <!-- Smooth Progress Bar -->
+    <div id="smooth-progress" class="smooth-progress">
+        <div id="smooth-progress-bar" class="smooth-progress-bar"></div>
+    </div>
 
     <!-- Loading Overlay -->
     <div id="loading-overlay" class="loading-overlay hidden">
@@ -148,7 +176,7 @@
     <!-- Sync Overlay -->
     <div id="sync-overlay" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-[100]">
         <div class="bg-white rounded-3xl p-8 text-center max-w-sm">
-            <div class="loading-spinner mx-auto mb-4"></div>
+            <div class="loading-spinner mx-auto mb-4 sync-pulse"></div>
             <p class="text-sm font-bold text-indigo-600" id="sync-status">Menyinkronkan dengan cloud...</p>
             <p class="text-[10px] text-slate-500 mt-2" id="sync-detail">0/0 data</p>
             <button onclick="cancelSync()" class="mt-4 text-xs text-red-500 hover:text-red-700 font-bold">
@@ -161,6 +189,7 @@
         
         <!-- Background Decor -->
         <div class="absolute top-0 left-0 w-full h-48 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 -z-0 opacity-90"></div>
+        <div class="absolute top-0 left-0 w-full h-48 bg-black/10 -z-0"></div>
         <div class="absolute -top-24 -right-24 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
         <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-indigo-300/20 rounded-full blur-3xl"></div>
 
@@ -173,18 +202,15 @@
                     Memuat...
                 </p>
             </div>
-            <div class="flex gap-2 items-center">
-                <!-- Sync Notification -->
-                <div id="sync-notification" class="hidden sync-notification text-white text-[9px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg" onclick="openMenuModal()">
-                    <span>☁️</span> SYNC
-                    <span id="sync-notification-count" class="count">0</span>
-                </div>
-                
+            <div class="flex gap-2">
                 <div id="trial-badge" class="hidden trial-badge text-white text-[9px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg">
-                    <span>🔄</span> TRIAL
+                    <span class="animate-spin">🔄</span> TRIAL
                 </div>
                 <div id="cloud-badge" class="hidden cloud-badge text-white text-[9px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg">
                     <span>☁️</span> CLOUD
+                </div>
+                <div id="sync-badge" class="hidden sync-badge text-white text-[9px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg">
+                    <span class="animate-spin">🔄</span> SYNC
                 </div>
                 <div id="offline-badge" class="hidden offline-badge text-white text-[9px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg">
                     <span>📴</span> OFFLINE
@@ -220,21 +246,22 @@
                 <div class="space-y-4">
                     <div class="relative">
                         <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">👤</span>
-                        <input type="text" id="reg-name" placeholder="Nama Lengkap (Tidak bisa diubah)" class="w-full pl-10 pr-5 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 outline-none text-sm">
+                        <input type="text" id="reg-name" placeholder="Nama Lengkap (Tidak bisa diubah)" class="w-full pl-10 pr-5 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 outline-none text-sm input-focus">
                     </div>
                     <div class="relative">
                         <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">📍</span>
-                        <input type="text" id="reg-domicile" placeholder="Domisili (Bisa diubah)" class="w-full pl-10 pr-5 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 outline-none text-sm">
+                        <input type="text" id="reg-domicile" placeholder="Domisili (Bisa diubah)" class="w-full pl-10 pr-5 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 outline-none text-sm input-focus">
                     </div>
                     <div class="relative">
                         <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">📱</span>
-                        <input type="text" id="reg-wa" placeholder="Nomor WhatsApp Aktif (contoh: 628xxx)" class="w-full pl-10 pr-5 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 outline-none text-sm">
+                        <input type="text" id="reg-wa" placeholder="Nomor WhatsApp Aktif (contoh: 628xxx)" class="w-full pl-10 pr-5 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 outline-none text-sm input-focus">
                     </div>
                     <button id="btn-register" class="w-full py-4 gradient-blue text-white rounded-2xl font-bold shadow-lg hover:shadow-xl transition-all btn-press uppercase tracking-wider text-sm">
                         DAFTAR / LOGIN
                     </button>
                 </div>
                 
+                <!-- Informasi untuk staf -->
                 <div class="mt-4 p-3 bg-gradient-to-r from-indigo-50 to-indigo-100/50 rounded-xl border border-indigo-200">
                     <p class="text-[8px] text-indigo-700 flex items-center gap-2">
                         <span class="text-indigo-500">ℹ️</span>
@@ -283,13 +310,17 @@
                             </p>
                             <p id="koordinat-text" class="text-[10px] font-mono font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-lg">-6.9445, 106.9369</p>
                         </div>
-                        <button onclick="copyKoordinat()" class="bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl px-4 py-2 text-[9px] font-bold flex items-center gap-1.5 transition-all shadow-md">
+                        <button onclick="copyKoordinat()" class="copy-btn bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl px-4 py-2 text-[9px] font-bold flex items-center gap-1.5 transition-all shadow-md">
                             <span>📋</span> SALIN
                         </button>
                     </div>
+                    <p class="text-[7px] text-slate-400 mt-2 flex items-center gap-1">
+                        <span>💡</span> Klik salin untuk copy koordinat
+                    </p>
                 </div>
             </div>
             
+            <!-- Informasi Lokasi -->
             <div class="mb-4 px-3 py-2 bg-indigo-50/50 rounded-xl border border-indigo-100/50">
                 <p class="text-[8px] text-indigo-600 font-medium flex items-center gap-1.5">
                     <span class="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse"></span>
@@ -302,7 +333,7 @@
             <!-- Tombol Kirim Ulang -->
             <div id="resend-container" class="hidden mb-4">
                 <button id="btn-resend-absen" class="w-full py-3.5 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl text-[10px] font-bold text-blue-600 flex items-center justify-center gap-2 hover:shadow-md transition-all">
-                    <span>🔄</span> KIRIM ULANG ABSEN/IZIN KE WHATSAPP
+                    <span class="animate-spin">🔄</span> KIRIM ULANG ABSEN/IZIN KE WHATSAPP
                 </button>
                 <p class="text-[8px] text-slate-400 text-center mt-2">*Untuk mengirim ulang tanpa mengubah data absen asli</p>
             </div> 
@@ -349,7 +380,7 @@
             
             <div id="transaction-warning" class="bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 rounded-3xl p-4 mb-4 shadow-md">
                 <div class="flex items-center gap-3">
-                    <span class="text-yellow-600 text-xl">⚠️</span>
+                    <span class="text-yellow-600 text-xl animate-pulse">⚠️</span>
                     <div>
                         <p class="text-[10px] font-bold text-yellow-800 uppercase">Akses Terbatas</p>
                         <p class="text-[8px] text-yellow-700">Anda harus absen HADIR dan berada dalam radius untuk transaksi</p>
@@ -398,32 +429,25 @@
                     <span class="text-[9px] bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full font-bold uppercase shadow-sm">Kasir</span>
                 </div>
                 
-                <!-- Nama Barang dengan History -->
                 <div class="relative">
-                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">📦</span>
-                    <input type="text" id="tx-nama" placeholder="Nama Barang (Ketik atau pilih dari history)" class="w-full pl-8 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-100 text-xs outline-none" disabled autocomplete="off">
-                    
-                    <!-- Dropdown History Barang -->
-                    <div id="item-history-dropdown" class="hidden absolute z-20 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl suggestion-dropdown"></div>
+                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></span>
+                    <input type="text" id="tx-nama" placeholder="Nama Barang" class="w-full pl-8 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-100 text-xs outline-none input-focus" disabled>
                 </div>
-                
-                <!-- Tombol History Barang -->
-                <div id="item-history-buttons" class="flex flex-wrap gap-1 mb-1 min-h-[30px]"></div>
                 
                 <div class="grid grid-cols-2 gap-2">
                     <div class="relative">
-                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔢</span>
-                        <input type="text" id="tx-kode" placeholder="Kode Barang" class="w-full pl-8 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-100 text-xs outline-none" disabled>
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></span>
+                        <input type="text" id="tx-kode" placeholder="Kode Barang" class="w-full pl-8 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-100 text-xs outline-none input-focus" disabled>
                     </div>
                     <div class="relative">
-                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔢</span>
-                        <input type="number" id="tx-qty" placeholder="Qty" class="w-full pl-8 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-100 text-xs outline-none" disabled>
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></span>
+                        <input type="number" id="tx-qty" placeholder="Qty" class="w-full pl-8 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-100 text-xs outline-none input-focus" disabled>
                     </div>
                 </div>
                 
                 <div class="relative">
                     <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">💰</span>
-                    <input type="text" id="tx-harga" placeholder="Harga Satuan (Rp)" class="w-full pl-8 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-100 text-xs outline-none format-rupiah" disabled oninput="formatHargaInput(this)">
+                    <input type="number" id="tx-harga" placeholder="Harga Satuan (Rp)" class="w-full pl-8 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-100 text-xs outline-none input-focus" disabled>
                 </div>
                 
                 <button id="btn-add-cart" disabled class="w-full py-3.5 bg-slate-300 text-slate-500 rounded-xl font-bold text-xs shadow-md cursor-not-allowed flex items-center justify-center gap-2 uppercase tracking-wide">
@@ -550,18 +574,6 @@
             </div>
             
             <div class="space-y-3 mb-6 max-h-60 overflow-y-auto hide-scroll">
-                <!-- TOMBOL TEST KONEKSI -->
-                <button onclick="testGASConnection()" class="w-full p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl flex items-center justify-between group hover:shadow-md transition-all">
-                    <div class="flex items-center gap-3">
-                        <span class="text-blue-600 text-xl">🔌</span>
-                        <div class="text-left">
-                            <p class="text-xs font-bold text-blue-700 uppercase">Test Koneksi GAS</p>
-                            <p class="text-[8px] text-blue-600">Cek apakah GAS merespons</p>
-                        </div>
-                    </div>
-                    <span class="text-blue-400 group-hover:translate-x-1 transition-transform">→</span>
-                </button>
-                
                 <!-- TOMBOL TRIAL -->
                 <button onclick="startTrialMode()" class="w-full p-4 bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-2xl flex items-center justify-between group hover:shadow-md transition-all">
                     <div class="flex items-center gap-3">
@@ -586,7 +598,7 @@
                     <span class="text-green-400 group-hover:translate-x-1 transition-transform">→</span>
                 </button>
                 
-                <!-- TOMBOL AMBIL DARI CLOUD -->
+                <!-- TOMBOL RESTORE DARI GAS -->
                 <button onclick="restoreFromGAS()" class="w-full p-4 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-2xl flex items-center justify-between group hover:shadow-md transition-all">
                     <div class="flex items-center gap-3">
                         <span class="text-purple-600 text-xl">⬇️</span>
@@ -656,18 +668,6 @@
                         </div>
                     </div>
                     <span class="text-indigo-400 group-hover:translate-x-1 transition-transform">→</span>
-                </button>
-                
-                <!-- Tombol Hapus History Barang -->
-                <button onclick="openClearItemHistoryModal()" class="w-full p-4 bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 rounded-2xl flex items-center justify-between group hover:shadow-md transition-all">
-                    <div class="flex items-center gap-3">
-                        <span class="text-yellow-600 text-xl">🗑️</span>
-                        <div class="text-left">
-                            <p class="text-xs font-bold text-yellow-700 uppercase">Hapus History Barang</p>
-                            <p class="text-[8px] text-yellow-600">Bersihkan daftar barang</p>
-                        </div>
-                    </div>
-                    <span class="text-yellow-400 group-hover:translate-x-1 transition-transform">→</span>
                 </button>
             </div>
             
@@ -767,7 +767,7 @@
     <div id="modal-reset" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-6 z-[80]">
         <div class="bg-white/95 backdrop-blur-sm rounded-[2.5rem] p-8 w-full max-w-sm shadow-2xl text-center border border-white/20">
             <div class="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-red-100 to-rose-100 rounded-3xl flex items-center justify-center">
-                <span class="text-4xl text-red-600">⚠️</span>
+                <span class="text-4xl text-red-600 animate-pulse">⚠️</span>
             </div>
             <h3 class="text-xl font-bold text-slate-800 mb-2">Reset Semua Data?</h3>
             <p class="text-[10px] text-red-600 font-bold mb-2 uppercase">HUBUNGI ADMIN UNTUK RESET INI !!!</p>
@@ -778,7 +778,6 @@
                 <li class="flex items-center gap-2"><span class="text-red-500">•</span> Riwayat izin/sakit</li>
                 <li class="flex items-center gap-2"><span class="text-red-500">•</span> Bonus dan penjualan</li>
                 <li class="flex items-center gap-2"><span class="text-red-500">•</span> Log aktivitas bulan ini</li>
-                <li class="flex items-center gap-2"><span class="text-red-500">•</span> History barang transaksi</li>
             </ul>
             <p class="text-[10px] font-bold text-red-600 mb-4 bg-red-50 p-2 rounded-lg">Hanya Admin yang tahu sandi!</p>
             <input type="password" id="reset-pin" placeholder="Sandi Admin" class="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-slate-200 text-center text-sm font-bold outline-none mb-4 focus:border-red-300 focus:ring-2 focus:ring-red-200" autocomplete="off" readonly onfocus="this.removeAttribute('readonly')">
@@ -842,7 +841,7 @@
                         <li>Data hanya disimpan sementara</li>
                         <li>Refresh halaman akan menghapus data</li>
                         <li>Cocok untuk pembelajaran</li>
-                        <li>TIDAK BISA SYNC KE CLOUD</li>
+                        <li>Tidak bisa sync ke cloud</li>
                     </ul>
                 </div>
                 
@@ -921,28 +920,6 @@
         </div>
     </div>
 
-    <!-- Modal Hapus History Barang -->
-    <div id="modal-clear-items" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-6 z-[76]">
-        <div class="bg-white/95 backdrop-blur-sm rounded-[2.5rem] p-8 w-full max-w-sm shadow-2xl text-center border border-white/20">
-            <div class="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-yellow-100 to-amber-100 rounded-3xl flex items-center justify-center">
-                <span class="text-4xl text-yellow-600">🗑️</span>
-            </div>
-            <h3 class="text-xl font-bold text-slate-800 mb-2">Hapus History Barang?</h3>
-            <p class="text-[10px] text-yellow-600 font-bold mb-2 uppercase">DATA HISTORY AKAN DIHAPUS</p>
-            <p class="text-[8px] text-slate-500 mb-4">Menghapus daftar barang yang pernah ditransaksikan</p>
-            <ul class="text-[9px] text-left bg-gradient-to-r from-yellow-50 to-amber-50 p-4 rounded-xl mb-4 space-y-2 border border-yellow-100">
-                <li class="flex items-center gap-2"><span class="text-yellow-500">•</span> Semua history nama barang</li>
-                <li class="flex items-center gap-2"><span class="text-yellow-500">•</span> Data transaksi tetap aman</li>
-                <li class="flex items-center gap-2"><span class="text-yellow-500">•</span> Hanya daftar barang yang dihapus</li>
-            </ul>
-            <p class="text-[10px] font-bold text-yellow-600 mb-4 bg-yellow-50 p-2 rounded-lg">Tindakan ini tidak bisa dibatalkan!</p>
-            <div class="flex gap-2">
-                <button onclick="closeModal('modal-clear-items')" class="flex-1 py-3 text-slate-400 font-bold text-xs uppercase hover:text-slate-600 transition-colors">Batal</button>
-                <button onclick="clearItemHistory()" class="flex-1 py-3 bg-gradient-to-r from-yellow-600 to-yellow-700 text-white rounded-xl font-bold text-xs uppercase hover:shadow-lg transition-all btn-press">Hapus History</button>
-            </div>
-        </div>
-    </div>
-
     <!-- Toast Notification -->
     <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 px-6 py-3 bg-slate-800/90 backdrop-blur-sm text-white text-[10px] font-bold rounded-full shadow-2xl opacity-0 transition-all z-[100] pointer-events-none border border-white/20">Berhasil</div>
 
@@ -953,7 +930,7 @@
 
     <script>
         // ==================== KONFIGURASI ====================
-        const WA_ADMIN = "6285172107731";
+        const WA_ADMIN = "6285172107731"; // Nomor admin untuk laporan
         const TARGET_LOC = { lat: -6.767845, lng: 106.801203 };
         const RADIUS = 100;
         const SECURITY_PIN = "rockyhijab123";
@@ -961,8 +938,19 @@
         
         // ============= KONFIGURASI GOOGLE APPS SCRIPT =============
         // GANTI URL INI DENGAN URL WEB APP ANDA SETELAH DEPLOY
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbw6M-QBJWeovPaMyGROucIlbcvx_vl-hIRvPrCC-rN481Zhou50fX33pIcE98_c0MWz/exec';
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbzFHPQUppau95c3_OE0FUT0bqeE-nuDGEKYI-uiqR6JUOD4c6QUTjkdYgmZcCiTf9B7xQ/exec';
         
+        // ============= KONFIGURASI SYNC HALUS =============
+        const SYNC_CONFIG = {
+            DELAY_ON_RETURN: 2000,      // Tunggu 2 detik saat balik ke tab
+            BATCH_SIZE: 5,               // 5 data per batch
+            DELAY_BETWEEN_ITEMS: 300,    // Jeda 300ms antar item
+            SHOW_PROGRESS: true,          // Tampilkan progress bar
+            AUTO_SYNC_INTERVAL: 300000,   // 5 menit (dalam ms)
+            MAX_RETRIES: 3,               // Maksimal 3x retry kalau gagal
+            IDLE_SYNC: true                // Sync saat browser nganggur
+        };
+
         // ===========================================================
 
         let cart = [];
@@ -973,28 +961,29 @@
         let isTrialMode = false;
         let lastSyncTime = null;
         let isOnline = true;
-        let syncQueue = [];
+        let syncQueue = []; // Antrian data yang belum di-sync
         let isSyncing = false;
         let shouldCancelSync = false;
-        let itemHistory = [];
+        let syncTimeout = null;
 
         // IndexedDB Configuration
         const DB_NAME = 'RockyHijabDB';
-        const DB_VERSION = 3;
+        const DB_VERSION = 2;
         let db = null;
         
+        // Store names
         const STORES = {
             ATTENDANCE: 'attendance',
             TRANSACTIONS: 'transactions',
             ACTIVITY_LOGS: 'activityLogs',
             USER_DATA: 'userData',
             TRIAL_USER_DATA: 'trialUserData',
-            SYNC_QUEUE: 'syncQueue',
-            ITEM_HISTORY: 'itemHistory'
+            SYNC_QUEUE: 'syncQueue'
         };
 
-        // ============= FUNGSI UTILITY =============
+        // ============= FUNGSI UNTUK GOOGLE APPS SCRIPT =============
         
+        // Fungsi untuk mendapatkan info device
         function getDeviceInfo() {
             return {
                 userAgent: navigator.userAgent,
@@ -1005,13 +994,16 @@
             };
         }
 
+        // Fungsi untuk mengecek koneksi internet
         function checkConnection() {
             return navigator.onLine;
         }
 
+        // Update status koneksi
         function updateConnectionStatus() {
             isOnline = navigator.onLine;
             const statusEl = document.getElementById('cloud-connection-status');
+            const syncBadge = document.getElementById('sync-badge');
             const offlineBadge = document.getElementById('offline-badge');
             
             if (isOnline) {
@@ -1019,277 +1011,57 @@
                     statusEl.innerHTML = '● Online';
                     statusEl.className = 'font-bold text-green-600';
                 }
+                if (syncBadge) syncBadge.classList.add('hidden');
                 if (offlineBadge) offlineBadge.classList.add('hidden');
+                
+                // Coba sync jika ada antrian
+                if (syncQueue.length > 0 && !isSyncing && !isTrialMode) {
+                    gentleSync();
+                }
             } else {
                 if (statusEl) {
                     statusEl.innerHTML = '● Offline';
                     statusEl.className = 'font-bold text-red-600';
                 }
+                if (syncBadge) syncBadge.classList.remove('hidden');
                 if (offlineBadge) offlineBadge.classList.remove('hidden');
             }
         }
 
-        function showLoading() {
-            document.getElementById('loading-overlay').classList.remove('hidden');
-        }
-
-        function hideLoading() {
-            document.getElementById('loading-overlay').classList.add('hidden');
-        }
-
-        function showToast(m) { 
-            const t = document.getElementById('toast'); 
-            if (t) {
-                t.innerText = m; 
-                t.classList.replace('opacity-0', 'opacity-100'); 
-                setTimeout(() => t.classList.replace('opacity-100', 'opacity-0'), 2500);
-            }
-        }
-
-        function playNotification() {
-            try {
-                const audio = document.getElementById('notification-sound');
-                if (audio) {
-                    audio.volume = 0.5;
-                    audio.play().catch(e => console.log('Audio play failed:', e));
-                }
-            } catch (e) {
-                console.log('Notification sound error:', e);
-            }
-        }
-
-        function sleep(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
-
-        // ============= FUNGSI TEST GAS =============
-        
-        async function testGASConnection() {
-            showLoading();
-            try {
-                showToast("⏳ Testing koneksi ke GAS...");
-                
-                const response = await fetch(GAS_URL + '?action=test&t=' + Date.now(), {
-                    method: 'GET',
-                    mode: 'cors'
-                });
-                
-                const text = await response.text();
-                console.log('Test response:', text);
-                
-                try {
-                    const data = JSON.parse(text);
-                    if (data.success) {
-                        showToast("✅ Koneksi ke GAS berhasil!");
-                        alert('Sukses! GAS merespons:\n' + JSON.stringify(data, null, 2));
-                    } else {
-                        showToast("❌ GAS error");
-                        alert('Error: ' + JSON.stringify(data));
-                    }
-                } catch (e) {
-                    showToast("❌ Response bukan JSON");
-                    alert('Response bukan JSON:\n' + text.substring(0, 500));
-                }
-                
-            } catch (error) {
-                console.error('Test error:', error);
-                showToast("❌ Gagal konek ke GAS");
-                alert('Error: ' + error.message);
-            } finally {
-                hideLoading();
-            }
-        }
-
-        // ============= FUNGSI GAS =============
-        
-        async function sendToGAS(action, data) {
-            if (isTrialMode) {
-                console.log('Trial mode: data tidak disync ke cloud');
-                showToast("ℹ️ Mode trial: data tidak dikirim ke cloud");
-                return { success: true, trial: true };
-            }
-            
-            if (!navigator.onLine) {
-                showToast("❌ Tidak ada koneksi internet");
-                return { success: false, error: "Offline" };
-            }
-            
-            try {
-                showToast("⏳ Mengirim data...");
-                
-                const formData = new FormData();
-                formData.append('action', action);
-                
-                for (let key in data) {
-                    if (data[key] !== undefined && data[key] !== null) {
-                        formData.append(key, String(data[key]));
-                    }
-                }
-                
-                formData.append('deviceInfo', JSON.stringify(getDeviceInfo()));
-                formData.append('timestamp', new Date().toISOString());
-                
-                const response = await fetch(GAS_URL, {
-                    method: 'POST',
-                    body: formData,
-                    mode: 'cors',
-                    cache: 'no-cache'
-                });
-                
-                const responseText = await response.text();
-                console.log('Response dari GAS:', responseText.substring(0, 200));
-                
-                try {
-                    const result = JSON.parse(responseText);
-                    
-                    if (result.success) {
-                        showToast("✅ Data terkirim!");
-                        return result;
-                    } else {
-                        showToast("❌ " + (result.message || "Gagal"));
-                        return result;
-                    }
-                } catch (jsonError) {
-                    if (response.ok) {
-                        console.log('Response bukan JSON tapi OK');
-                        showToast("✅ Data mungkin terkirim");
-                        return { success: true, message: "Response bukan JSON" };
-                    } else {
-                        throw new Error('Gagal mengirim data');
-                    }
-                }
-                
-            } catch (error) {
-                console.error('GAS Error:', error);
-                showToast("❌ Gagal sync: " + error.message);
-                await addToSyncQueue(action, data);
-                return { success: false, error: error.message };
-            }
-        }
-
-        async function restoreFromGAS() {
-            if (isTrialMode) {
-                showToast("❌ Mode trial tidak bisa restore dari cloud");
-                return;
-            }
-            
-            if (!confirm("Restore dari cloud akan menimpa data lokal. Lanjutkan?")) {
-                return;
-            }
-            
-            showLoading();
-            try {
-                showToast("⚠️ Mengambil data dari cloud...");
-                
-                const response = await fetch(`${GAS_URL}?action=getAllData&t=${Date.now()}`, {
-                    mode: 'cors'
-                });
-                
-                const text = await response.text();
-                console.log('Restore response:', text.substring(0, 200));
-                
-                try {
-                    const result = JSON.parse(text);
-                    
-                    if (result.success && result.data) {
-                        if (result.data.users) {
-                            for (const user of result.data.users) {
-                                if (user.nama === userData.name) {
-                                    userData.domicile = user.domisili || userData.domicile;
-                                    userData.wa = user.wa || userData.wa;
-                                    
-                                    await setStorage('rocky_user_dom', userData.domicile);
-                                    await setStorage('rocky_user_wa', userData.wa);
-                                    
-                                    document.getElementById('user-display-domicile').innerHTML = `<span class="w-1 h-1 bg-indigo-400 rounded-full"></span> ${userData.domicile}`;
-                                    document.getElementById('user-display-wa').innerHTML = `<span>📱</span> ${userData.wa}`;
-                                }
-                            }
-                        }
-                        
-                        if (result.data.attendance) {
-                            await clearStore(STORES.ATTENDANCE);
-                            for (const item of result.data.attendance) {
-                                if (item.nama === userData.name) {
-                                    await addToStore(STORES.ATTENDANCE, {
-                                        id: item.id || Date.now() + Math.random(),
-                                        type: item.type,
-                                        note: item.note,
-                                        time: item.time,
-                                        date: item.date,
-                                        rawDate: item.rawDate,
-                                        nama: item.nama
-                                    });
-                                }
-                            }
-                        }
-                        
-                        if (result.data.transactions) {
-                            await clearStore(STORES.TRANSACTIONS);
-                            for (const item of result.data.transactions) {
-                                if (item.nama === userData.name) {
-                                    let items = item.items;
-                                    try {
-                                        items = typeof items === 'string' ? JSON.parse(items) : items;
-                                    } catch (e) {
-                                        items = [];
-                                    }
-                                    
-                                    await addToStore(STORES.TRANSACTIONS, {
-                                        id: item.id || Date.now() + Math.random(),
-                                        date: item.date,
-                                        time: item.time,
-                                        items: items,
-                                        total: item.total,
-                                        rawDate: item.rawDate,
-                                        nama: item.nama
-                                    });
-                                }
-                            }
-                        }
-                        
-                        await renderTxHistory();
-                        await renderHistory();
-                        await renderActivityLog();
-                        
-                        showToast("✅ Restore dari cloud berhasil!");
-                        setTimeout(() => location.reload(), 1500);
-                    } else {
-                        showToast("❌ Tidak ada data di cloud");
-                    }
-                } catch (e) {
-                    console.error('Parse error:', e);
-                    showToast("❌ Gagal parse response dari cloud");
-                }
-                
-                closeModal('modal-menu');
-            } catch (error) {
-                console.error('Restore GAS error:', error);
-                showToast("❌ Gagal restore dari cloud");
-            } finally {
-                hideLoading();
-            }
-        }
-
-        // ============= FUNGSI SYNC QUEUE =============
-        
+        // Fungsi untuk menambah ke antrian sync - PERBAIKAN: CEK TRIAL MODE
         async function addToSyncQueue(action, data) {
-            if (isTrialMode) return;
+            // PERBAIKAN: Jika mode trial, jangan tambahkan ke antrian sync
+            if (isTrialMode) {
+                console.log('Trial mode: data tidak di-sync ke cloud');
+                return;
+            }
             
             const queueItem = {
                 id: Date.now() + Math.random(),
                 action: action,
                 data: data,
                 timestamp: new Date().toISOString(),
-                retries: 0
+                retries: 0,
+                size: JSON.stringify(data).length
             };
             
             syncQueue.push(queueItem);
             await saveSyncQueue();
             updateSyncQueueDisplay();
-            updateSyncNotification();
+            
+            // Coba sync jika online dan tidak sedang sync
+            if (isOnline && !isSyncing) {
+                // Clear timeout sebelumnya
+                if (syncTimeout) clearTimeout(syncTimeout);
+                
+                // Delay sync biar nggak langsung
+                syncTimeout = setTimeout(() => {
+                    gentleSync();
+                }, SYNC_CONFIG.DELAY_ON_RETURN);
+            }
         }
 
+        // Fungsi untuk menyimpan antrian sync ke IndexedDB
         async function saveSyncQueue() {
             try {
                 await clearStore(STORES.SYNC_QUEUE);
@@ -1301,17 +1073,18 @@
             }
         }
 
+        // Fungsi untuk memuat antrian sync dari IndexedDB
         async function loadSyncQueue() {
             try {
                 syncQueue = await getAllFromStore(STORES.SYNC_QUEUE);
                 updateSyncQueueDisplay();
-                updateSyncNotification();
             } catch (error) {
                 console.error('Error loading sync queue:', error);
                 syncQueue = [];
             }
         }
 
+        // Update tampilan antrian
         function updateSyncQueueDisplay() {
             const queueEl = document.getElementById('sync-queue');
             if (queueEl) {
@@ -1319,20 +1092,27 @@
             }
         }
 
-        function updateSyncNotification() {
-            const notification = document.getElementById('sync-notification');
-            const countEl = document.getElementById('sync-notification-count');
+        // Update smooth progress bar
+        function updateSmoothProgress(current, total) {
+            const progressBar = document.getElementById('smooth-progress-bar');
+            const container = document.getElementById('smooth-progress');
             
-            if (!notification || !countEl) return;
+            if (current === 0) {
+                container.style.display = 'block';
+            }
             
-            if (syncQueue.length > 0 && !isTrialMode) {
-                countEl.innerText = syncQueue.length;
-                notification.classList.remove('hidden');
-            } else {
-                notification.classList.add('hidden');
+            const percent = (current / total) * 100;
+            progressBar.style.width = percent + '%';
+            
+            if (current >= total) {
+                setTimeout(() => {
+                    container.style.display = 'none';
+                    progressBar.style.width = '0%';
+                }, 500);
             }
         }
 
+        // Fungsi untuk menampilkan overlay sync
         function showSyncOverlay(show, status = 'Menyinkronkan...', detail = '') {
             const overlay = document.getElementById('sync-overlay');
             const statusEl = document.getElementById('sync-status');
@@ -1356,9 +1136,150 @@
             if (detailEl) detailEl.innerText = detail;
         }
 
+        // Fungsi untuk mengirim ke GAS (tanpa menunggu response) - PERBAIKAN
+        async function sendToGAS(action, data) {
+            try {
+                const formData = new URLSearchParams();
+                formData.append('action', action);
+                
+                // Tambahkan flag trialMode = false untuk memastikan tidak ada data trial yang masuk
+                formData.append('trialMode', 'false');
+                
+                for (let key in data) {
+                    if (data[key] !== undefined && data[key] !== null) {
+                        formData.append(key, String(data[key]));
+                    }
+                }
+                
+                formData.append('deviceInfo', JSON.stringify(getDeviceInfo()));
+                
+                // Gunakan mode 'cors' untuk mendapatkan respons
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: formData,
+                    mode: 'no-cors' // Tetap no-cors untuk menghindari CORS issues
+                });
+                
+                return { success: true };
+            } catch (error) {
+                console.error('GAS Error:', error);
+                return { success: false, error: error.message };
+            }
+        }
+
+        // Fungsi untuk mendapatkan data dari GAS
+        async function getFromGAS(action, params = {}) {
+            if (isTrialMode) return { success: true, data: null, message: 'Trial mode' };
+            
+            try {
+                const url = new URL(GAS_URL);
+                url.searchParams.append('action', action);
+                
+                for (let key in params) {
+                    url.searchParams.append(key, params[key]);
+                }
+                
+                const response = await fetch(url.toString(), {
+                    mode: 'no-cors'
+                });
+                
+                return { success: true, data: null };
+            } catch (error) {
+                console.error('GAS Error:', error);
+                return { success: false, message: error.message };
+            }
+        }
+
+        // Fungsi sync yang halus (gentle sync) - PERBAIKAN: CEK TRIAL MODE
+        async function gentleSync() {
+            // PERBAIKAN: Jika trial mode, jangan sync
+            if (isTrialMode) {
+                console.log('Trial mode: tidak melakukan sync');
+                return;
+            }
+            
+            if (isSyncing || syncQueue.length === 0 || !isOnline) return;
+            
+            isSyncing = true;
+            shouldCancelSync = false;
+            
+            const total = syncQueue.length;
+            
+            if (SYNC_CONFIG.SHOW_PROGRESS) {
+                showSyncOverlay(true, 'Menyinkronkan data...', `0/${total}`);
+                updateSmoothProgress(0, total);
+            }
+            
+            // Urutkan: yang kecil duluan
+            const sortedQueue = [...syncQueue].sort((a, b) => a.size - b.size);
+            const failedItems = [];
+            
+            for (let i = 0; i < sortedQueue.length; i++) {
+                if (shouldCancelSync) {
+                    showToast("⏸️ Sync dihentikan");
+                    break;
+                }
+                
+                const item = sortedQueue[i];
+                
+                try {
+                    updateSyncStatus('Menyinkronkan...', `${i+1}/${total}`);
+                    updateSmoothProgress(i + 1, total);
+                    
+                    const result = await sendToGAS(item.action, item.data);
+                    
+                    if (!result.success) {
+                        item.retries++;
+                        if (item.retries < SYNC_CONFIG.MAX_RETRIES) {
+                            failedItems.push(item);
+                        }
+                    }
+                    
+                    // Jeda antar item biar nggak berat
+                    if (i < sortedQueue.length - 1) {
+                        await sleep(SYNC_CONFIG.DELAY_BETWEEN_ITEMS);
+                    }
+                } catch (error) {
+                    console.error('Sync error:', error);
+                    item.retries++;
+                    if (item.retries < SYNC_CONFIG.MAX_RETRIES) {
+                        failedItems.push(item);
+                    }
+                }
+            }
+            
+            // Update antrian dengan yang gagal
+            syncQueue = failedItems;
+            await saveSyncQueue();
+            updateSyncQueueDisplay();
+            
+            if (SYNC_CONFIG.SHOW_PROGRESS) {
+                showSyncOverlay(false);
+                updateSmoothProgress(total, total);
+            }
+            
+            if (total - failedItems.length > 0) {
+                lastSyncTime = new Date().toLocaleTimeString('id-ID');
+                document.getElementById('cloud-last-sync').innerText = lastSyncTime;
+                showToast(`✅ ${total - failedItems.length} data tersinkronisasi`);
+            }
+            
+            isSyncing = false;
+        }
+
+        // Cancel sync
+        function cancelSync() {
+            shouldCancelSync = true;
+            showSyncOverlay(false);
+            showToast("⏸️ Sync dibatalkan");
+        }
+
+        // Fungsi untuk sync semua data (manual) - PERBAIKAN
         async function syncNow() {
+            // PERBAIKAN: Jika trial mode, jangan sync
             if (isTrialMode) {
                 showToast("❌ Mode trial tidak bisa sync ke cloud");
+                closeModal('modal-menu');
                 return;
             }
             
@@ -1369,99 +1290,51 @@
             
             if (syncQueue.length === 0) {
                 showToast("📦 Tidak ada data yang perlu disync");
+                closeModal('modal-menu');
                 return;
             }
             
-            showToast(`⏳ Memulai sync ${syncQueue.length} data...`);
             await gentleSync();
             closeModal('modal-menu');
         }
 
-        async function gentleSync() {
-            if (isSyncing || syncQueue.length === 0 || !isOnline || isTrialMode) return;
-            
-            isSyncing = true;
-            shouldCancelSync = false;
-            
-            const total = syncQueue.length;
-            let berhasil = 0;
-            let gagal = 0;
-            
-            showSyncOverlay(true, 'Menyinkronkan data...', `0/${total}`);
-            
-            const queueCopy = [...syncQueue];
-            const failedItems = [];
-            
-            for (let i = 0; i < queueCopy.length; i++) {
-                if (shouldCancelSync) {
-                    showToast("⏸️ Sync dihentikan");
-                    break;
-                }
-                
-                const item = queueCopy[i];
-                
-                try {
-                    updateSyncStatus('Menyinkronkan...', `${i+1}/${total}`);
-                    
-                    const result = await sendToGAS(item.action, item.data);
-                    
-                    if (result && result.success) {
-                        berhasil++;
-                        console.log(`✅ Data ${i+1} berhasil:`, item.action);
-                    } else {
-                        item.retries = (item.retries || 0) + 1;
-                        if (item.retries < 3) {
-                            failedItems.push(item);
-                        }
-                        gagal++;
-                        console.log(`❌ Data ${i+1} gagal:`, item.action);
-                    }
-                    
-                    if (i < queueCopy.length - 1) {
-                        await sleep(500);
-                    }
-                    
-                } catch (error) {
-                    console.error('Sync error item:', error);
-                    item.retries = (item.retries || 0) + 1;
-                    if (item.retries < 3) {
-                        failedItems.push(item);
-                    }
-                    gagal++;
-                }
+        // Fungsi untuk restore dari GAS - PERBAIKAN
+        async function restoreFromGAS() {
+            if (isTrialMode) {
+                showToast("❌ Mode trial tidak bisa restore dari cloud");
+                closeModal('modal-menu');
+                return;
             }
             
-            syncQueue = failedItems;
-            await saveSyncQueue();
-            updateSyncQueueDisplay();
-            updateSyncNotification();
-            
-            showSyncOverlay(false);
-            
-            if (berhasil > 0) {
-                lastSyncTime = new Date().toLocaleTimeString('id-ID');
-                document.getElementById('cloud-last-sync').innerText = lastSyncTime;
+            if (!confirm("Restore dari cloud akan menimpa data lokal. Lanjutkan?")) {
+                return;
             }
             
-            if (berhasil > 0 && gagal === 0) {
-                showToast(`✅ ${berhasil} data berhasil disinkronkan!`);
-            } else if (berhasil > 0 && gagal > 0) {
-                showToast(`⚠️ ${berhasil} berhasil, ${gagal} gagal (akan dicoba lagi)`);
-            } else {
-                showToast(`❌ Semua data gagal, cek koneksi`);
+            showLoading();
+            try {
+                showToast("⚠️ Fitur restore otomatis terbatas. Gunakan Backup via WA untuk restore.");
+                alert("Untuk restore data dari cloud:\n\n1. Buka Google Sheets\n2. Copy data yang diperlukan\n3. Gunakan fitur 'Restore dari WA' dengan menempel data");
+                closeModal('modal-menu');
+            } catch (error) {
+                console.error('Restore GAS error:', error);
+                showToast("❌ Gagal restore dari cloud");
+            } finally {
+                hideLoading();
             }
-            
-            isSyncing = false;
-        }
-
-        function cancelSync() {
-            shouldCancelSync = true;
-            showSyncOverlay(false);
-            showToast("⏸️ Sync dibatalkan");
         }
 
         // ============= FUNGSI INDEXEDDB =============
         
+        // Loading indicator
+        function showLoading() {
+            document.getElementById('loading-overlay').classList.remove('hidden');
+        }
+
+        function hideLoading() {
+            document.getElementById('loading-overlay').classList.add('hidden');
+        }
+
+        // Initialize IndexedDB
         function initDB() {
             return new Promise((resolve, reject) => {
                 const request = indexedDB.open(DB_NAME, DB_VERSION);
@@ -1491,18 +1364,21 @@
                         const attendanceStore = db.createObjectStore(STORES.ATTENDANCE, { keyPath: 'id' });
                         attendanceStore.createIndex('rawDate', 'rawDate', { unique: false });
                         attendanceStore.createIndex('type', 'type', { unique: false });
-                        attendanceStore.createIndex('nama', 'nama', { unique: false });
+                        attendanceStore.createIndex('date', 'date', { unique: false });
+                        attendanceStore.createIndex('userName', 'userName', { unique: false });
                     }
                     
                     if (!db.objectStoreNames.contains(STORES.TRANSACTIONS)) {
                         const txStore = db.createObjectStore(STORES.TRANSACTIONS, { keyPath: 'id' });
                         txStore.createIndex('rawDate', 'rawDate', { unique: false });
-                        txStore.createIndex('nama', 'nama', { unique: false });
+                        txStore.createIndex('date', 'date', { unique: false });
+                        txStore.createIndex('userName', 'userName', { unique: false });
                     }
                     
                     if (!db.objectStoreNames.contains(STORES.ACTIVITY_LOGS)) {
                         const logStore = db.createObjectStore(STORES.ACTIVITY_LOGS, { keyPath: 'id' });
                         logStore.createIndex('rawDate', 'rawDate', { unique: false });
+                        logStore.createIndex('action', 'action', { unique: false });
                     }
                     
                     if (!db.objectStoreNames.contains(STORES.USER_DATA)) {
@@ -1518,12 +1394,7 @@
                         queueStore.createIndex('timestamp', 'timestamp', { unique: false });
                     }
                     
-                    if (!db.objectStoreNames.contains(STORES.ITEM_HISTORY)) {
-                        const itemStore = db.createObjectStore(STORES.ITEM_HISTORY, { keyPath: 'id' });
-                        itemStore.createIndex('name', 'name', { unique: false });
-                    }
-                    
-                    console.log('Database schema upgraded to version', DB_VERSION);
+                    console.log('Database schema upgraded');
                 };
             });
         }
@@ -1608,8 +1479,7 @@
             });
         }
 
-        // ============= FUNGSI STORAGE =============
-        
+        // Storage functions dengan auto-sync ke cloud - PERBAIKAN
         async function getStorage(key, defaultValue = "[]") {
             try {
                 if (isTrialMode) {
@@ -1638,10 +1508,6 @@
                         return JSON.stringify(filtered);
                     }
                     
-                    if (key === 'rocky_item_history') {
-                        return sessionStorage.getItem(key) || "[]";
-                    }
-                    
                     return sessionStorage.getItem(key) || defaultValue;
                 } else {
                     if (key === 'rocky_user_name' || key === 'rocky_user_dom' || key === 'rocky_user_wa') {
@@ -1667,11 +1533,6 @@
                     
                     if (key === 'rocky_activity_logs') {
                         const data = await getAllFromStore(STORES.ACTIVITY_LOGS);
-                        return JSON.stringify(data);
-                    }
-                    
-                    if (key === 'rocky_item_history') {
-                        const data = await getAllFromStore(STORES.ITEM_HISTORY);
                         return JSON.stringify(data);
                     }
                     
@@ -1731,8 +1592,6 @@
                             item.sessionId = sessionId;
                             await addToStore(STORES.ACTIVITY_LOGS, item);
                         }
-                    } else if (key === 'rocky_item_history') {
-                        sessionStorage.setItem(key, value);
                     } else {
                         sessionStorage.setItem(key, value);
                     }
@@ -1742,50 +1601,56 @@
                         await clearStore(STORES.ATTENDANCE);
                         for (const item of items) {
                             await addToStore(STORES.ATTENDANCE, item);
-                            await addToSyncQueue('saveAttendance', {
-                                id: item.id,
-                                nama: userData.name,
-                                type: item.type,
-                                note: item.note,
-                                time: item.time,
-                                date: item.date,
-                                rawDate: item.rawDate
-                            });
+                            
+                            // PERBAIKAN: Tambahkan ke antrian sync hanya jika bukan trial mode
+                            if (!isTrialMode) {
+                                await addToSyncQueue('saveAttendance', {
+                                    id: item.id,
+                                    nama: userData.name,
+                                    type: item.type,
+                                    note: item.note,
+                                    time: item.time,
+                                    date: item.date,
+                                    rawDate: item.rawDate
+                                });
+                            }
                         }
                     } else if (key === 'rocky_tx_history') {
                         const items = JSON.parse(value);
                         await clearStore(STORES.TRANSACTIONS);
                         for (const item of items) {
                             await addToStore(STORES.TRANSACTIONS, item);
-                            await addToSyncQueue('saveTransaction', {
-                                id: item.id,
-                                nama: userData.name,
-                                date: item.date,
-                                time: item.time,
-                                items: JSON.stringify(item.items),
-                                total: item.total,
-                                rawDate: item.rawDate
-                            });
+                            
+                            // PERBAIKAN: Tambahkan ke antrian sync hanya jika bukan trial mode
+                            if (!isTrialMode) {
+                                await addToSyncQueue('saveTransaction', {
+                                    id: item.id,
+                                    nama: userData.name,
+                                    date: item.date,
+                                    time: item.time,
+                                    items: JSON.stringify(item.items),
+                                    total: item.total,
+                                    rawDate: item.rawDate
+                                });
+                            }
                         }
                     } else if (key === 'rocky_activity_logs') {
                         const items = JSON.parse(value);
                         await clearStore(STORES.ACTIVITY_LOGS);
                         for (const item of items) {
                             await addToStore(STORES.ACTIVITY_LOGS, item);
-                            await addToSyncQueue('saveActivityLog', {
-                                id: item.id,
-                                nama: userData.name,
-                                action: item.action,
-                                detail: item.detail,
-                                time: item.time,
-                                rawDate: item.rawDate
-                            });
-                        }
-                    } else if (key === 'rocky_item_history') {
-                        const items = JSON.parse(value);
-                        await clearStore(STORES.ITEM_HISTORY);
-                        for (const item of items) {
-                            await addToStore(STORES.ITEM_HISTORY, item);
+                            
+                            // PERBAIKAN: Tambahkan ke antrian sync hanya jika bukan trial mode
+                            if (!isTrialMode) {
+                                await addToSyncQueue('saveActivityLog', {
+                                    id: item.id,
+                                    nama: userData.name,
+                                    action: item.action,
+                                    detail: item.detail,
+                                    time: item.time,
+                                    rawDate: item.rawDate
+                                });
+                            }
                         }
                     } else if (key === 'rocky_user_name' || key === 'rocky_user_dom' || key === 'rocky_user_wa') {
                         const users = await getAllFromStore(STORES.USER_DATA);
@@ -1796,11 +1661,14 @@
                             if (key === 'rocky_user_wa') user.wa = value;
                             await putInStore(STORES.USER_DATA, user);
                             
-                            await addToSyncQueue('saveUser', {
-                                nama: user.name,
-                                domisili: user.domicile,
-                                wa: user.wa
-                            });
+                            // PERBAIKAN: Tambahkan ke antrian sync hanya jika bukan trial mode
+                            if (!isTrialMode) {
+                                await addToSyncQueue('saveUser', {
+                                    nama: user.name,
+                                    domisili: user.domicile,
+                                    wa: user.wa
+                                });
+                            }
                         } else {
                             const user = { name: '', domicile: '', wa: '' };
                             if (key === 'rocky_user_name') user.name = value;
@@ -1808,11 +1676,14 @@
                             if (key === 'rocky_user_wa') user.wa = value;
                             await addToStore(STORES.USER_DATA, user);
                             
-                            await addToSyncQueue('saveUser', {
-                                nama: user.name,
-                                domisili: user.domicile,
-                                wa: user.wa
-                            });
+                            // PERBAIKAN: Tambahkan ke antrian sync hanya jika bukan trial mode
+                            if (!isTrialMode) {
+                                await addToSyncQueue('saveUser', {
+                                    nama: user.name,
+                                    domisili: user.domicile,
+                                    wa: user.wa
+                                });
+                            }
                         }
                     } else {
                         localStorage.setItem(key, value);
@@ -1826,12 +1697,7 @@
         async function removeStorage(key) {
             try {
                 if (isTrialMode) {
-                    if (key === 'rocky_history' || key === 'rocky_tx_history' || key === 'rocky_activity_logs' || key === 'rocky_item_history') {
-                        if (key === 'rocky_item_history') {
-                            sessionStorage.removeItem(key);
-                            return;
-                        }
-                        
+                    if (key === 'rocky_history' || key === 'rocky_tx_history' || key === 'rocky_activity_logs') {
                         const sessionId = sessionStorage.getItem('rocky_session_id') || 'default';
                         const storeName = key === 'rocky_history' ? STORES.ATTENDANCE : 
                                          key === 'rocky_tx_history' ? STORES.TRANSACTIONS : 
@@ -1853,8 +1719,6 @@
                         await clearStore(STORES.TRANSACTIONS);
                     } else if (key === 'rocky_activity_logs') {
                         await clearStore(STORES.ACTIVITY_LOGS);
-                    } else if (key === 'rocky_item_history') {
-                        await clearStore(STORES.ITEM_HISTORY);
                     } else if (key === 'rocky_user_name' || key === 'rocky_user_dom' || key === 'rocky_user_wa') {
                         await clearStore(STORES.USER_DATA);
                     } else {
@@ -1866,160 +1730,14 @@
             }
         }
 
-        // ============= FUNGSI ITEM HISTORY =============
-        
-        async function loadItemHistory() {
-            try {
-                const history = await getStorage('rocky_item_history', '[]');
-                itemHistory = JSON.parse(history);
-                itemHistory.sort((a, b) => new Date(b.lastUsed) - new Date(a.lastUsed));
-                if (itemHistory.length > 20) {
-                    itemHistory = itemHistory.slice(0, 20);
-                    await saveItemHistory();
-                }
-                renderItemHistory();
-            } catch (error) {
-                console.error('Error loading item history:', error);
-                itemHistory = [];
-            }
-        }
-
-        async function saveItemHistory() {
-            await setStorage('rocky_item_history', JSON.stringify(itemHistory));
-        }
-
-        async function addToItemHistory(itemName) {
-            if (!itemName || itemName.trim() === '') return;
-            
-            const name = itemName.trim();
-            const now = new Date().toISOString();
-            
-            const existingIndex = itemHistory.findIndex(item => item.name.toLowerCase() === name.toLowerCase());
-            
-            if (existingIndex >= 0) {
-                itemHistory[existingIndex].lastUsed = now;
-                itemHistory[existingIndex].count = (itemHistory[existingIndex].count || 1) + 1;
-            } else {
-                itemHistory.push({
-                    id: Date.now(),
-                    name: name,
-                    lastUsed: now,
-                    count: 1
-                });
-            }
-            
-            itemHistory.sort((a, b) => new Date(b.lastUsed) - new Date(a.lastUsed));
-            
-            if (itemHistory.length > 20) {
-                itemHistory = itemHistory.slice(0, 20);
-            }
-            
-            await saveItemHistory();
-            renderItemHistory();
-        }
-
-        function renderItemHistory() {
-            const container = document.getElementById('item-history-buttons');
-            if (!container) return;
-            
-            if (itemHistory.length === 0) {
-                container.innerHTML = '<p class="text-[8px] text-slate-400 italic">Belum ada history barang</p>';
-                return;
-            }
-            
-            container.innerHTML = itemHistory.map(item => `
-                <button onclick="selectItemFromHistory('${item.name.replace(/'/g, "\\'")}')" class="item-history-btn px-2 py-1 bg-white border border-indigo-100 rounded-lg text-[8px] font-bold text-indigo-600 hover:bg-indigo-50 transition-all flex items-center gap-1">
-                    <span>📦</span> ${item.name} ${item.count > 1 ? `(${item.count}x)` : ''}
-                </button>
-            `).join('');
-        }
-
-        function selectItemFromHistory(itemName) {
-            document.getElementById('tx-nama').value = itemName;
-            
-            const dropdown = document.getElementById('item-history-dropdown');
-            if (dropdown) {
-                dropdown.classList.add('hidden');
-            }
-            
-            document.getElementById('tx-kode').focus();
-        }
-
-        function renderItemDropdown(searchTerm) {
-            const dropdown = document.getElementById('item-history-dropdown');
-            if (!dropdown) return;
-            
-            if (!searchTerm || searchTerm.trim() === '') {
-                dropdown.classList.add('hidden');
-                return;
-            }
-            
-            const term = searchTerm.toLowerCase().trim();
-            const filtered = itemHistory.filter(item => 
-                item.name.toLowerCase().includes(term)
-            ).slice(0, 10);
-            
-            if (filtered.length === 0) {
-                dropdown.classList.add('hidden');
-                return;
-            }
-            
-            dropdown.innerHTML = filtered.map(item => `
-                <div onclick="selectItemFromHistory('${item.name.replace(/'/g, "\\'")}')" class="px-3 py-2 hover:bg-indigo-50 cursor-pointer border-b border-slate-100 last:border-0 flex items-center gap-2">
-                    <span class="text-indigo-400">📦</span>
-                    <span class="text-xs font-medium text-slate-700">${item.name}</span>
-                    <span class="text-[8px] text-slate-400 ml-auto">${item.count}x</span>
-                </div>
-            `).join('');
-            
-            dropdown.classList.remove('hidden');
-        }
-
-        async function clearItemHistory() {
-            itemHistory = [];
-            await saveItemHistory();
-            renderItemHistory();
-            closeModal('modal-clear-items');
-            showToast("✅ History barang berhasil dihapus");
-        }
-
-        function openClearItemHistoryModal() {
-            closeModal('modal-menu');
-            openModal('modal-clear-items');
-        }
-
-        // ============= FUNGSI FORMAT RUPIAH =============
-        
-        function formatHargaInput(input) {
-            let value = input.value.replace(/[^\d]/g, '');
-            
-            if (value === '') {
-                input.value = '';
-                return;
-            }
-            
-            const number = parseInt(value);
-            input.value = formatRupiah(number);
-        }
-
-        function formatRupiah(angka) {
-            if (!angka) return '';
-            return angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-        }
-
-        function parseRupiah(rupiah) {
-            if (!rupiah) return 0;
-            return parseInt(rupiah.replace(/\./g, '')) || 0;
-        }
-
-        // ============= FUNGSI TRIAL MODE =============
-        
+        // Fungsi untuk memulai mode trial - PERBAIKAN
         async function startTrialMode() {
             closeModal('modal-menu');
             
             if (confirm("Mode Trial akan menghapus data sementara dan menggunakan session baru. Lanjutkan?")) {
                 showLoading();
                 try {
+                    // Hapus data trial lama jika ada
                     const sessionId = sessionStorage.getItem('rocky_session_id');
                     if (sessionId) {
                         const attendance = await getAllFromStore(STORES.ATTENDANCE);
@@ -2044,20 +1762,26 @@
                         }
                     }
                     
+                    // Set mode trial
                     isTrialMode = true;
                     
+                    // Generate session ID baru
                     sessionStorage.setItem('rocky_session_id', 'session_' + Date.now());
                     
+                    // Reset user data
                     userData = { name: "", domicile: "", wa: "" };
                     
+                    // Tampilkan badge trial
                     document.getElementById('trial-badge').classList.remove('hidden');
                     document.getElementById('cloud-badge').classList.add('hidden');
                     
+                    // Kembali ke halaman registrasi
                     document.getElementById('main-nav').classList.add('hidden');
                     document.getElementById('view-attendance').classList.add('hidden');
                     document.getElementById('view-transaction').classList.add('hidden');
                     document.getElementById('view-registration').classList.remove('hidden');
                     
+                    // Reset form registrasi
                     document.getElementById('reg-name').disabled = false;
                     document.getElementById('reg-domicile').disabled = false;
                     document.getElementById('reg-wa').disabled = false;
@@ -2068,6 +1792,7 @@
                     
                     showToast("Mode Trial aktif! Silakan daftar.");
                     
+                    // Tampilkan tutorial
                     setTimeout(() => {
                         openModal('modal-tutorial');
                     }, 500);
@@ -2077,8 +1802,6 @@
             }
         }
 
-        // ============= FUNGSI INIT APP =============
-        
         async function initApp() {
             showLoading();
             try {
@@ -2089,6 +1812,7 @@
                 document.getElementById('user-display-domicile').innerHTML = `<span class="w-1 h-1 bg-indigo-400 rounded-full"></span> ${userData.domicile}`;
                 document.getElementById('user-display-wa').innerHTML = `<span>📱</span> ${userData.wa || "(belum diisi)"}`;
                 
+                // Update badge
                 if (isTrialMode) {
                     document.getElementById('trial-badge').classList.remove('hidden');
                     document.getElementById('cloud-badge').classList.add('hidden');
@@ -2097,7 +1821,6 @@
                     document.getElementById('cloud-badge').classList.remove('hidden');
                 }
                 
-                await loadItemHistory();
                 await renderHistory();
                 await renderTxHistory();
                 await checkAndCleanMonthlyLogs();
@@ -2108,34 +1831,11 @@
                 checkTodayAbsen();
                 updateTransactionAccess();
                 updateDataStats();
-                
-                updateSyncNotification();
-                
-                const txNama = document.getElementById('tx-nama');
-                if (txNama) {
-                    txNama.addEventListener('input', function() {
-                        renderItemDropdown(this.value);
-                    });
-                    
-                    txNama.addEventListener('blur', function() {
-                        setTimeout(() => {
-                            document.getElementById('item-history-dropdown').classList.add('hidden');
-                        }, 200);
-                    });
-                    
-                    txNama.addEventListener('focus', function() {
-                        if (this.value.trim() !== '') {
-                            renderItemDropdown(this.value);
-                        }
-                    });
-                }
             } finally {
                 hideLoading();
             }
         }
 
-        // ============= FUNGSI RENDER DATA =============
-        
         async function renderHistory() {
             const hist = JSON.parse(await getStorage('rocky_history') || "[]");
             const list = document.getElementById('history-list');
@@ -2174,7 +1874,7 @@
                         <p class="text-[10px] font-black text-slate-800 uppercase"><span class="text-indigo-600">#${tx.id.toString().slice(-4)}</span> <span class="text-[8px] text-slate-300">${tx.date}</span></p>
                         <p class="text-[11px] font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 mb-2">Rp ${tx.total.toLocaleString()}</p>
                         <div class="border-t border-indigo-100/50 pt-2 space-y-1">
-                            ${tx.items.map(item => `<div class="flex justify-between text-[8px] text-slate-500 uppercase"><span>${item.nama} x${item.qty}</span> <span>Rp ${(item.harga * item.qty).toLocaleString()}</span></div>`).join('')}
+                            ${tx.items.map(item => `<div class="flex justify-between text-[8px] text-slate-500 uppercase"><span>${item.nama} x${item.qty}</span></div>`).join('')}
                         </div>
                     </div>
                 `).join('');
@@ -2203,6 +1903,7 @@
                 else if (log.action.includes('Hapus')) { bgColor = "bg-red-50"; icon = "🗑️"; }
                 else if (log.action === 'Sistem') { bgColor = "bg-blue-50"; icon = "⚙️"; }
                 else if (log.action === 'Backup') { bgColor = "bg-emerald-50"; icon = "📤"; }
+                else if (log.action === 'Backup Cloud') { bgColor = "bg-blue-50"; icon = "☁️"; }
                 else if (log.action === 'Sync Cloud') { bgColor = "bg-green-50"; icon = "🔄"; }
                 
                 return `
@@ -2255,11 +1956,6 @@
 
         async function saveTxRecord(id, items, total) {
             const txHist = JSON.parse(await getStorage('rocky_tx_history') || "[]");
-            
-            for (const item of items) {
-                await addToItemHistory(item.nama);
-            }
-            
             txHist.push({
                 id: id,
                 date: new Date().toLocaleDateString('id-ID'),
@@ -2268,7 +1964,6 @@
                 total: total,
                 rawDate: new Date().toISOString()
             });
-            
             await setStorage('rocky_tx_history', JSON.stringify(txHist));
             await renderTxHistory();
             await saveActivityLog('Transaksi', `Penjualan Rp ${total.toLocaleString()}`);
@@ -2523,8 +2218,7 @@
             if (isTrialMode) return;
         }
 
-        // ============= FUNGSI REGISTRASI =============
-        
+        // Register function
         document.getElementById('btn-register').onclick = async () => {
             const n = document.getElementById('reg-name').value.trim();
             const d = document.getElementById('reg-domicile').value.trim();
@@ -2562,6 +2256,7 @@
             }
         };
 
+        // Absen masuk
         document.getElementById('btn-absensi').onclick = async () => {
             if (await hasTodayAttendance()) return showToast("Anda sudah absen hari ini!");
             if (calculateDistance(userPos.lat, userPos.lng, TARGET_LOC.lat, TARGET_LOC.lng) > RADIUS) {
@@ -2588,6 +2283,7 @@
             }, 500);
         };
 
+        // Backup via WA
         async function backupViaWA() {
             if (!userData.wa) {
                 showToast("❌ Nomor WhatsApp belum terdaftar!");
@@ -2606,7 +2302,6 @@
                 const attendance = await getAllFromStore(STORES.ATTENDANCE);
                 const transactions = await getAllFromStore(STORES.TRANSACTIONS);
                 const activityLogs = await getAllFromStore(STORES.ACTIVITY_LOGS);
-                const items = await getAllFromStore(STORES.ITEM_HISTORY);
                 
                 const allData = {
                     u: userData.name,
@@ -2615,7 +2310,6 @@
                     t: transactions,
                     a: attendance,
                     l: activityLogs,
-                    i: items,
                     date: new Date().toISOString()
                 };
                 
@@ -2658,6 +2352,7 @@
             }
         }
 
+        // Restore from WA
         async function restoreFromWA() {
             const input = prompt("Tempel kode backup dari WhatsApp di sini:");
             if (!input) return;
@@ -2701,6 +2396,8 @@
                 await clearStore(STORES.ATTENDANCE);
                 for (const item of data.a) {
                     await addToStore(STORES.ATTENDANCE, item);
+                    
+                    // Tambahkan ke antrian sync
                     await addToSyncQueue('saveAttendance', {
                         id: item.id,
                         nama: userData.name,
@@ -2715,6 +2412,8 @@
                 await clearStore(STORES.TRANSACTIONS);
                 for (const item of data.t) {
                     await addToStore(STORES.TRANSACTIONS, item);
+                    
+                    // Tambahkan ke antrian sync
                     await addToSyncQueue('saveTransaction', {
                         id: item.id,
                         nama: userData.name,
@@ -2730,6 +2429,8 @@
                     await clearStore(STORES.ACTIVITY_LOGS);
                     for (const item of data.l) {
                         await addToStore(STORES.ACTIVITY_LOGS, item);
+                        
+                        // Tambahkan ke antrian sync
                         await addToSyncQueue('saveActivityLog', {
                             id: item.id,
                             nama: userData.name,
@@ -2741,17 +2442,10 @@
                     }
                 }
                 
-                if (data.i) {
-                    await clearStore(STORES.ITEM_HISTORY);
-                    for (const item of data.i) {
-                        await addToStore(STORES.ITEM_HISTORY, item);
-                    }
-                    await loadItemHistory();
-                }
-                
                 await setStorage('rocky_user_dom', userData.domicile);
                 await setStorage('rocky_user_wa', data.w || userData.wa);
                 
+                // Tambahkan user ke antrian sync
                 await addToSyncQueue('saveUser', {
                     nama: userData.name,
                     domisili: userData.domicile,
@@ -2765,7 +2459,7 @@
                 await renderHistory();
                 await renderActivityLog();
                 
-                showToast("✅ Restore berhasil! Jangan lupa sync ke cloud.");
+                showToast("✅ Restore berhasil! Data akan di-sync ke cloud.");
                 setTimeout(() => location.reload(), 1500);
                 
                 await saveActivityLog('Restore', `Restore data dari backup (${data.t.length + data.a.length} entri)`);
@@ -2777,13 +2471,13 @@
             }
         }
 
+        // Export data
         async function exportData() {
             showLoading();
             try {
                 const attendance = await getAllFromStore(STORES.ATTENDANCE);
                 const transactions = await getAllFromStore(STORES.TRANSACTIONS);
                 const activityLogs = await getAllFromStore(STORES.ACTIVITY_LOGS);
-                const items = await getAllFromStore(STORES.ITEM_HISTORY);
                 
                 const data = {
                     user: {
@@ -2794,7 +2488,6 @@
                     history: attendance,
                     tx_history: transactions,
                     activity_logs: activityLogs,
-                    item_history: items,
                     export_date: new Date().toISOString()
                 };
                 
@@ -2810,6 +2503,7 @@
             }
         }
 
+        // Import data
         async function importData() {
             const jsonInput = document.getElementById('import-json').value.trim();
             if (!jsonInput) return showToast("❌ Tempel kode!");
@@ -2829,6 +2523,8 @@
                     await clearStore(STORES.ATTENDANCE);
                     for (const item of data.history) {
                         await addToStore(STORES.ATTENDANCE, item);
+                        
+                        // Tambahkan ke antrian sync
                         await addToSyncQueue('saveAttendance', {
                             id: item.id,
                             nama: userData.name,
@@ -2845,6 +2541,8 @@
                     await clearStore(STORES.TRANSACTIONS);
                     for (const item of data.tx_history) {
                         await addToStore(STORES.TRANSACTIONS, item);
+                        
+                        // Tambahkan ke antrian sync
                         await addToSyncQueue('saveTransaction', {
                             id: item.id,
                             nama: userData.name,
@@ -2861,6 +2559,8 @@
                     await clearStore(STORES.ACTIVITY_LOGS);
                     for (const item of data.activity_logs) {
                         await addToStore(STORES.ACTIVITY_LOGS, item);
+                        
+                        // Tambahkan ke antrian sync
                         await addToSyncQueue('saveActivityLog', {
                             id: item.id,
                             nama: userData.name,
@@ -2872,21 +2572,14 @@
                     }
                 }
                 
-                if (data.item_history) {
-                    await clearStore(STORES.ITEM_HISTORY);
-                    for (const item of data.item_history) {
-                        await addToStore(STORES.ITEM_HISTORY, item);
-                    }
-                    await loadItemHistory();
-                }
-                
+                // Tambahkan user ke antrian sync
                 await addToSyncQueue('saveUser', {
                     nama: userData.name,
                     domisili: userData.domicile,
                     wa: userData.wa
                 });
                 
-                showToast("✅ Berhasil! Jangan lupa sync ke cloud.");
+                showToast("✅ Berhasil! Data akan di-sync ke cloud.");
                 setTimeout(() => location.reload(), 1500);
             } catch (e) { 
                 console.error(e);
@@ -2896,11 +2589,13 @@
             }
         }
 
+        // Open menu modal
         async function openMenuModal() {
             await updateDataStats();
             openModal('modal-menu');
         }
 
+        // Verify delete
         document.getElementById('btn-verify-delete').onclick = async () => {
             const pin = document.getElementById('security-pin').value;
             if (pin === SECURITY_PIN) {
@@ -2944,6 +2639,7 @@
             }
         };
 
+        // Reset data
         document.getElementById('btn-confirm-reset').onclick = async () => {
             const resetPin = document.getElementById('reset-pin').value;
             if (resetPin !== SECURITY_PIN) {
@@ -2959,7 +2655,6 @@
                 await clearStore(STORES.USER_DATA);
                 await clearStore(STORES.TRIAL_USER_DATA);
                 await clearStore(STORES.SYNC_QUEUE);
-                await clearStore(STORES.ITEM_HISTORY);
                 
                 await removeStorage('rocky_last_absen');
                 await removeStorage('rocky_last_reset_date');
@@ -2970,17 +2665,14 @@
                 syncQueue = [];
                 cart = [];
                 lastAbsenData = null;
-                itemHistory = [];
                 
                 await renderHistory();
                 await renderTxHistory();
                 await renderActivityLog();
-                renderItemHistory();
                 updateRewardSystem();
                 await checkTodayAbsen();
                 updateTransactionAccess();
                 await updateDataStats();
-                updateSyncNotification();
                 
                 closeModal('modal-reset');
                 closeModal('modal-menu');
@@ -2991,6 +2683,7 @@
             }
         };
 
+        // Kirim rekap bulanan
         async function kirimRekapBulanan() {
             const bulanIndex = parseInt(document.getElementById('rekap-bulan').value);
             const tahun = parseInt(document.getElementById('rekap-tahun').value);
@@ -3028,6 +2721,7 @@
             showToast(`✅ Rekap ${bulanText} ${tahun} terkirim`);
         }
 
+        // Save edit profile
         async function saveEditProfile() {
             const newDomicile = document.getElementById('edit-domicile').value.trim();
             const newWA = document.getElementById('edit-wa').value.trim();
@@ -3056,6 +2750,7 @@
             await saveActivityLog('Edit Profil', 'Mengubah domisili/WA');
         }
 
+        // Logout
         async function logout() {
             showLoading();
             try {
@@ -3096,6 +2791,7 @@
             }
         }
 
+        // Submit izin
         document.getElementById('btn-submit-izin').onclick = async () => {
             if (await hasTodayAttendance()) {
                 showToast("Anda sudah absen/izin hari ini!");
@@ -3124,6 +2820,7 @@
             setTimeout(async () => await checkTodayAbsen(), 500);
         };
 
+        // Resend absen
         document.getElementById('btn-resend-absen').onclick = async () => {
             if (!lastAbsenData) return showToast("Tidak ada data untuk dikirim ulang");
             
@@ -3138,6 +2835,7 @@
             showToast(`✅ Mengirim ulang...`);
         };
 
+        // Send report
         async function sendReport(period) {
             if (!await hasTodayPresent()) {
                 showToast("Anda harus absen HADIR hari ini!");
@@ -3183,12 +2881,14 @@
             closeModal('modal-report');
         }
 
+        // Confirm delete history
         async function confirmDeleteHistory(id) {
             pendingDeleteAction = id;
             document.getElementById('security-pin').value = '';
             openModal('modal-security');
         }
 
+        // Transaction functions
         document.getElementById('btn-add-cart').onclick = async () => {
             if (!await hasTodayPresent()) {
                 showToast("Anda harus absen HADIR hari ini!");
@@ -3199,31 +2899,17 @@
                 return;
             }
             
-            const nama = document.getElementById('tx-nama').value.trim();
-            const kode = document.getElementById('tx-kode').value.trim();
-            
-            const hargaInput = document.getElementById('tx-harga').value.trim();
-            const harga = parseRupiah(hargaInput);
-            
+            const nama = document.getElementById('tx-nama').value;
+            const kode = document.getElementById('tx-kode').value;
             const qty = parseInt(document.getElementById('tx-qty').value);
-            
+            const harga = parseInt(document.getElementById('tx-harga').value);
             if (!nama || !qty || !harga) return showToast("Data tidak lengkap!");
-            if (qty <= 0 || harga <= 0) return showToast("Qty dan harga harus lebih dari 0!");
             
-            cart.push({ 
-                id: Date.now(), 
-                nama, 
-                kode: kode || '-', 
-                qty, 
-                harga, 
-                subtotal: qty * harga 
-            });
-            
+            cart.push({ id: Date.now(), nama, kode: kode || '-', qty, harga, subtotal: qty * harga });
             document.getElementById('tx-nama').value = "";
             document.getElementById('tx-kode').value = "";
             document.getElementById('tx-qty').value = "";
             document.getElementById('tx-harga').value = "";
-            
             renderCart();
             showToast("✅ Barang masuk keranjang");
         };
@@ -3242,16 +2928,20 @@
             let total = 0;
             cart.forEach(item => total += item.subtotal);
             const recordId = Date.now();
-            
             await saveTxRecord(recordId, cart, total);
             await saveRecord('Transaksi', `Penjualan: Rp ${total.toLocaleString()}`, recordId);
-            
             cart = [];
             renderCart();
             updateRewardSystem();
             showToast("✅ Penjualan Berhasil!");
         };
 
+        // Sleep function
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // Initialize
         window.onload = async () => {
             const options = { weekday: 'long', day: 'numeric', month: 'long' };
             document.getElementById('current-date').innerText = new Date().toLocaleDateString('id-ID', options);
@@ -3262,15 +2952,19 @@
                 
                 isiPilihanTahun();
                 
+                // Load sync queue
                 await loadSyncQueue();
                 
+                // Setup connection listeners
                 window.addEventListener('online', updateConnectionStatus);
                 window.addEventListener('offline', updateConnectionStatus);
                 updateConnectionStatus();
                 
+                // Cek apakah sudah pernah daftar (staf)
                 const savedName = await getStorage('rocky_user_name');
                 
                 if (savedName) {
+                    // Jika sudah pernah daftar, langsung masuk sebagai staf
                     isTrialMode = false;
                     userData.name = savedName;
                     userData.domicile = await getStorage('rocky_user_dom') || "";
@@ -3280,25 +2974,53 @@
                     document.getElementById('reg-domicile').value = userData.domicile;
                     document.getElementById('reg-wa').value = userData.wa;
                     
+                    // Langsung inisialisasi app
                     await initApp();
                     
+                    // Update status cloud
                     document.getElementById('cloud-badge').classList.remove('hidden');
                 } else {
+                    // Jika belum pernah daftar, tampilkan halaman registrasi
                     isTrialMode = false;
                     document.getElementById('trial-badge').classList.add('hidden');
                     document.getElementById('cloud-badge').classList.add('hidden');
                 }
 
+                // Visibility change dengan debounce
                 let visibilityTimeout;
                 document.addEventListener('visibilitychange', async () => {
                     if (!document.hidden) {
+                        // Clear timeout sebelumnya
                         clearTimeout(visibilityTimeout);
+                        
+                        // Tunggu user stabil dulu
                         visibilityTimeout = setTimeout(async () => {
                             await checkAndResetDailyData();
                             autoCleanOldData();
-                        }, 2000);
+                            
+                            // Coba sync kalau ada antrian (hanya jika bukan trial mode)
+                            if (!isTrialMode && syncQueue.length > 0 && isOnline && !isSyncing) {
+                                gentleSync();
+                            }
+                        }, SYNC_CONFIG.DELAY_ON_RETURN);
                     }
                 });
+                
+                // Auto sync interval (setiap 5 menit) - PERBAIKAN: CEK TRIAL MODE
+                setInterval(() => {
+                    if (!isTrialMode && isOnline && syncQueue.length > 0 && !isSyncing) {
+                        gentleSync();
+                    }
+                }, SYNC_CONFIG.AUTO_SYNC_INTERVAL);
+                
+                // Idle sync (saat browser nganggur) - PERBAIKAN: CEK TRIAL MODE
+                if (SYNC_CONFIG.IDLE_SYNC && 'requestIdleCallback' in window) {
+                    requestIdleCallback(() => {
+                        if (!isTrialMode && syncQueue.length > 0 && isOnline && !isSyncing) {
+                            gentleSync();
+                        }
+                    }, { timeout: 5000 });
+                }
                 
                 scheduleNextReset();
                 autoCleanOldData();
@@ -3307,6 +3029,7 @@
             }
         };
 
+        // Helper functions
         function isWithinRadius() {
             if (userPos.lat === 0 || userPos.lng === 0) return false;
             const dist = calculateDistance(userPos.lat, userPos.lng, TARGET_LOC.lat, TARGET_LOC.lng);
@@ -3327,6 +3050,7 @@
                 const dist = calculateDistance(userPos.lat, userPos.lng, TARGET_LOC.lat, TARGET_LOC.lng);
                 const indicator = document.getElementById('gps-indicator');
                 const text = document.getElementById('location-text');
+                const btn = document.getElementById('btn-absensi');
                 const koordinatContainer = document.getElementById('koordinat-container');
                 const koordinatText = document.getElementById('koordinat-text');
                 
@@ -3397,6 +3121,18 @@
                 document.body.removeChild(tempInput);
                 showToast("✅ Koordinat berhasil disalin!");
             });
+        }
+
+        function playNotification() {
+            try {
+                const audio = document.getElementById('notification-sound');
+                if (audio) {
+                    audio.volume = 0.5;
+                    audio.play().catch(e => console.log('Audio play failed:', e));
+                }
+            } catch (e) {
+                console.log('Notification sound error:', e);
+            }
         }
 
         function switchTab(tab) {
@@ -3527,6 +3263,15 @@
         function openLogoutModal() {
             closeModal('modal-menu');
             openModal('modal-logout');
+        }
+
+        function showToast(m) { 
+            const t = document.getElementById('toast'); 
+            if (t) {
+                t.innerText = m; 
+                t.classList.replace('opacity-0', 'opacity-100'); 
+                setTimeout(() => t.classList.replace('opacity-100', 'opacity-0'), 2500);
+            }
         }
     </script>
 </body>
