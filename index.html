@@ -94,6 +94,12 @@
         }
         .cloud-badge {
             background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .cloud-badge:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.5);
         }
         .sync-badge {
             background: linear-gradient(135deg, #10b981, #059669);
@@ -103,7 +109,11 @@
         }
         .pending-badge {
             background: linear-gradient(135deg, #f97316, #ea580c);
-            animation: pulse 2s infinite;
+            animation: softPulse 2s infinite;
+            cursor: pointer;
+        }
+        .pending-badge:hover {
+            transform: scale(1.05);
         }
         .sync-pulse {
             animation: softPulse 2s infinite;
@@ -138,18 +148,29 @@
             transform: translateX(-50%) translateY(20px);
             pointer-events: none;
         }
+        .sync-indicator {
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: white;
+            font-weight: bold;
+            margin-left: -5px;
+            margin-top: -5px;
+            border: 2px solid white;
+            animation: pulse 2s infinite;
+            cursor: pointer;
+        }
+        .sync-indicator:hover {
+            transform: scale(1.1);
+        }
     </style>
 </head>
 <body class="bg-pattern">
-
-    <!-- Sync Notification -->
-    <div id="sync-notification" class="sync-notification hidden">
-        <span class="animate-ping w-2 h-2 bg-white rounded-full"></span>
-        <span id="sync-notification-text">0 data belum di-sync</span>
-        <button onclick="manualSync()" class="ml-2 bg-white/20 px-3 py-1 rounded-full text-[10px] hover:bg-white/30 transition-all">
-            Sync Sekarang
-        </button>
-    </div>
 
     <!-- Loading Overlay -->
     <div id="loading-overlay" class="loading-overlay hidden">
@@ -185,16 +206,15 @@
                     Memuat...
                 </p>
             </div>
-            <div class="flex gap-2">
+            <div class="flex gap-2 items-center">
                 <div id="trial-badge" class="hidden trial-badge text-white text-[9px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg">
                     <span class="animate-spin">🔄</span> TRIAL
                 </div>
-                <div id="cloud-badge" class="hidden cloud-badge text-white text-[9px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg">
-                    <span>☁️</span> CLOUD
-                </div>
-                <div id="pending-badge" class="hidden pending-badge text-white text-[9px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg">
-                    <span class="animate-ping w-1.5 h-1.5 bg-white rounded-full"></span>
-                    <span id="pending-count">0</span> PENDING
+                <div id="cloud-badge-container" class="relative">
+                    <div id="cloud-badge" onclick="manualSync()" class="cloud-badge text-white text-[9px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg cursor-pointer hover:shadow-xl transition-all">
+                        <span>☁️</span> CLOUD
+                    </div>
+                    <div id="sync-indicator" class="sync-indicator hidden absolute -top-1 -right-1">0</div>
                 </div>
                 <div id="offline-badge" class="hidden offline-badge text-white text-[9px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg">
                     <span>📴</span> OFFLINE
@@ -842,7 +862,7 @@
         const RESET_HOUR = 6;
         
         // GANTI DENGAN URL WEB APP ANDA
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbzy4k_SwQFcqln8Fm6aW-cxM3dZyrUdcVVxPosRTx7zjVvfWKiX0vmmsdAiT2mUInbtfg/exec;
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbzy4k_SwQFcqln8Fm6aW-cxM3dZyrUdcVVxPosRTx7zjVvfWKiX0vmmsdAiT2mUInbtfg/exec';
 
         // ==================== VARIABEL GLOBAL ====================
         let cart = [];
@@ -869,7 +889,7 @@
             ACTIVITY_LOGS: 'activityLogs',
             USER_DATA: 'userData',
             TRIAL_USER_DATA: 'trialUserData',
-            PENDING_SYNC: 'pendingSync' // Store untuk pending sync
+            PENDING_SYNC: 'pendingSync'
         };
 
         // ==================== FUNGSI UTILITY ====================
@@ -900,15 +920,21 @@
         // Update tampilan pending sync
         async function updatePendingDisplay() {
             const count = pendingSync.length;
-            const pendingBadge = document.getElementById('pending-badge');
-            const pendingCount = document.getElementById('pending-count');
-            const syncNotification = document.getElementById('sync-notification');
-            const notificationText = document.getElementById('sync-notification-text');
+            const syncIndicator = document.getElementById('sync-indicator');
             const statPending = document.getElementById('stat-pending');
             const syncStatusText = document.getElementById('sync-status-text');
             
-            if (pendingCount) pendingCount.innerText = count;
             if (statPending) statPending.innerText = count;
+            
+            // Update indikator di badge cloud
+            if (syncIndicator) {
+                if (count > 0 && !isTrialMode) {
+                    syncIndicator.innerText = count > 9 ? '9+' : count;
+                    syncIndicator.classList.remove('hidden');
+                } else {
+                    syncIndicator.classList.add('hidden');
+                }
+            }
             
             if (syncStatusText) {
                 if (count > 0) {
@@ -919,30 +945,11 @@
                     syncStatusText.className = 'text-[8px] text-green-600';
                 }
             }
-            
-            // Tampilkan/sembunyikan badge
-            if (pendingBadge) {
-                if (count > 0 && !isTrialMode) {
-                    pendingBadge.classList.remove('hidden');
-                } else {
-                    pendingBadge.classList.add('hidden');
-                }
-            }
-            
-            // Tampilkan/sembunyikan notifikasi floating
-            if (syncNotification) {
-                if (count > 0 && !isTrialMode && isOnline) {
-                    notificationText.innerText = `${count} data belum di-sync ke cloud`;
-                    syncNotification.classList.remove('hidden');
-                } else {
-                    syncNotification.classList.add('hidden');
-                }
-            }
         }
 
         // Tambah ke pending sync
         async function addToPending(action, data) {
-            if (isTrialMode) return; // Trial mode tidak perlu sync
+            if (isTrialMode) return;
             
             const item = {
                 id: Date.now() + Math.random(),
@@ -965,7 +972,6 @@
             pendingSync = pendingSync.filter(item => item.id !== itemId);
             await savePendingSync();
             
-            // Hapus dari IndexedDB
             try {
                 await deleteFromStore(STORES.PENDING_SYNC, itemId);
             } catch (e) {
@@ -1062,9 +1068,8 @@
                         }
                     }
                     
-                    // Gunakan fetch dengan timeout
                     const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 detik timeout
+                    const timeoutId = setTimeout(() => controller.abort(), 10000);
                     
                     const response = await fetch(GAS_URL, {
                         method: 'POST',
@@ -1075,11 +1080,8 @@
                     
                     clearTimeout(timeoutId);
                     
-                    // Anggap berhasil (karena mode no-cors)
                     success++;
                     await removeFromPending(item.id);
-                    
-                    // Delay kecil antar request
                     await sleep(300);
                     
                 } catch (error) {
@@ -1091,11 +1093,9 @@
                 }
             }
             
-            // Update pending dengan yang gagal
             pendingSync = failed;
             await savePendingSync();
             
-            // Selesai
             overlay.classList.add('hidden');
             overlay.classList.remove('flex');
             
@@ -1104,12 +1104,11 @@
                 document.getElementById('cloud-last-sync').innerText = lastSyncTime;
                 showToast(`✅ ${success} data tersinkronisasi`);
                 
-                // Simpan aktivitas
                 await saveActivityLog('Sync Cloud', `${success} data tersinkronisasi`);
             }
             
             if (failed.length > 0) {
-                showToast(`⚠️ ${failed.length} data gagal, akan dicoba lagi`);
+                showToast(`⚠️ ${failed.length} data gagal, akan dicoba lagi nanti`);
             }
             
             await updatePendingDisplay();
@@ -1364,7 +1363,6 @@
                         for (const item of items) {
                             await addToStore(STORES.ATTENDANCE, item);
                             
-                            // Tambah ke pending sync
                             await addToPending('saveAttendance', {
                                 id: item.id,
                                 nama: userData.name,
@@ -1381,7 +1379,6 @@
                         for (const item of items) {
                             await addToStore(STORES.TRANSACTIONS, item);
                             
-                            // Tambah ke pending sync
                             await addToPending('saveTransaction', {
                                 id: item.id,
                                 nama: userData.name,
@@ -1398,7 +1395,6 @@
                         for (const item of items) {
                             await addToStore(STORES.ACTIVITY_LOGS, item);
                             
-                            // Tambah ke pending sync
                             await addToPending('saveActivityLog', {
                                 id: item.id,
                                 nama: userData.name,
@@ -1417,7 +1413,6 @@
                             if (key === 'rocky_user_wa') user.wa = value;
                             await putInStore(STORES.USER_DATA, user);
                             
-                            // Tambah ke pending sync
                             await addToPending('saveUser', {
                                 nama: user.name,
                                 domisili: user.domicile,
@@ -1430,7 +1425,6 @@
                             if (key === 'rocky_user_wa') user.wa = value;
                             await addToStore(STORES.USER_DATA, user);
                             
-                            // Tambah ke pending sync
                             await addToPending('saveUser', {
                                 nama: user.name,
                                 domisili: user.domicile,
@@ -1661,7 +1655,6 @@
         }
 
         function updateRewardSystem() {
-            // Simplified reward
             document.getElementById('reward-bonus').innerText = '+ Rp 0';
             document.getElementById('reward-total-sales').innerText = 'Rp 0';
         }
@@ -1705,7 +1698,6 @@
                     }
                 }
                 
-                // Init app
                 document.getElementById('view-registration').classList.add('hidden');
                 document.getElementById('main-nav').classList.remove('hidden');
                 document.getElementById('view-attendance').classList.remove('hidden');
@@ -1713,13 +1705,10 @@
                 document.getElementById('user-display-domicile').innerHTML = `<span class="w-1 h-1 bg-indigo-400 rounded-full"></span> ${userData.domicile}`;
                 document.getElementById('user-display-wa').innerHTML = `<span>📱</span> ${userData.wa}`;
                 
-                // Update badges
                 if (isTrialMode) {
                     document.getElementById('trial-badge').classList.remove('hidden');
-                    document.getElementById('cloud-badge').classList.add('hidden');
                 } else {
                     document.getElementById('trial-badge').classList.add('hidden');
-                    document.getElementById('cloud-badge').classList.remove('hidden');
                 }
                 
                 await renderHistory();
@@ -1838,7 +1827,6 @@
                     userData = { name: "", domicile: "", wa: "" };
                     
                     document.getElementById('trial-badge').classList.remove('hidden');
-                    document.getElementById('cloud-badge').classList.add('hidden');
                     document.getElementById('main-nav').classList.add('hidden');
                     document.getElementById('view-attendance').classList.add('hidden');
                     document.getElementById('view-transaction').classList.add('hidden');
@@ -2086,7 +2074,6 @@
                 document.getElementById('view-transaction').classList.add('hidden');
                 document.getElementById('view-registration').classList.remove('hidden');
                 document.getElementById('trial-badge').classList.add('hidden');
-                document.getElementById('cloud-badge').classList.add('hidden');
                 
                 const savedName = await getStorage('rocky_user_name');
                 if (savedName) {
@@ -2240,8 +2227,6 @@
                     document.getElementById('reg-name').value = savedName;
                     document.getElementById('reg-domicile').value = userData.domicile;
                     document.getElementById('reg-wa').value = userData.wa;
-                    
-                    document.getElementById('cloud-badge').classList.remove('hidden');
                     
                     // Auto init
                     document.getElementById('view-registration').classList.add('hidden');
