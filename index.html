@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rocky Hijab • Manual Sync</title>
+    <title>Rocky Hijab • Sistem Absensi & Transaksi</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -16,22 +16,11 @@
             justify-content: center;
             padding: 1rem;
         }
-        .glass-effect {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
         .gradient-blue {
             background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
         }
-        .gradient-gold {
-            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-        }
         .gradient-orange {
             background: linear-gradient(135deg, #fb923c 0%, #ea580c 100%);
-        }
-        .gradient-green {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
         }
         .custom-shadow {
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
@@ -56,9 +45,6 @@
         @keyframes floating {
             0%, 100% { transform: translateY(0px); }
             50% { transform: translateY(-5px); }
-        }
-        .btn-press {
-            transition: all 0.2s;
         }
         .btn-press:active {
             transform: scale(0.97);
@@ -99,59 +85,15 @@
         }
         .cloud-badge:hover {
             transform: scale(1.05);
-            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.5);
-        }
-        .sync-badge {
-            background: linear-gradient(135deg, #10b981, #059669);
-        }
-        .offline-badge {
-            background: linear-gradient(135deg, #6b7280, #4b5563);
         }
         .pending-badge {
             background: linear-gradient(135deg, #f97316, #ea580c);
-            animation: softPulse 2s infinite;
             cursor: pointer;
-        }
-        .pending-badge:hover {
-            transform: scale(1.05);
-        }
-        .sync-pulse {
-            animation: softPulse 2s infinite;
-        }
-        @keyframes softPulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.6; }
-            100% { opacity: 1; }
-        }
-        .sync-notification {
-            position: fixed;
-            bottom: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(249, 115, 22, 0.95);
-            backdrop-filter: blur(10px);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 100px;
-            font-size: 12px;
-            font-weight: bold;
-            box-shadow: 0 10px 25px -5px rgba(249, 115, 22, 0.5);
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            transition: all 0.3s;
-        }
-        .sync-notification.hidden {
-            opacity: 0;
-            transform: translateX(-50%) translateY(20px);
-            pointer-events: none;
         }
         .sync-indicator {
             background: linear-gradient(135deg, #f97316, #ea580c);
-            width: 20px;
-            height: 20px;
+            width: 22px;
+            height: 22px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -159,20 +101,45 @@
             font-size: 10px;
             color: white;
             font-weight: bold;
-            margin-left: -5px;
-            margin-top: -5px;
+            margin-left: -8px;
+            margin-top: -8px;
             border: 2px solid white;
-            animation: pulse 2s infinite;
             cursor: pointer;
         }
-        .sync-indicator:hover {
-            transform: scale(1.1);
+        .sync-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        .toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e293b;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 100px;
+            font-size: 12px;
+            font-weight: bold;
+            z-index: 1000;
+            opacity: 0;
+            transition: all 0.3s;
+            pointer-events: none;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(-10px);
         }
     </style>
 </head>
 <body class="bg-pattern">
 
-    <!-- Loading Overlay -->
     <div id="loading-overlay" class="loading-overlay hidden">
         <div class="bg-white rounded-3xl p-8 text-center">
             <div class="loading-spinner mx-auto mb-4"></div>
@@ -180,10 +147,9 @@
         </div>
     </div>
 
-    <!-- Sync Overlay -->
-    <div id="sync-overlay" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-[100]">
+    <div id="sync-overlay" class="sync-overlay">
         <div class="bg-white rounded-3xl p-8 text-center max-w-sm">
-            <div class="loading-spinner mx-auto mb-4 sync-pulse"></div>
+            <div class="loading-spinner mx-auto mb-4"></div>
             <p class="text-sm font-bold text-indigo-600" id="sync-status">Menyinkronkan ke cloud...</p>
             <p class="text-[10px] text-slate-500 mt-2" id="sync-detail">0/0 data</p>
         </div>
@@ -191,35 +157,25 @@
 
     <div class="w-full max-w-md bg-white/95 backdrop-blur-xl rounded-[3rem] shadow-2xl overflow-hidden flex flex-col relative custom-shadow border border-white/20" style="max-height: 95vh;">
         
-        <!-- Background Decor -->
         <div class="absolute top-0 left-0 w-full h-48 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 -z-0 opacity-90"></div>
         <div class="absolute top-0 left-0 w-full h-48 bg-black/10 -z-0"></div>
-        <div class="absolute -top-24 -right-24 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-        <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-indigo-300/20 rounded-full blur-3xl"></div>
 
-        <!-- Header Section -->
         <div class="relative z-10 px-8 pt-8 pb-6 text-white flex justify-between items-start">
             <div class="floating">
-                <h1 class="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-white to-indigo-100 bg-clip-text text-transparent">Rocky Hijab</h1>
-                <p class="text-indigo-100 text-[9px] font-medium opacity-90 flex items-center gap-1 mt-1" id="current-date">
-                    <span class="w-1 h-1 bg-white rounded-full"></span>
-                    Memuat...
-                </p>
+                <h1 class="text-2xl font-extrabold tracking-tight">Rocky Hijab</h1>
+                <p class="text-indigo-100 text-[9px] font-medium mt-1" id="current-date">Memuat...</p>
             </div>
             <div class="flex gap-2 items-center">
                 <div id="trial-badge" class="hidden trial-badge text-white text-[9px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg">
-                    <span class="animate-spin">🔄</span> TRIAL
+                    <span>🔄</span> TRIAL
                 </div>
-                <div id="cloud-badge-container" class="relative">
-                    <div id="cloud-badge" onclick="manualSync()" class="cloud-badge text-white text-[9px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg cursor-pointer hover:shadow-xl transition-all">
-                        <span>☁️</span> CLOUD
+                <div class="relative">
+                    <div id="cloud-badge" onclick="manualSync()" class="cloud-badge text-white text-[9px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg cursor-pointer">
+                        <span>☁️</span> SYNC
                     </div>
                     <div id="sync-indicator" class="sync-indicator hidden absolute -top-1 -right-1">0</div>
                 </div>
-                <div id="offline-badge" class="hidden offline-badge text-white text-[9px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg">
-                    <span>📴</span> OFFLINE
-                </div>
-                <button onclick="openMenuModal()" class="p-2.5 bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 transition-all border border-white/30 shadow-lg">
+                <button onclick="openMenuModal()" class="p-2.5 bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 transition-all border border-white/30">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
                     </svg>
@@ -227,17 +183,16 @@
             </div>
         </div>
 
-        <!-- View Navigation -->
         <div id="main-nav" class="relative z-10 px-8 mb-4 hidden">
-            <div class="flex bg-white/90 backdrop-blur-sm rounded-2xl p-1.5 shadow-lg border border-slate-100/50">
-                <button onclick="switchTab('absensi')" id="tab-absensi" class="flex-1 py-2.5 text-xs font-bold active-tab transition-all uppercase tracking-wider rounded-xl">📋 Absensi</button>
-                <button onclick="switchTab('transaksi')" id="tab-transaksi" class="flex-1 py-2.5 text-xs font-bold text-slate-400 transition-all uppercase tracking-wider rounded-xl">💰 Transaksi</button>
+            <div class="flex bg-white/90 backdrop-blur-sm rounded-2xl p-1.5 shadow-lg">
+                <button onclick="switchTab('absensi')" id="tab-absensi" class="flex-1 py-2.5 text-xs font-bold active-tab transition-all rounded-xl">📋 Absensi</button>
+                <button onclick="switchTab('transaksi')" id="tab-transaksi" class="flex-1 py-2.5 text-xs font-bold text-slate-400 transition-all rounded-xl">💰 Transaksi</button>
             </div>
         </div>
 
-        <!-- VIEW 0: REGISTRASI -->
+        <!-- REGISTRASI -->
         <div id="view-registration" class="relative z-10 p-8">
-            <div class="bg-white/90 backdrop-blur-sm rounded-3xl p-6 shadow-xl border border-white/50">
+            <div class="bg-white/90 backdrop-blur-sm rounded-3xl p-6 shadow-xl">
                 <div class="mb-6 text-center">
                     <div class="w-16 h-16 mx-auto mb-3 gradient-blue rounded-2xl flex items-center justify-center shadow-lg floating">
                         <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
@@ -246,639 +201,242 @@
                     <p class="text-[10px] text-slate-500 mt-1">Masuk sebagai Staf Rocky Hijab</p>
                 </div>
                 
-                <!-- FORM REGISTRASI -->
                 <div class="space-y-4">
-                    <div class="relative">
-                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">👤</span>
-                        <input type="text" id="reg-name" placeholder="Nama Lengkap (Tidak bisa diubah)" class="w-full pl-10 pr-5 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 outline-none text-sm input-focus">
-                    </div>
-                    <div class="relative">
-                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">📍</span>
-                        <input type="text" id="reg-domicile" placeholder="Domisili (Bisa diubah)" class="w-full pl-10 pr-5 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 outline-none text-sm input-focus">
-                    </div>
-                    <div class="relative">
-                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">📱</span>
-                        <input type="text" id="reg-wa" placeholder="Nomor WhatsApp Aktif (contoh: 628xxx)" class="w-full pl-10 pr-5 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 outline-none text-sm input-focus">
-                    </div>
+                    <input type="text" id="reg-name" placeholder="Nama Lengkap (Tidak bisa diubah)" class="w-full px-4 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 outline-none text-sm">
+                    <input type="text" id="reg-domicile" placeholder="Domisili (Bisa diubah)" class="w-full px-4 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 outline-none text-sm">
+                    <input type="text" id="reg-wa" placeholder="Nomor WhatsApp (628xxx)" class="w-full px-4 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 outline-none text-sm">
                     <button id="btn-register" class="w-full py-4 gradient-blue text-white rounded-2xl font-bold shadow-lg hover:shadow-xl transition-all btn-press uppercase tracking-wider text-sm">
                         DAFTAR / LOGIN
                     </button>
                 </div>
                 
-                <!-- Informasi untuk staf -->
-                <div class="mt-4 p-3 bg-gradient-to-r from-indigo-50 to-indigo-100/50 rounded-xl border border-indigo-200">
-                    <p class="text-[8px] text-indigo-700 flex items-center gap-2">
-                        <span class="text-indigo-500">ℹ️</span>
-                        <span>Staf: Nama TIDAK bisa diubah. Domisili & WA bisa diubah.</span>
-                    </p>
+                <div class="mt-4 p-3 bg-indigo-50 rounded-xl">
+                    <p class="text-[8px] text-indigo-700">ℹ️ Nama TIDAK bisa diubah. Domisili & WA bisa diubah.</p>
                 </div>
             </div>
         </div>
 
-        <!-- VIEW 1: ABSENSI -->
+        <!-- ABSENSI -->
         <div id="view-attendance" class="relative z-10 px-8 pb-8 flex-grow overflow-y-auto hide-scroll hidden">
-            <!-- Profile Card -->
-            <div class="bg-gradient-to-br from-white to-slate-50/90 backdrop-blur-sm rounded-3xl p-5 mb-4 shadow-xl border border-white/50 flex items-center gap-4">
+            <div class="bg-white rounded-3xl p-5 mb-4 shadow-xl flex items-center gap-4">
                 <div class="w-14 h-14 rounded-2xl gradient-blue flex items-center justify-center text-white shrink-0 shadow-lg">
                     <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                 </div>
                 <div class="overflow-hidden">
                     <h3 id="user-display-name" class="text-base font-bold text-slate-800 truncate">-</h3>
-                    <p id="user-display-domicile" class="text-[10px] text-slate-500 truncate flex items-center gap-1">
-                        <span class="w-1 h-1 bg-indigo-400 rounded-full"></span>
-                        -
-                    </p>
-                    <p id="user-display-wa" class="text-[8px] text-indigo-400 truncate flex items-center gap-1">
-                        <span>📱</span> -
-                    </p>
+                    <p id="user-display-domicile" class="text-[10px] text-slate-500">-</p>
+                    <p id="user-display-wa" class="text-[8px] text-indigo-400">📱 -</p>
                 </div>
-                <button onclick="openEditModal()" class="ml-auto p-2 bg-white/80 rounded-full shadow-md hover:bg-white transition-all">
-                    <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
-                    </svg>
-                </button>
+                <button onclick="openEditModal()" class="ml-auto p-2 bg-white rounded-full shadow-md">✏️</button>
             </div>
 
-            <!-- GPS Status -->
-            <div class="mb-4 p-5 rounded-2xl bg-gradient-to-br from-slate-50 to-white border border-slate-100/50 shadow-md">
+            <div class="mb-4 p-5 rounded-2xl bg-slate-50 shadow-md">
                 <div class="flex items-center gap-3 mb-3">
-                    <div id="gps-indicator" class="w-2.5 h-2.5 rounded-full bg-slate-300 shadow-lg"></div>
-                    <p id="location-text" class="text-[10px] font-bold text-slate-500 uppercase tracking-tight">Mencari GPS...</p>
+                    <div id="gps-indicator" class="w-2.5 h-2.5 rounded-full bg-slate-300"></div>
+                    <p id="location-text" class="text-[10px] font-bold text-slate-500">Mencari GPS...</p>
                 </div>
-                
-                <div id="koordinat-container" class="hidden mt-3 pt-3 border-t border-slate-200/50">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-[8px] text-slate-400 flex items-center gap-1">
-                                <span>📍</span> Latitude / Longitude
-                            </p>
-                            <p id="koordinat-text" class="text-[10px] font-mono font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-lg">-6.9445, 106.9369</p>
-                        </div>
-                        <button onclick="copyKoordinat()" class="copy-btn bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl px-4 py-2 text-[9px] font-bold flex items-center gap-1.5 transition-all shadow-md">
-                            <span>📋</span> SALIN
-                        </button>
-                    </div>
+                <div id="koordinat-container" class="hidden mt-3 pt-3 border-t">
+                    <p id="koordinat-text" class="text-[10px] font-mono font-bold text-indigo-600">-</p>
                 </div>
             </div>
-            
-            <!-- Informasi Lokasi -->
-            <div class="mb-4 px-3 py-2 bg-indigo-50/50 rounded-xl border border-indigo-100/50">
-                <p class="text-[8px] text-indigo-600 font-medium flex items-center gap-1.5">
-                    <span class="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse"></span>
-                    📍 Area Absensi -Rocky Hijab-
-                </p>
-            </div>
 
-            <button id="btn-absensi" disabled class="w-full py-5 bg-slate-200 text-slate-400 rounded-3xl font-bold text-lg mb-4 transition-all uppercase tracking-wider shadow-lg">Absen Masuk</button>
+            <button id="btn-absensi" disabled class="w-full py-5 bg-slate-200 text-slate-400 rounded-3xl font-bold text-lg mb-4">Absen Masuk</button>
 
-            <!-- Tombol Kirim Ulang -->
-            <div id="resend-container" class="hidden mb-4">
-                <button id="btn-resend-absen" class="w-full py-3.5 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl text-[10px] font-bold text-blue-600 flex items-center justify-center gap-2 hover:shadow-md transition-all">
-                    <span class="animate-spin">🔄</span> KIRIM ULANG ABSEN/IZIN KE WHATSAPP
-                </button>
-            </div> 
-
-            <!-- DUA TOMBOL -->
             <div class="grid grid-cols-2 gap-3 mb-6">
-                <button onclick="openModal('modal-izin')" id="btn-izin-trigger" class="py-4 bg-gradient-to-br from-white to-orange-50/50 border border-orange-100 rounded-2xl text-[10px] font-bold text-slate-600 flex flex-col items-center gap-1.5 hover:shadow-md transition-all btn-press">
-                    <span class="text-orange-500 text-xl">📝</span> 
-                    <span>IZIN / SAKIT</span>
+                <button onclick="openModal('modal-izin')" class="py-4 bg-white border border-orange-100 rounded-2xl text-[10px] font-bold">
+                    <span class="text-orange-500 text-xl">📝</span> IZIN / SAKIT
                 </button>
-                
-                <button onclick="openRekapBulanModal()" id="btn-rekap-absen" class="py-4 bg-gradient-to-br from-white to-indigo-50/50 border border-indigo-100 rounded-2xl text-[10px] font-bold text-slate-600 flex flex-col items-center gap-1.5 hover:shadow-md transition-all btn-press">
-                    <span class="text-indigo-500 text-xl">📆</span>
-                    <span>REKAP BULANAN</span>
+                <button onclick="openRekapBulanModal()" class="py-4 bg-white border border-indigo-100 rounded-2xl text-[10px] font-bold">
+                    <span class="text-indigo-500 text-xl">📆</span> REKAP BULANAN
                 </button>
             </div>
 
-            <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-3 ml-1 flex items-center gap-2">
-                <span class="w-1 h-1 bg-indigo-400 rounded-full"></span>
-                Riwayat Terakhir
-            </p>
+            <p class="text-[10px] font-bold text-slate-400 mb-3">Riwayat Terakhir</p>
             <div id="history-list" class="space-y-2"></div>
 
-            <!-- LOG AKTIVITAS -->
-            <div class="mt-6 pt-4 border-t-2 border-dashed border-indigo-200">
-                <div class="flex justify-between items-center mb-3">
-                    <p class="text-[9px] font-extrabold text-indigo-600 uppercase tracking-widest flex items-center gap-2">
-                        <span class="w-1.5 h-1.5 bg-indigo-600 rounded-full animate-pulse"></span>
-                        📋 LOG AKTIVITAS
-                    </p>
-                    <span id="log-month-indicator" class="text-[7px] bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-full font-bold"></span>
-                </div>
-                <div id="activity-log-list" class="space-y-2 max-h-40 overflow-y-auto hide-scroll pr-1"></div>
+            <div class="mt-6 pt-4 border-t">
+                <p class="text-[9px] font-bold text-indigo-600 mb-3">📋 LOG AKTIVITAS</p>
+                <div id="activity-log-list" class="space-y-2 max-h-40 overflow-y-auto"></div>
             </div>
         </div>
 
-        <!-- VIEW 2: TRANSAKSI -->
+        <!-- TRANSAKSI -->
         <div id="view-transaction" class="relative z-10 px-8 pb-8 flex-grow overflow-y-auto hide-scroll hidden">
-            
-            <div id="transaction-warning" class="bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 rounded-3xl p-4 mb-4 shadow-md">
-                <div class="flex items-center gap-3">
-                    <span class="text-yellow-600 text-xl animate-pulse">⚠️</span>
-                    <div>
-                        <p class="text-[10px] font-bold text-yellow-800 uppercase">Akses Terbatas</p>
-                        <p class="text-[8px] text-yellow-700">Anda harus absen HADIR dan berada dalam radius untuk transaksi</p>
-                    </div>
-                </div>
+            <div class="bg-yellow-50 border border-yellow-200 rounded-3xl p-4 mb-4">
+                <p class="text-[10px] font-bold text-yellow-800">⚠️ Anda harus absen HADIR dan dalam radius untuk transaksi</p>
             </div>
 
-            <!-- Reward Staf -->
-            <div class="bg-gradient-to-br from-white to-indigo-50/30 rounded-3xl p-5 mb-6 shadow-xl border border-indigo-100/50 overflow-hidden relative">
-                <div class="absolute top-0 right-0 p-3 opacity-10">
-                    <svg class="w-20 h-20 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                </div>
-                <div class="flex justify-between items-center mb-2">
-                    <h3 class="text-[10px] font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1">
-                        <span>🏆</span> Bonus Bulan Ini
-                    </h3>
-                    <span id="reward-bonus" class="text-[10px] font-black text-green-600 bg-green-50 px-3 py-1 rounded-full border border-green-200">+ Rp 0</span>
-                </div>
-                
-                <div class="flex justify-between items-end mb-1">
-                    <p id="reward-total-sales" class="text-sm font-bold text-slate-700">Rp 0</p>
-                    <p id="reward-next-target" class="text-[8px] font-bold text-indigo-500 uppercase bg-indigo-50 px-2 py-0.5 rounded-full">Target: Rp 10jt</p>
-                </div>
-
-                <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden mb-1 shadow-inner">
-                    <div id="reward-progress-bar" class="h-full gradient-gold transition-all duration-700" style="width: 0%"></div>
-                </div>
-                <p id="reward-status-text" class="text-[8px] text-center font-medium text-slate-400 mt-2">Jual terus untuk capai bonus!</p>
+            <div class="bg-white rounded-3xl p-5 mb-6 shadow-xl">
+                <h3 class="text-xs font-bold text-slate-800 mb-3">🏆 Bonus Bulan Ini</h3>
+                <p id="reward-bonus" class="text-[10px] font-bold text-green-600">+ Rp 0</p>
+                <p id="reward-total-sales" class="text-sm font-bold">Rp 0</p>
             </div>
 
-            <!-- Tombol Laporan -->
-            <button onclick="openModal('modal-report')" id="btn-report-trigger" class="w-full mb-6 py-3.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-2xl flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transition-all btn-press">
-                <span class="text-lg">📊</span>
-                <span class="text-xs font-bold uppercase tracking-wider">Kirim Laporan Ke Admin</span>
-            </button>
+            <button onclick="openModal('modal-report')" id="btn-report-trigger" class="w-full mb-6 py-3.5 bg-indigo-500 text-white rounded-2xl font-bold">📊 Kirim Laporan</button>
 
-            <!-- Form Input Barang -->
-            <div class="bg-gradient-to-br from-white to-slate-50 rounded-3xl p-5 mb-6 shadow-xl border border-slate-100 space-y-3">
-                <div class="flex justify-between items-center mb-1">
-                    <h3 class="text-xs font-extrabold text-slate-800 uppercase flex items-center gap-1">
-                        <span>🛒</span> Input Barang
-                    </h3>
-                    <span class="text-[9px] bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full font-bold uppercase shadow-sm">Kasir</span>
-                </div>
-                
-                <div class="relative">
-                    <input type="text" id="tx-nama" placeholder="Nama Barang" class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 text-xs outline-none input-focus" disabled>
-                </div>
-                
+            <div class="bg-white rounded-3xl p-5 mb-6 shadow-xl space-y-3">
+                <h3 class="text-xs font-bold">🛒 Input Barang</h3>
+                <input type="text" id="tx-nama" placeholder="Nama Barang" class="w-full px-4 py-3 rounded-xl bg-slate-50 text-xs" disabled>
                 <div class="grid grid-cols-2 gap-2">
-                    <div class="relative">
-                        <input type="text" id="tx-kode" placeholder="Kode Barang" class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 text-xs outline-none input-focus" disabled>
-                    </div>
-                    <div class="relative">
-                        <input type="number" id="tx-qty" placeholder="Qty" class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 text-xs outline-none input-focus" disabled>
-                    </div>
+                    <input type="text" id="tx-kode" placeholder="Kode" class="w-full px-4 py-3 rounded-xl bg-slate-50 text-xs" disabled>
+                    <input type="number" id="tx-qty" placeholder="Qty" class="w-full px-4 py-3 rounded-xl bg-slate-50 text-xs" disabled>
                 </div>
-                
-                <div class="relative">
-                    <input type="number" id="tx-harga" placeholder="Harga Satuan (Rp)" class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 text-xs outline-none input-focus" disabled>
-                </div>
-                
-                <button id="btn-add-cart" disabled class="w-full py-3.5 bg-slate-300 text-slate-500 rounded-xl font-bold text-xs shadow-md cursor-not-allowed flex items-center justify-center gap-2 uppercase tracking-wide">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
-                    Masukkan Keranjang
-                </button>
+                <input type="number" id="tx-harga" placeholder="Harga" class="w-full px-4 py-3 rounded-xl bg-slate-50 text-xs" disabled>
+                <button id="btn-add-cart" disabled class="w-full py-3.5 bg-slate-300 text-slate-500 rounded-xl font-bold text-xs">+ Masukkan Keranjang</button>
             </div>
 
-            <!-- List Keranjang -->
-            <div class="mb-4">
-                <div class="flex justify-between items-end mb-3 px-1">
-                    <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest flex items-center gap-1">
-                        <span>🛍️</span> Keranjang Aktif
-                    </p>
-                    <button onclick="clearCart()" id="btn-clear-cart" disabled class="text-[9px] font-bold text-red-300 uppercase cursor-not-allowed flex items-center gap-1">
-                        <span>🗑️</span> Batal
-                    </button>
-                </div>
-                
-                <div id="cart-list" class="space-y-2 mb-4 min-h-[40px]">
-                    <div class="text-center py-8 border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
-                        <p class="text-[10px] text-slate-400 font-medium italic">Belum ada barang</p>
-                    </div>
-                </div>
+            <div id="cart-list" class="space-y-2 mb-4"></div>
 
-                <!-- Total & Checkout -->
-                <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl p-5 text-white shadow-2xl mb-8">
-                    <div class="flex justify-between items-center mb-4">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-1">
-                            <span>💳</span> Total Bayar
-                        </span>
-                        <span id="cart-total" class="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-indigo-200">Rp 0</span>
-                    </div>
-                    <button id="btn-checkout" disabled class="w-full py-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-2xl font-black text-sm shadow-lg hover:shadow-xl transition-all btn-press uppercase tracking-wider">
-                        Selesaikan Transaksi
-                    </button>
+            <div class="bg-slate-800 rounded-3xl p-5 text-white mb-8">
+                <div class="flex justify-between mb-4">
+                    <span class="text-[10px]">Total Bayar</span>
+                    <span id="cart-total" class="text-xl font-bold">Rp 0</span>
                 </div>
-
-                <!-- Riwayat Transaksi -->
-                <div class="flex justify-between items-center mb-3 px-1">
-                    <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest flex items-center gap-1">
-                        <span>📜</span> Riwayat Transaksi
-                    </p>
-                    <button onclick="openSecurityModal('clear_all')" id="btn-delete-all" class="text-[9px] font-bold text-red-300 uppercase flex items-center gap-1 cursor-not-allowed">
-                        <span>⚠️</span> Hapus Semua
-                    </button>
-                </div>
-                <div id="tx-history-list" class="space-y-3 pb-4"></div>
+                <button id="btn-checkout" disabled class="w-full py-4 bg-indigo-500 rounded-2xl font-bold">Selesaikan Transaksi</button>
             </div>
+
+            <p class="text-[10px] font-bold text-slate-400 mb-3">📜 Riwayat Transaksi</p>
+            <div id="tx-history-list" class="space-y-3 pb-4"></div>
         </div>
     </div>
 
-    <!-- MODAL IZIN -->
-    <div id="modal-izin" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-6 z-[70]">
-        <div class="bg-white/95 backdrop-blur-sm rounded-[2.5rem] p-8 w-full max-w-sm shadow-2xl text-center border border-white/20">
-            <div class="w-16 h-16 mx-auto mb-4 bg-orange-100 rounded-2xl flex items-center justify-center">
-                <span class="text-3xl">📝</span>
-            </div>
-            <h3 class="text-xl font-bold text-slate-800 mb-4">Form Izin / Sakit</h3>
-            <select id="izin-type" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl mb-3 text-sm focus:border-orange-300 focus:ring-2 focus:ring-orange-200 outline-none">
-                <option>Sakit</option>
-                <option>Izin Keperluan</option>
-                <option>Setengah Hari</option>
+    <!-- MODALS -->
+    <div id="modal-izin" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-6 z-50">
+        <div class="bg-white rounded-[2rem] p-8 w-full max-w-sm">
+            <h3 class="text-xl font-bold text-center mb-4">Form Izin / Sakit</h3>
+            <select id="izin-type" class="w-full p-3 bg-slate-50 rounded-xl mb-3">
+                <option>Sakit</option><option>Izin Keperluan</option><option>Setengah Hari</option>
             </select>
-            <textarea id="izin-reason" placeholder="Berikan alasan singkat..." class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl h-24 mb-4 text-sm resize-none outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-200"></textarea>
+            <textarea id="izin-reason" placeholder="Alasan..." class="w-full p-3 bg-slate-50 rounded-xl h-24 mb-4"></textarea>
             <div class="flex gap-2">
-                <button onclick="closeModal('modal-izin')" class="flex-1 py-3 text-slate-400 font-bold text-xs uppercase hover:text-slate-600 transition-colors">Batal</button>
-                <button id="btn-submit-izin" class="flex-1 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-bold text-xs uppercase hover:shadow-lg transition-all btn-press">Kirim Ke Admin</button>
+                <button onclick="closeModal('modal-izin')" class="flex-1 py-3 text-slate-400">Batal</button>
+                <button id="btn-submit-izin" class="flex-1 py-3 bg-orange-500 text-white rounded-xl font-bold">Kirim</button>
             </div>
         </div>
     </div>
 
-    <!-- Modal Menu -->
-    <div id="modal-menu" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-6 z-[60]">
-        <div class="bg-white/95 backdrop-blur-sm rounded-[2.5rem] p-8 w-full max-w-sm shadow-2xl border border-white/20">
-            <div class="text-center mb-6">
-                <div class="w-16 h-16 mx-auto mb-2 bg-indigo-100 rounded-2xl flex items-center justify-center">
-                    <span class="text-3xl">⚙️</span>
-                </div>
-                <h3 class="text-xl font-bold text-slate-800">Menu</h3>
-                <p class="text-[10px] text-slate-500">Pilih opsi yang diinginkan</p>
-            </div>
-            
-            <!-- STATISTIK DATA & SYNC -->
-            <div class="mb-4 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl">
-                <p class="text-[9px] font-bold text-indigo-700 mb-2 flex items-center gap-1">
-                    <span>📊</span> STATUS DATA
-                </p>
-                <div class="space-y-1 text-[8px]">
-                    <div class="flex justify-between">
-                        <span>Transaksi:</span>
-                        <span id="stat-tx" class="font-bold">0</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span>Absensi:</span>
-                        <span id="stat-absen" class="font-bold">0</span>
-                    </div>
-                    <div class="flex justify-between border-t border-indigo-200 pt-1 mt-1">
-                        <span>Pending Sync:</span>
-                        <span id="stat-pending" class="font-bold text-orange-600">0</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- STATUS KONEKSI -->
-            <div class="mb-4 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl">
-                <p class="text-[9px] font-bold text-blue-700 mb-2 flex items-center gap-1">
-                    <span>☁️</span> STATUS KONEKSI
-                </p>
-                <div class="space-y-1 text-[8px]">
-                    <div class="flex justify-between items-center">
-                        <span>Internet:</span>
-                        <span id="cloud-connection-status" class="font-bold text-green-600">● Online</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span>Terakhir sync:</span>
-                        <span id="cloud-last-sync" class="font-bold">-</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="space-y-3 mb-6 max-h-60 overflow-y-auto hide-scroll">
-                <!-- TOMBOL SYNC MANUAL -->
-                <button onclick="manualSync()" id="btn-manual-sync" class="w-full p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl flex items-center justify-between group hover:shadow-md transition-all">
-                    <div class="flex items-center gap-3">
-                        <span class="text-green-600 text-xl">🔄</span>
-                        <div class="text-left">
-                            <p class="text-xs font-bold text-green-700 uppercase">Sync Manual</p>
-                            <p class="text-[8px] text-green-600" id="sync-status-text">Kirim data ke cloud</p>
-                        </div>
-                    </div>
-                    <span class="text-green-400 group-hover:translate-x-1 transition-transform">→</span>
-                </button>
-                
-                <!-- TOMBOL TRIAL -->
-                <button onclick="startTrialMode()" class="w-full p-4 bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-2xl flex items-center justify-between group hover:shadow-md transition-all">
-                    <div class="flex items-center gap-3">
-                        <span class="text-orange-600 text-xl">🔄</span>
-                        <div class="text-left">
-                            <p class="text-xs font-bold text-orange-700 uppercase">Mode Trial</p>
-                            <p class="text-[8px] text-orange-600">Coba aplikasi (data sementara)</p>
-                        </div>
-                    </div>
-                    <span class="text-orange-400 group-hover:translate-x-1 transition-transform">→</span>
-                </button>
-                
-                <!-- TOMBOL BACKUP VIA WA -->
-                <button onclick="backupViaWA()" class="w-full p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl flex items-center justify-between group hover:shadow-md transition-all">
-                    <div class="flex items-center gap-3">
-                        <span class="text-green-600 text-xl">📤</span>
-                        <div class="text-left">
-                            <p class="text-xs font-bold text-green-700 uppercase">Backup via WA</p>
-                            <p class="text-[8px] text-green-600">Kirim kode pendek (Base64)</p>
-                        </div>
-                    </div>
-                    <span class="text-green-400 group-hover:translate-x-1 transition-transform">→</span>
-                </button>
-                
-                <!-- TOMBOL RESTORE DARI WA -->
-                <button onclick="restoreFromWA()" class="w-full p-4 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-2xl flex items-center justify-between group hover:shadow-md transition-all">
-                    <div class="flex items-center gap-3">
-                        <span class="text-purple-600 text-xl">🔄</span>
-                        <div class="text-left">
-                            <p class="text-xs font-bold text-purple-700 uppercase">Restore dari WA</p>
-                            <p class="text-[8px] text-purple-600">Tempel kode backup</p>
-                        </div>
-                    </div>
-                    <span class="text-purple-400 group-hover:translate-x-1 transition-transform">→</span>
-                </button>
-
-                <!-- Tombol Backup & Restore Lokal -->
-                <button onclick="openBackupModalFromMenu()" class="w-full p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl flex items-center justify-between group hover:shadow-md transition-all">
-                    <div class="flex items-center gap-3">
-                        <span class="text-blue-600 text-xl">💾</span>
-                        <div class="text-left">
-                            <p class="text-xs font-bold text-blue-700 uppercase">Backup & Restore Lokal</p>
-                            <p class="text-[8px] text-blue-600">Cadangkan atau pulihkan data</p>
-                        </div>
-                    </div>
-                    <span class="text-blue-400 group-hover:translate-x-1 transition-transform">→</span>
-                </button>
-
-                <!-- Tombol Reset Data -->
-                <button onclick="openResetModalFromMenu()" class="w-full p-4 bg-gradient-to-r from-red-50 to-rose-50 border border-red-100 rounded-2xl flex items-center justify-between group hover:shadow-md transition-all">
-                    <div class="flex items-center gap-3">
-                        <span class="text-red-600 text-xl">⚠️</span>
-                        <div class="text-left">
-                            <p class="text-xs font-bold text-red-700 uppercase">Reset Data</p>
-                            <p class="text-[8px] text-red-600">Hapus semua data</p>
-                        </div>
-                    </div>
-                    <span class="text-red-400 group-hover:translate-x-1 transition-transform">→</span>
-                </button>
-
-                <!-- Tombol Logout -->
-                <button onclick="openLogoutModal()" class="w-full p-4 bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-100 rounded-2xl flex items-center justify-between group hover:shadow-md transition-all">
-                    <div class="flex items-center gap-3">
-                        <span class="text-indigo-600 text-xl">👋</span>
-                        <div class="text-left">
-                            <p class="text-xs font-bold text-indigo-700 uppercase">Keluar Akun</p>
-                            <p class="text-[8px] text-indigo-600">Kembali ke registrasi</p>
-                        </div>
-                    </div>
-                    <span class="text-indigo-400 group-hover:translate-x-1 transition-transform">→</span>
-                </button>
-            </div>
-            
-            <button onclick="closeModal('modal-menu')" class="w-full py-3 text-slate-400 font-bold text-xs uppercase hover:text-slate-600 transition-colors">Tutup</button>
-        </div>
-    </div>
-
-    <!-- Modal Backup & Import -->
-    <div id="modal-backup" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-6 z-[65]">
-        <div class="bg-white/95 backdrop-blur-sm rounded-[2.5rem] p-8 w-full max-w-sm shadow-2xl border border-white/20">
-            <div class="text-center mb-6">
-                <div class="w-16 h-16 mx-auto mb-2 bg-green-100 rounded-2xl flex items-center justify-center">
-                    <span class="text-3xl">💾</span>
-                </div>
-                <h3 class="text-xl font-bold text-slate-800">Backup & Restore</h3>
-                <p class="text-[10px] text-slate-500">Cadangkan atau pulihkan data Anda melalui clipboard.</p>
-            </div>
-            
+    <div id="modal-menu" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-6 z-50">
+        <div class="bg-white rounded-[2rem] p-8 w-full max-w-sm">
+            <h3 class="text-xl font-bold text-center mb-4">Menu</h3>
             <div class="space-y-3 mb-6">
-                <button onclick="exportData()" class="w-full p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-100 rounded-2xl flex items-center justify-between group hover:shadow-md transition-all">
-                    <div>
-                        <p class="text-xs font-bold text-green-700 uppercase">Backup Ke Clipboard</p>
-                        <p class="text-[8px] text-green-600 font-medium">Simpan kode untuk ganti HP</p>
-                    </div>
-                    <span class="text-green-400 group-hover:scale-110 transition-transform">💾</span>
-                </button>
-
-                <div class="p-4 bg-slate-50 border border-slate-100 rounded-2xl">
-                    <p class="text-[9px] font-bold text-slate-500 uppercase mb-2 flex items-center gap-1">
-                        <span>📋</span> Import Dari Clipboard
-                    </p>
-                    <textarea id="import-json" placeholder="Tempel kode JSON di sini..." class="w-full p-3 bg-white border border-slate-100 rounded-xl h-20 text-[10px] mb-2 resize-none outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200"></textarea>
-                    <button onclick="importData()" class="w-full py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-xl text-[10px] font-bold uppercase shadow-sm hover:shadow-md transition-all btn-press">Pulihkan Data</button>
-                </div>
+                <button onclick="manualSync()" class="w-full p-4 bg-green-50 border border-green-200 rounded-2xl text-left font-bold">🔄 Sync Manual</button>
+                <button onclick="startTrialMode()" class="w-full p-4 bg-orange-50 border border-orange-200 rounded-2xl text-left font-bold">🔄 Mode Trial</button>
+                <button onclick="backupViaWA()" class="w-full p-4 bg-green-50 border border-green-200 rounded-2xl text-left font-bold">📤 Backup via WA</button>
+                <button onclick="restoreFromWA()" class="w-full p-4 bg-purple-50 border border-purple-200 rounded-2xl text-left font-bold">🔄 Restore dari WA</button>
+                <button onclick="openBackupModal()" class="w-full p-4 bg-blue-50 border border-blue-200 rounded-2xl text-left font-bold">💾 Backup & Restore Lokal</button>
+                <button onclick="openResetModal()" class="w-full p-4 bg-red-50 border border-red-200 rounded-2xl text-left font-bold">⚠️ Reset Data</button>
+                <button onclick="openLogoutModal()" class="w-full p-4 bg-indigo-50 border border-indigo-200 rounded-2xl text-left font-bold">👋 Keluar Akun</button>
             </div>
-            
-            <button onclick="closeModal('modal-backup'); openMenuModal()" class="w-full py-3 text-slate-400 font-bold text-xs uppercase hover:text-slate-600 transition-colors">Kembali ke Menu</button>
+            <button onclick="closeModal('modal-menu')" class="w-full py-3 text-slate-400">Tutup</button>
         </div>
     </div>
 
-    <!-- Modal Report -->
+    <div id="modal-backup" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-6 z-50">
+        <div class="bg-white rounded-[2rem] p-8 w-full max-w-sm">
+            <h3 class="text-xl font-bold text-center mb-4">Backup & Restore</h3>
+            <button onclick="exportData()" class="w-full p-4 bg-green-50 rounded-2xl mb-4 font-bold">💾 Backup Ke Clipboard</button>
+            <textarea id="import-json" placeholder="Tempel kode backup..." class="w-full p-3 bg-slate-50 rounded-xl h-24 mb-3"></textarea>
+            <button onclick="importData()" class="w-full py-3 bg-indigo-500 text-white rounded-xl font-bold">Pulihkan Data</button>
+            <button onclick="closeModal('modal-backup')" class="w-full mt-4 py-3 text-slate-400">Kembali</button>
+        </div>
+    </div>
+
     <div id="modal-report" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-6 z-50">
-        <div class="bg-white/95 backdrop-blur-sm rounded-[2.5rem] p-8 w-full max-w-sm shadow-2xl border border-white/20">
-            <div class="text-center mb-6">
-                <div class="w-16 h-16 mx-auto mb-2 bg-indigo-100 rounded-2xl flex items-center justify-center">
-                    <span class="text-3xl">📊</span>
-                </div>
-                <h3 class="text-xl font-bold text-slate-800">Laporan Penjualan</h3>
-                <p class="text-[10px] text-slate-500">Pilih periode laporan</p>
-            </div>
-            <div class="space-y-3 mb-6">
-                <button onclick="sendReport('today')" id="report-today" class="w-full p-4 bg-gradient-to-r from-indigo-50 to-indigo-100/50 border border-indigo-100 rounded-2xl flex items-center justify-between hover:shadow-md transition-all">
-                    <span class="text-xs font-bold text-indigo-700 uppercase flex items-center gap-2">
-                        <span>📅</span> Hari Ini
-                    </span>
-                    <span class="text-indigo-400">→</span>
-                </button>
-                <button onclick="sendReport('month')" id="report-month" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-between hover:shadow-md transition-all">
-                    <span class="text-xs font-bold text-slate-700 uppercase flex items-center gap-2">
-                        <span>📆</span> Bulan Ini
-                    </span>
-                    <span>→</span>
-                </button>
-            </div>
-            <button onclick="closeModal('modal-report')" class="w-full py-3 text-slate-400 font-bold text-xs uppercase hover:text-slate-600 transition-colors">Batal</button>
+        <div class="bg-white rounded-[2rem] p-8 w-full max-w-sm">
+            <h3 class="text-xl font-bold text-center mb-4">Laporan Penjualan</h3>
+            <button onclick="sendReport('today')" class="w-full p-4 bg-indigo-50 rounded-2xl mb-3 font-bold">📅 Hari Ini</button>
+            <button onclick="sendReport('month')" class="w-full p-4 bg-slate-50 rounded-2xl font-bold">📆 Bulan Ini</button>
+            <button onclick="closeModal('modal-report')" class="w-full mt-4 py-3 text-slate-400">Batal</button>
         </div>
     </div>
 
-    <!-- Modal Security -->
     <div id="modal-security" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-6 z-50">
-        <div class="bg-white/95 backdrop-blur-sm rounded-[2.5rem] p-8 w-full max-w-sm shadow-2xl text-center border border-white/20">
-            <div class="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-2xl flex items-center justify-center">
-                <span class="text-3xl">🔒</span>
-            </div>
-            <h3 class="text-xl font-bold text-slate-800 mb-2">VERIFIKASI ADMIN</h3>
-            <p class="text-[10px] text-red-600 mb-6">Masukkan sandi admin untuk melanjutkan</p>
-            <input type="password" id="security-pin" placeholder="Sandi Admin" class="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-slate-200 text-center text-sm font-bold outline-none mb-6 focus:border-red-300 focus:ring-2 focus:ring-red-200" autocomplete="off">
+        <div class="bg-white rounded-[2rem] p-8 w-full max-w-sm text-center">
+            <h3 class="text-xl font-bold mb-4">VERIFIKASI ADMIN</h3>
+            <input type="password" id="security-pin" placeholder="Sandi Admin" class="w-full p-3 bg-slate-50 rounded-xl text-center mb-4">
             <div class="flex gap-2">
-                <button onclick="closeModal('modal-security')" class="flex-1 py-3 text-slate-400 font-bold text-xs uppercase hover:text-slate-600 transition-colors">Batal</button>
-                <button id="btn-verify-delete" class="flex-1 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl font-bold text-xs uppercase hover:shadow-lg transition-all btn-press">Konfirmasi</button>
+                <button onclick="closeModal('modal-security')" class="flex-1 py-3 text-slate-400">Batal</button>
+                <button id="btn-verify-delete" class="flex-1 py-3 bg-red-500 text-white rounded-xl">Konfirmasi</button>
             </div>
         </div>
     </div>
 
-    <!-- Modal Reset -->
-    <div id="modal-reset" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-6 z-[80]">
-        <div class="bg-white/95 backdrop-blur-sm rounded-[2.5rem] p-8 w-full max-w-sm shadow-2xl text-center border border-white/20">
-            <div class="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-red-100 to-rose-100 rounded-3xl flex items-center justify-center">
-                <span class="text-4xl text-red-600 animate-pulse">⚠️</span>
-            </div>
-            <h3 class="text-xl font-bold text-slate-800 mb-2">Reset Semua Data?</h3>
-            <p class="text-[8px] text-slate-500 mb-4">Tindakan ini akan menghapus SEMUA data aplikasi</p>
-            <input type="password" id="reset-pin" placeholder="Sandi Admin" class="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-slate-200 text-center text-sm font-bold outline-none mb-4 focus:border-red-300 focus:ring-2 focus:ring-red-200" autocomplete="off">
+    <div id="modal-reset" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-6 z-50">
+        <div class="bg-white rounded-[2rem] p-8 w-full max-w-sm text-center">
+            <h3 class="text-xl font-bold mb-2">Reset Semua Data?</h3>
+            <p class="text-xs text-slate-500 mb-4">Tindakan ini akan menghapus SEMUA data</p>
+            <input type="password" id="reset-pin" placeholder="Sandi Admin" class="w-full p-3 bg-slate-50 rounded-xl text-center mb-4">
             <div class="flex gap-2">
-                <button onclick="closeModal('modal-reset')" class="flex-1 py-3 text-slate-400 font-bold text-xs uppercase hover:text-slate-600 transition-colors">Batal</button>
-                <button id="btn-confirm-reset" class="flex-1 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl font-bold text-xs uppercase hover:shadow-lg transition-all btn-press">Reset Data</button>
+                <button onclick="closeModal('modal-reset')" class="flex-1 py-3 text-slate-400">Batal</button>
+                <button id="btn-confirm-reset" class="flex-1 py-3 bg-red-500 text-white rounded-xl">Reset</button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL REKAP BULANAN -->
-    <div id="modal-rekap-bulan" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-6 z-[90]">
-        <div class="bg-white/95 backdrop-blur-sm rounded-[2.5rem] p-8 w-full max-w-sm shadow-2xl border border-white/20">
-            <div class="text-center mb-6">
-                <div class="w-16 h-16 mx-auto mb-2 bg-indigo-100 rounded-2xl flex items-center justify-center">
-                    <span class="text-3xl">📆</span>
-                </div>
-                <h3 class="text-xl font-bold text-slate-800">Rekap Absensi Bulanan</h3>
-                <p class="text-[10px] text-slate-500">Pilih bulan untuk melihat rekap</p>
-            </div>
-            
-            <div class="space-y-4">
-                <div>
-                    <select id="rekap-bulan" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none">
-                        <option value="0">Januari</option><option value="1">Februari</option><option value="2">Maret</option><option value="3">April</option><option value="4">Mei</option><option value="5">Juni</option><option value="6">Juli</option><option value="7">Agustus</option><option value="8">September</option><option value="9">Oktober</option><option value="10">November</option><option value="11">Desember</option>
-                    </select>
-                </div>
-                
-                <div>
-                    <select id="rekap-tahun" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none"></select>
-                </div>
-                
-                <button onclick="kirimRekapBulanan()" class="w-full py-4 gradient-blue text-white rounded-2xl font-bold shadow-lg mt-4 hover:shadow-xl transition-all btn-press">
-                    KIRIM REKAP VIA WHATSAPP
-                </button>
-                
-                <button onclick="closeModal('modal-rekap-bulan')" class="w-full py-3 text-slate-400 font-bold text-xs uppercase hover:text-slate-600 transition-colors">
-                    Batal
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Tutorial -->
-    <div id="modal-tutorial" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-6 z-[95]">
-        <div class="bg-white/95 backdrop-blur-sm rounded-[2.5rem] p-8 w-full max-w-sm shadow-2xl max-h-[80vh] overflow-y-auto hide-scroll border border-white/20">
-            <div class="text-center mb-4">
-                <div class="w-20 h-20 mx-auto mb-3 bg-gradient-to-br from-orange-100 to-amber-100 rounded-3xl flex items-center justify-center">
-                    <span class="text-4xl">📚</span>
-                </div>
-                <h3 class="text-xl font-bold text-slate-800">Mode Trial</h3>
-                <p class="text-[10px] text-slate-500">Pelajari cara menggunakan aplikasi</p>
-            </div>
-            
-            <div class="space-y-3 text-[10px]">
-                <div class="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
-                    <p class="font-bold text-blue-700 mb-1">📌 Fitur Trial:</p>
-                    <ul class="list-disc pl-4 text-blue-600">
-                        <li>Data hanya disimpan sementara</li>
-                        <li>Refresh halaman akan menghapus data</li>
-                        <li>Tidak bisa sync ke cloud</li>
-                    </ul>
-                </div>
-            </div>
-            
-            <button onclick="closeModal('modal-tutorial')" class="w-full mt-4 py-3 gradient-blue text-white rounded-xl font-bold text-xs uppercase hover:shadow-lg transition-all btn-press">
-                Mulai Trial
-            </button>
-        </div>
-    </div>
-
-    <!-- Modal Logout -->
-    <div id="modal-logout" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-6 z-[85]">
-        <div class="bg-white/95 backdrop-blur-sm rounded-[2.5rem] p-8 w-full max-w-sm shadow-2xl text-center border border-white/20">
-            <div class="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-indigo-100 to-blue-100 rounded-3xl flex items-center justify-center">
-                <span class="text-4xl">👋</span>
-            </div>
-            <h3 class="text-xl font-bold text-slate-800 mb-2">Keluar Akun?</h3>
+    <div id="modal-logout" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-6 z-50">
+        <div class="bg-white rounded-[2rem] p-8 w-full max-w-sm text-center">
+            <h3 class="text-xl font-bold mb-4">Keluar Akun?</h3>
             <div class="flex gap-2">
-                <button onclick="closeModal('modal-logout')" class="flex-1 py-3 text-slate-400 font-bold text-xs uppercase hover:text-slate-600 transition-colors">Batal</button>
-                <button onclick="logout()" class="flex-1 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-xl font-bold text-xs uppercase hover:shadow-lg transition-all btn-press">Keluar</button>
+                <button onclick="closeModal('modal-logout')" class="flex-1 py-3 text-slate-400">Batal</button>
+                <button onclick="logout()" class="flex-1 py-3 bg-indigo-500 text-white rounded-xl">Keluar</button>
             </div>
         </div>
     </div>
 
-    <!-- Modal Edit Data -->
-    <div id="modal-edit" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-6 z-[75]">
-        <div class="bg-white/95 backdrop-blur-sm rounded-[2.5rem] p-8 w-full max-w-sm shadow-2xl border border-white/20">
-            <div class="text-center mb-6">
-                <div class="w-16 h-16 mx-auto mb-2 bg-indigo-100 rounded-2xl flex items-center justify-center">
-                    <span class="text-3xl">✏️</span>
-                </div>
-                <h3 class="text-xl font-bold text-slate-800">Edit Profil</h3>
-            </div>
-            
-            <div class="space-y-4">
-                <div class="p-3 bg-slate-50 rounded-xl">
-                    <p class="text-[8px] text-slate-400 mb-1">Nama</p>
-                    <p class="text-sm font-bold text-slate-800" id="edit-name-display"></p>
-                </div>
-                
-                <div>
-                    <input type="text" id="edit-domicile" placeholder="Domisili" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none">
-                </div>
-                
-                <div>
-                    <input type="text" id="edit-wa" placeholder="628xxx" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none">
-                </div>
-                
-                <button onclick="saveEditProfile()" class="w-full py-4 gradient-blue text-white rounded-2xl font-bold shadow-lg hover:shadow-xl transition-all btn-press">
-                    SIMPAN PERUBAHAN
-                </button>
-                
-                <button onclick="closeModal('modal-edit')" class="w-full py-3 text-slate-400 font-bold text-xs uppercase hover:text-slate-600 transition-colors">
-                    Batal
-                </button>
-            </div>
+    <div id="modal-edit" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-6 z-50">
+        <div class="bg-white rounded-[2rem] p-8 w-full max-w-sm">
+            <h3 class="text-xl font-bold text-center mb-4">Edit Profil</h3>
+            <p class="text-sm font-bold mb-2" id="edit-name-display"></p>
+            <input type="text" id="edit-domicile" placeholder="Domisili" class="w-full p-3 bg-slate-50 rounded-xl mb-3">
+            <input type="text" id="edit-wa" placeholder="628xxx" class="w-full p-3 bg-slate-50 rounded-xl mb-4">
+            <button onclick="saveEditProfile()" class="w-full py-3 bg-indigo-500 text-white rounded-xl font-bold">Simpan</button>
+            <button onclick="closeModal('modal-edit')" class="w-full mt-3 py-3 text-slate-400">Batal</button>
         </div>
     </div>
 
-    <!-- Toast Notification -->
-    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 px-6 py-3 bg-slate-800/90 backdrop-blur-sm text-white text-[10px] font-bold rounded-full shadow-2xl opacity-0 transition-all z-[100] pointer-events-none border border-white/20">Berhasil</div>
+    <div id="modal-rekap-bulan" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-6 z-50">
+        <div class="bg-white rounded-[2rem] p-8 w-full max-w-sm">
+            <h3 class="text-xl font-bold text-center mb-4">Rekap Absensi Bulanan</h3>
+            <select id="rekap-bulan" class="w-full p-3 bg-slate-50 rounded-xl mb-3">
+                <option value="0">Januari</option><option value="1">Februari</option><option value="2">Maret</option>
+                <option value="3">April</option><option value="4">Mei</option><option value="5">Juni</option>
+                <option value="6">Juli</option><option value="7">Agustus</option><option value="8">September</option>
+                <option value="9">Oktober</option><option value="10">November</option><option value="11">Desember</option>
+            </select>
+            <select id="rekap-tahun" class="w-full p-3 bg-slate-50 rounded-xl mb-4"></select>
+            <button onclick="kirimRekapBulanan()" class="w-full py-3 bg-indigo-500 text-white rounded-xl font-bold">Kirim via WA</button>
+            <button onclick="closeModal('modal-rekap-bulan')" class="w-full mt-3 py-3 text-slate-400">Batal</button>
+        </div>
+    </div>
+
+    <div id="modal-tutorial" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-6 z-50">
+        <div class="bg-white rounded-[2rem] p-8 w-full max-w-sm">
+            <h3 class="text-xl font-bold text-center mb-4">Mode Trial</h3>
+            <p class="text-xs text-slate-600 mb-4">Data hanya disimpan sementara. Refresh halaman akan menghapus data. Tidak bisa sync ke cloud.</p>
+            <button onclick="closeModal('modal-tutorial')" class="w-full py-3 bg-indigo-500 text-white rounded-xl font-bold">Mulai Trial</button>
+        </div>
+    </div>
+
+    <div id="toast" class="toast">Berhasil</div>
 
     <script>
         // ==================== KONFIGURASI ====================
+        // GANTI DENGAN URL WEB APP ANDA
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbxRtOXGM7wbnt3mbN0gwwBkk05Y1ulxU-awsolpXcumCZUWUlY8g18RnkmD8dvKPsrV/exec';
         const WA_ADMIN = "6285172107731";
         const TARGET_LOC = { lat: -6.767845, lng: 106.801203 };
         const RADIUS = 100;
         const SECURITY_PIN = "rockyhijab123";
-        const RESET_HOUR = 6;
-        
-        // GANTI DENGAN URL WEB APP ANDA
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbxKDFiQKdBl4--yEISryzc8oYBI-NUrG6i2DY4wIMGZ4buTjzaysQ9yNeMQ-10PDMYlqQ/exec';
 
-        // ==================== VARIABEL GLOBAL ====================
         let cart = [];
         let userData = { name: "", domicile: "", wa: "" };
         let userPos = { lat: 0, lng: 0 };
         let pendingDeleteAction = null;
-        let lastAbsenData = null;
         let isTrialMode = false;
-        let lastSyncTime = null;
         let isOnline = true;
-        
-        // PENDING SYNC QUEUE - data yang belum dikirim ke cloud
         let pendingSync = [];
         let isSyncing = false;
 
-        // IndexedDB Configuration
         const DB_NAME = 'RockyHijabDB';
         const DB_VERSION = 2;
         let db = null;
@@ -888,12 +446,18 @@
             TRANSACTIONS: 'transactions',
             ACTIVITY_LOGS: 'activityLogs',
             USER_DATA: 'userData',
-            TRIAL_USER_DATA: 'trialUserData',
             PENDING_SYNC: 'pendingSync'
         };
 
-        // ==================== FUNGSI UTILITY ====================
-        function showLoading(text = 'Memuat data...') {
+        // ==================== UTILITY ====================
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.innerText = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2500);
+        }
+
+        function showLoading(text = 'Memuat...') {
             document.getElementById('loading-text').innerText = text;
             document.getElementById('loading-overlay').classList.remove('hidden');
         }
@@ -902,405 +466,113 @@
             document.getElementById('loading-overlay').classList.add('hidden');
         }
 
-        function showToast(m) { 
-            const t = document.getElementById('toast'); 
-            if (t) {
-                t.innerText = m; 
-                t.classList.replace('opacity-0', 'opacity-100'); 
-                setTimeout(() => t.classList.replace('opacity-100', 'opacity-0'), 2500);
-            }
-        }
-
-        function sleep(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
-
-        // ==================== FUNGSI PENDING SYNC ====================
-        
-        // Update tampilan pending sync
-        async function updatePendingDisplay() {
-            const count = pendingSync.length;
-            const syncIndicator = document.getElementById('sync-indicator');
-            const statPending = document.getElementById('stat-pending');
-            const syncStatusText = document.getElementById('sync-status-text');
-            
-            if (statPending) statPending.innerText = count;
-            
-            // Update indikator di badge cloud
-            if (syncIndicator) {
-                if (count > 0 && !isTrialMode) {
-                    syncIndicator.innerText = count > 9 ? '9+' : count;
-                    syncIndicator.classList.remove('hidden');
-                } else {
-                    syncIndicator.classList.add('hidden');
-                }
-            }
-            
-            if (syncStatusText) {
-                if (count > 0) {
-                    syncStatusText.innerText = `${count} data belum di-sync`;
-                    syncStatusText.className = 'text-[8px] text-orange-600';
-                } else {
-                    syncStatusText.innerText = 'Tidak ada pending data';
-                    syncStatusText.className = 'text-[8px] text-green-600';
-                }
-            }
-        }
-
-        // Tambah ke pending sync
-        async function addToPending(action, data) {
-            if (isTrialMode) return;
-            
-            const item = {
-                id: Date.now() + Math.random(),
-                action: action,
-                data: data,
-                timestamp: new Date().toISOString(),
-                retries: 0
-            };
-            
-            pendingSync.push(item);
-            await savePendingSync();
-            await updatePendingDisplay();
-            
-            // Simpan juga ke IndexedDB
-            await addToStore(STORES.PENDING_SYNC, item);
-        }
-
-        // Hapus dari pending sync (setelah berhasil)
-        async function removeFromPending(itemId) {
-            pendingSync = pendingSync.filter(item => item.id !== itemId);
-            await savePendingSync();
-            
-            try {
-                await deleteFromStore(STORES.PENDING_SYNC, itemId);
-            } catch (e) {
-                console.error('Error deleting from pending sync:', e);
-            }
-            
-            await updatePendingDisplay();
-        }
-
-        // Simpan pending sync ke IndexedDB
-        async function savePendingSync() {
-            try {
-                await clearStore(STORES.PENDING_SYNC);
-                for (const item of pendingSync) {
-                    await addToStore(STORES.PENDING_SYNC, item);
-                }
-            } catch (error) {
-                console.error('Error saving pending sync:', error);
-            }
-        }
-
-        // Load pending sync dari IndexedDB
-        async function loadPendingSync() {
-            try {
-                pendingSync = await getAllFromStore(STORES.PENDING_SYNC) || [];
-                await updatePendingDisplay();
-            } catch (error) {
-                console.error('Error loading pending sync:', error);
-                pendingSync = [];
-            }
-        }
-
-        // ==================== FUNGSI SYNC MANUAL ====================
-        
-        async function manualSync() {
-            if (isTrialMode) {
-                showToast("❌ Mode trial tidak bisa sync ke cloud");
-                closeModal('modal-menu');
-                return;
-            }
-            
-            if (!isOnline) {
-                showToast("❌ Tidak ada koneksi internet");
-                return;
-            }
-            
-            if (pendingSync.length === 0) {
-                showToast("📦 Tidak ada data yang perlu disync");
-                closeModal('modal-menu');
-                return;
-            }
-            
-            // Konfirmasi
-            if (!confirm(`Sync ${pendingSync.length} data ke cloud?`)) {
-                return;
-            }
-            
-            await performSync();
-            closeModal('modal-menu');
-        }
-
-        async function performSync() {
-            if (isSyncing) return;
-            
-            isSyncing = true;
-            
-            // Tampilkan overlay
-            const overlay = document.getElementById('sync-overlay');
-            const statusEl = document.getElementById('sync-status');
-            const detailEl = document.getElementById('sync-detail');
-            
-            overlay.classList.remove('hidden');
-            overlay.classList.add('flex');
-            
-            const total = pendingSync.length;
-            let success = 0;
-            let failed = [];
-            
-            for (let i = 0; i < pendingSync.length; i++) {
-                const item = pendingSync[i];
-                
-                statusEl.innerText = `Menyinkronkan...`;
-                detailEl.innerText = `${i+1}/${total} data`;
-                
-                try {
-                    // Kirim ke GAS
-                    const formData = new URLSearchParams();
-                    formData.append('action', item.action);
-                    formData.append('trialMode', 'false');
-                    
-                    for (let key in item.data) {
-                        if (item.data[key] !== undefined && item.data[key] !== null) {
-                            formData.append(key, String(item.data[key]));
-                        }
-                    }
-                    
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 10000);
-                    
-                    const response = await fetch(GAS_URL, {
-                        method: 'POST',
-                        body: formData,
-                        mode: 'no-cors',
-                        signal: controller.signal
-                    });
-                    
-                    clearTimeout(timeoutId);
-                    
-                    success++;
-                    await removeFromPending(item.id);
-                    await sleep(300);
-                    
-                } catch (error) {
-                    console.error('Sync error:', error);
-                    item.retries++;
-                    if (item.retries < 3) {
-                        failed.push(item);
-                    }
-                }
-            }
-            
-            pendingSync = failed;
-            await savePendingSync();
-            
-            overlay.classList.add('hidden');
-            overlay.classList.remove('flex');
-            
-            if (success > 0) {
-                lastSyncTime = new Date().toLocaleTimeString('id-ID');
-                document.getElementById('cloud-last-sync').innerText = lastSyncTime;
-                showToast(`✅ ${success} data tersinkronisasi`);
-                
-                await saveActivityLog('Sync Cloud', `${success} data tersinkronisasi`);
-            }
-            
-            if (failed.length > 0) {
-                showToast(`⚠️ ${failed.length} data gagal, akan dicoba lagi nanti`);
-            }
-            
-            await updatePendingDisplay();
-            isSyncing = false;
-        }
-
-        // ==================== FUNGSI INDEXEDDB ====================
-        
+        // ==================== INDEXEDDB ====================
         function initDB() {
             return new Promise((resolve, reject) => {
                 const request = indexedDB.open(DB_NAME, DB_VERSION);
-                
-                request.onerror = (event) => {
-                    console.error('Database error:', event.target.error);
-                    reject('Gagal membuka database');
-                };
-                
-                request.onsuccess = (event) => {
-                    db = event.target.result;
-                    console.log('Database opened successfully');
-                    resolve(db);
-                };
-                
-                request.onupgradeneeded = (event) => {
-                    const db = event.target.result;
-                    
-                    if (!db.objectStoreNames.contains(STORES.ATTENDANCE)) {
-                        db.createObjectStore(STORES.ATTENDANCE, { keyPath: 'id' });
-                    }
-                    
-                    if (!db.objectStoreNames.contains(STORES.TRANSACTIONS)) {
-                        db.createObjectStore(STORES.TRANSACTIONS, { keyPath: 'id' });
-                    }
-                    
-                    if (!db.objectStoreNames.contains(STORES.ACTIVITY_LOGS)) {
-                        db.createObjectStore(STORES.ACTIVITY_LOGS, { keyPath: 'id' });
-                    }
-                    
-                    if (!db.objectStoreNames.contains(STORES.USER_DATA)) {
-                        db.createObjectStore(STORES.USER_DATA, { keyPath: 'name' });
-                    }
-                    
-                    if (!db.objectStoreNames.contains(STORES.TRIAL_USER_DATA)) {
-                        db.createObjectStore(STORES.TRIAL_USER_DATA, { keyPath: 'sessionId' });
-                    }
-                    
-                    if (!db.objectStoreNames.contains(STORES.PENDING_SYNC)) {
-                        db.createObjectStore(STORES.PENDING_SYNC, { keyPath: 'id' });
-                    }
+                request.onerror = () => reject('Gagal buka database');
+                request.onsuccess = (e) => { db = e.target.result; resolve(db); };
+                request.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains(STORES.ATTENDANCE)) db.createObjectStore(STORES.ATTENDANCE, { keyPath: 'id' });
+                    if (!db.objectStoreNames.contains(STORES.TRANSACTIONS)) db.createObjectStore(STORES.TRANSACTIONS, { keyPath: 'id' });
+                    if (!db.objectStoreNames.contains(STORES.ACTIVITY_LOGS)) db.createObjectStore(STORES.ACTIVITY_LOGS, { keyPath: 'id' });
+                    if (!db.objectStoreNames.contains(STORES.USER_DATA)) db.createObjectStore(STORES.USER_DATA, { keyPath: 'name' });
+                    if (!db.objectStoreNames.contains(STORES.PENDING_SYNC)) db.createObjectStore(STORES.PENDING_SYNC, { keyPath: 'id' });
                 };
             });
         }
 
         async function getAllFromStore(storeName) {
             return new Promise((resolve, reject) => {
-                if (!db) {
-                    reject('Database not initialized');
-                    return;
-                }
-                
-                const transaction = db.transaction([storeName], 'readonly');
-                const store = transaction.objectStore(storeName);
-                const request = store.getAll();
-                
-                request.onsuccess = () => resolve(request.result);
-                request.onerror = () => reject(request.error);
+                if (!db) return reject('DB not ready');
+                const tx = db.transaction([storeName], 'readonly');
+                const req = tx.objectStore(storeName).getAll();
+                req.onsuccess = () => resolve(req.result || []);
+                req.onerror = () => reject(req.error);
             });
         }
 
         async function addToStore(storeName, data) {
             return new Promise((resolve, reject) => {
-                if (!db) {
-                    reject('Database not initialized');
-                    return;
-                }
-                
-                const transaction = db.transaction([storeName], 'readwrite');
-                const store = transaction.objectStore(storeName);
-                const request = store.add(data);
-                
-                request.onsuccess = () => resolve(request.result);
-                request.onerror = () => reject(request.error);
+                if (!db) return reject('DB not ready');
+                const tx = db.transaction([storeName], 'readwrite');
+                const req = tx.objectStore(storeName).add(data);
+                req.onsuccess = () => resolve();
+                req.onerror = () => reject(req.error);
             });
         }
 
-        async function putInStore(storeName, data) {
+        async function putToStore(storeName, data) {
             return new Promise((resolve, reject) => {
-                if (!db) {
-                    reject('Database not initialized');
-                    return;
-                }
-                
-                const transaction = db.transaction([storeName], 'readwrite');
-                const store = transaction.objectStore(storeName);
-                const request = store.put(data);
-                
-                request.onsuccess = () => resolve(request.result);
-                request.onerror = () => reject(request.error);
+                if (!db) return reject('DB not ready');
+                const tx = db.transaction([storeName], 'readwrite');
+                const req = tx.objectStore(storeName).put(data);
+                req.onsuccess = () => resolve();
+                req.onerror = () => reject(req.error);
             });
         }
 
         async function deleteFromStore(storeName, id) {
             return new Promise((resolve, reject) => {
-                if (!db) {
-                    reject('Database not initialized');
-                    return;
-                }
-                
-                const transaction = db.transaction([storeName], 'readwrite');
-                const store = transaction.objectStore(storeName);
-                const request = store.delete(id);
-                
-                request.onsuccess = () => resolve();
-                request.onerror = () => reject(request.error);
+                if (!db) return reject('DB not ready');
+                const tx = db.transaction([storeName], 'readwrite');
+                const req = tx.objectStore(storeName).delete(id);
+                req.onsuccess = () => resolve();
+                req.onerror = () => reject(req.error);
             });
         }
 
         async function clearStore(storeName) {
             return new Promise((resolve, reject) => {
-                if (!db) {
-                    reject('Database not initialized');
-                    return;
-                }
-                
-                const transaction = db.transaction([storeName], 'readwrite');
-                const store = transaction.objectStore(storeName);
-                const request = store.clear();
-                
-                request.onsuccess = () => resolve();
-                request.onerror = () => reject(request.error);
+                if (!db) return reject('DB not ready');
+                const tx = db.transaction([storeName], 'readwrite');
+                const req = tx.objectStore(storeName).clear();
+                req.onsuccess = () => resolve();
+                req.onerror = () => reject(req.error);
             });
         }
 
-        // ==================== FUNGSI STORAGE ====================
-        
+        // ==================== STORAGE ====================
         async function getStorage(key, defaultValue = "[]") {
             try {
                 if (isTrialMode) {
-                    if (key === 'rocky_user_name' || key === 'rocky_user_dom' || key === 'rocky_user_wa') {
-                        return sessionStorage.getItem(key) || '';
-                    }
-                    
+                    const sessionId = sessionStorage.getItem('rocky_session_id') || 'default';
+                    if (key === 'rocky_user_name') return sessionStorage.getItem(key) || '';
+                    if (key === 'rocky_user_dom') return sessionStorage.getItem(key) || '';
+                    if (key === 'rocky_user_wa') return sessionStorage.getItem(key) || '';
                     if (key === 'rocky_history') {
                         const data = await getAllFromStore(STORES.ATTENDANCE);
-                        const sessionId = sessionStorage.getItem('rocky_session_id') || 'default';
-                        return JSON.stringify(data.filter(item => item.sessionId === sessionId));
+                        return JSON.stringify(data.filter(i => i.sessionId === sessionId));
                     }
-                    
                     if (key === 'rocky_tx_history') {
                         const data = await getAllFromStore(STORES.TRANSACTIONS);
-                        const sessionId = sessionStorage.getItem('rocky_session_id') || 'default';
-                        return JSON.stringify(data.filter(item => item.sessionId === sessionId));
+                        return JSON.stringify(data.filter(i => i.sessionId === sessionId));
                     }
-                    
                     if (key === 'rocky_activity_logs') {
                         const data = await getAllFromStore(STORES.ACTIVITY_LOGS);
-                        const sessionId = sessionStorage.getItem('rocky_session_id') || 'default';
-                        return JSON.stringify(data.filter(item => item.sessionId === sessionId));
+                        return JSON.stringify(data.filter(i => i.sessionId === sessionId));
                     }
-                    
                     return sessionStorage.getItem(key) || defaultValue;
                 } else {
-                    if (key === 'rocky_user_name' || key === 'rocky_user_dom' || key === 'rocky_user_wa') {
+                    if (key === 'rocky_user_name') {
                         const users = await getAllFromStore(STORES.USER_DATA);
-                        if (users.length > 0) {
-                            const user = users[0];
-                            if (key === 'rocky_user_name') return user.name || '';
-                            if (key === 'rocky_user_dom') return user.domicile || '';
-                            if (key === 'rocky_user_wa') return user.wa || '';
-                        }
-                        return '';
+                        return users.length > 0 ? users[0].name : '';
                     }
-                    
-                    if (key === 'rocky_history') {
-                        const data = await getAllFromStore(STORES.ATTENDANCE);
-                        return JSON.stringify(data);
+                    if (key === 'rocky_user_dom') {
+                        const users = await getAllFromStore(STORES.USER_DATA);
+                        return users.length > 0 ? users[0].domicile : '';
                     }
-                    
-                    if (key === 'rocky_tx_history') {
-                        const data = await getAllFromStore(STORES.TRANSACTIONS);
-                        return JSON.stringify(data);
+                    if (key === 'rocky_user_wa') {
+                        const users = await getAllFromStore(STORES.USER_DATA);
+                        return users.length > 0 ? users[0].wa : '';
                     }
-                    
-                    if (key === 'rocky_activity_logs') {
-                        const data = await getAllFromStore(STORES.ACTIVITY_LOGS);
-                        return JSON.stringify(data);
-                    }
-                    
+                    if (key === 'rocky_history') return JSON.stringify(await getAllFromStore(STORES.ATTENDANCE));
+                    if (key === 'rocky_tx_history') return JSON.stringify(await getAllFromStore(STORES.TRANSACTIONS));
+                    if (key === 'rocky_activity_logs') return JSON.stringify(await getAllFromStore(STORES.ACTIVITY_LOGS));
                     return localStorage.getItem(key) || defaultValue;
                 }
-            } catch (error) {
-                console.error('Error in getStorage:', error);
+            } catch (e) {
                 return defaultValue;
             }
         }
@@ -1308,51 +580,28 @@
         async function setStorage(key, value) {
             try {
                 if (isTrialMode) {
+                    const sessionId = sessionStorage.getItem('rocky_session_id') || 'default';
                     if (key === 'rocky_history') {
                         const items = JSON.parse(value);
-                        const sessionId = sessionStorage.getItem('rocky_session_id') || 'default';
-                        
                         const existing = await getAllFromStore(STORES.ATTENDANCE);
                         for (const item of existing) {
-                            if (item.sessionId === sessionId) {
-                                await deleteFromStore(STORES.ATTENDANCE, item.id);
-                            }
+                            if (item.sessionId === sessionId) await deleteFromStore(STORES.ATTENDANCE, item.id);
                         }
-                        
-                        for (const item of items) {
-                            item.sessionId = sessionId;
-                            await addToStore(STORES.ATTENDANCE, item);
-                        }
+                        for (const item of items) { item.sessionId = sessionId; await addToStore(STORES.ATTENDANCE, item); }
                     } else if (key === 'rocky_tx_history') {
                         const items = JSON.parse(value);
-                        const sessionId = sessionStorage.getItem('rocky_session_id') || 'default';
-                        
                         const existing = await getAllFromStore(STORES.TRANSACTIONS);
                         for (const item of existing) {
-                            if (item.sessionId === sessionId) {
-                                await deleteFromStore(STORES.TRANSACTIONS, item.id);
-                            }
+                            if (item.sessionId === sessionId) await deleteFromStore(STORES.TRANSACTIONS, item.id);
                         }
-                        
-                        for (const item of items) {
-                            item.sessionId = sessionId;
-                            await addToStore(STORES.TRANSACTIONS, item);
-                        }
+                        for (const item of items) { item.sessionId = sessionId; await addToStore(STORES.TRANSACTIONS, item); }
                     } else if (key === 'rocky_activity_logs') {
                         const items = JSON.parse(value);
-                        const sessionId = sessionStorage.getItem('rocky_session_id') || 'default';
-                        
                         const existing = await getAllFromStore(STORES.ACTIVITY_LOGS);
                         for (const item of existing) {
-                            if (item.sessionId === sessionId) {
-                                await deleteFromStore(STORES.ACTIVITY_LOGS, item.id);
-                            }
+                            if (item.sessionId === sessionId) await deleteFromStore(STORES.ACTIVITY_LOGS, item.id);
                         }
-                        
-                        for (const item of items) {
-                            item.sessionId = sessionId;
-                            await addToStore(STORES.ACTIVITY_LOGS, item);
-                        }
+                        for (const item of items) { item.sessionId = sessionId; await addToStore(STORES.ACTIVITY_LOGS, item); }
                     } else {
                         sessionStorage.setItem(key, value);
                     }
@@ -1362,15 +611,9 @@
                         await clearStore(STORES.ATTENDANCE);
                         for (const item of items) {
                             await addToStore(STORES.ATTENDANCE, item);
-                            
                             await addToPending('saveAttendance', {
-                                id: item.id,
-                                nama: userData.name,
-                                type: item.type,
-                                note: item.note,
-                                time: item.time,
-                                date: item.date,
-                                rawDate: item.rawDate
+                                id: item.id, nama: userData.name, type: item.type, note: item.note,
+                                time: item.time, date: item.date, rawDate: item.rawDate
                             });
                         }
                     } else if (key === 'rocky_tx_history') {
@@ -1378,15 +621,9 @@
                         await clearStore(STORES.TRANSACTIONS);
                         for (const item of items) {
                             await addToStore(STORES.TRANSACTIONS, item);
-                            
                             await addToPending('saveTransaction', {
-                                id: item.id,
-                                nama: userData.name,
-                                date: item.date,
-                                time: item.time,
-                                items: JSON.stringify(item.items),
-                                total: item.total,
-                                rawDate: item.rawDate
+                                id: item.id, nama: userData.name, date: item.date, time: item.time,
+                                items: JSON.stringify(item.items), total: item.total, rawDate: item.rawDate
                             });
                         }
                     } else if (key === 'rocky_activity_logs') {
@@ -1394,14 +631,9 @@
                         await clearStore(STORES.ACTIVITY_LOGS);
                         for (const item of items) {
                             await addToStore(STORES.ACTIVITY_LOGS, item);
-                            
                             await addToPending('saveActivityLog', {
-                                id: item.id,
-                                nama: userData.name,
-                                action: item.action,
-                                detail: item.detail,
-                                time: item.time,
-                                rawDate: item.rawDate
+                                id: item.id, nama: userData.name, action: item.action, detail: item.detail,
+                                time: item.time, rawDate: item.rawDate
                             });
                         }
                     } else if (key === 'rocky_user_name' || key === 'rocky_user_dom' || key === 'rocky_user_wa') {
@@ -1411,211 +643,216 @@
                             if (key === 'rocky_user_name') user.name = value;
                             if (key === 'rocky_user_dom') user.domicile = value;
                             if (key === 'rocky_user_wa') user.wa = value;
-                            await putInStore(STORES.USER_DATA, user);
-                            
-                            await addToPending('saveUser', {
-                                nama: user.name,
-                                domisili: user.domicile,
-                                wa: user.wa
-                            });
+                            await putToStore(STORES.USER_DATA, user);
+                            await addToPending('saveUser', { nama: user.name, domisili: user.domicile, wa: user.wa });
                         } else {
                             const user = { name: '', domicile: '', wa: '' };
                             if (key === 'rocky_user_name') user.name = value;
                             if (key === 'rocky_user_dom') user.domicile = value;
                             if (key === 'rocky_user_wa') user.wa = value;
                             await addToStore(STORES.USER_DATA, user);
-                            
-                            await addToPending('saveUser', {
-                                nama: user.name,
-                                domisili: user.domicile,
-                                wa: user.wa
-                            });
+                            await addToPending('saveUser', { nama: user.name, domisili: user.domicile, wa: user.wa });
                         }
-                    } else {
-                        localStorage.setItem(key, value);
                     }
                 }
-            } catch (error) {
-                console.error('Error in setStorage:', error);
-            }
+            } catch (e) { console.error(e); }
         }
 
-        // ==================== FUNGSI UTAMA APLIKASI ====================
-        
+        // ==================== PENDING SYNC ====================
+        async function addToPending(action, data) {
+            if (isTrialMode) return;
+            const item = { id: Date.now() + Math.random(), action, data, timestamp: new Date().toISOString(), retries: 0 };
+            pendingSync.push(item);
+            await savePendingSync();
+            await updatePendingDisplay();
+        }
+
+        async function savePendingSync() {
+            try {
+                await clearStore(STORES.PENDING_SYNC);
+                for (const item of pendingSync) await addToStore(STORES.PENDING_SYNC, item);
+            } catch (e) {}
+        }
+
+        async function loadPendingSync() {
+            try {
+                pendingSync = await getAllFromStore(STORES.PENDING_SYNC) || [];
+                await updatePendingDisplay();
+            } catch (e) { pendingSync = []; }
+        }
+
+        async function removeFromPending(itemId) {
+            pendingSync = pendingSync.filter(i => i.id !== itemId);
+            await savePendingSync();
+            await updatePendingDisplay();
+        }
+
+        async function updatePendingDisplay() {
+            const count = pendingSync.length;
+            const indicator = document.getElementById('sync-indicator');
+            if (indicator) {
+                if (count > 0 && !isTrialMode) {
+                    indicator.innerText = count > 9 ? '9+' : count;
+                    indicator.classList.remove('hidden');
+                } else {
+                    indicator.classList.add('hidden');
+                }
+            }
+            const statPending = document.getElementById('stat-pending');
+            if (statPending) statPending.innerText = count;
+        }
+
+        // ==================== SYNC MANUAL ====================
+        async function manualSync() {
+            if (isTrialMode) { showToast("❌ Mode trial tidak bisa sync"); return; }
+            if (!isOnline) { showToast("❌ Tidak ada koneksi internet"); return; }
+            if (pendingSync.length === 0) { showToast("📦 Tidak ada data pending"); return; }
+            if (!confirm(`Sync ${pendingSync.length} data ke cloud?`)) return;
+            
+            isSyncing = true;
+            const overlay = document.getElementById('sync-overlay');
+            const statusEl = document.getElementById('sync-status');
+            const detailEl = document.getElementById('sync-detail');
+            overlay.style.display = 'flex';
+            
+            const total = pendingSync.length;
+            let success = 0;
+            let failed = [];
+            
+            for (let i = 0; i < pendingSync.length; i++) {
+                const item = pendingSync[i];
+                statusEl.innerText = `Menyinkronkan...`;
+                detailEl.innerText = `${i+1}/${total}`;
+                
+                try {
+                    const formData = new URLSearchParams();
+                    formData.append('action', item.action);
+                    for (let key in item.data) {
+                        if (item.data[key] !== undefined && item.data[key] !== null) {
+                            formData.append(key, String(item.data[key]));
+                        }
+                    }
+                    
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 15000);
+                    await fetch(GAS_URL, { method: 'POST', body: formData, mode: 'no-cors', signal: controller.signal });
+                    clearTimeout(timeoutId);
+                    
+                    success++;
+                    await removeFromPending(item.id);
+                    await new Promise(r => setTimeout(r, 200));
+                } catch (error) {
+                    item.retries++;
+                    if (item.retries < 3) failed.push(item);
+                }
+            }
+            
+            pendingSync = failed;
+            await savePendingSync();
+            overlay.style.display = 'none';
+            
+            if (success > 0) showToast(`✅ ${success} data tersinkronisasi`);
+            if (failed.length > 0) showToast(`⚠️ ${failed.length} data gagal, akan dicoba lagi`);
+            await updatePendingDisplay();
+            isSyncing = false;
+        }
+
+        // ==================== CORE FUNCTIONS ====================
         async function saveActivityLog(action, detail) {
             const logs = JSON.parse(await getStorage('rocky_activity_logs') || "[]");
-            const log = {
-                id: Date.now(),
-                action: action,
-                detail: detail,
-                time: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}),
-                rawDate: new Date().toISOString()
-            };
-            logs.push(log);
+            logs.push({ id: Date.now(), action, detail, time: new Date().toLocaleTimeString('id-ID'), rawDate: new Date().toISOString() });
             if (logs.length > 50) logs.shift();
             await setStorage('rocky_activity_logs', JSON.stringify(logs));
-            await renderActivityLog();
+            renderActivityLog();
         }
 
         async function renderActivityLog() {
             const logs = JSON.parse(await getStorage('rocky_activity_logs') || "[]");
-            const list = document.getElementById('activity-log-list');
-            if (!list) return;
-            
-            if (logs.length === 0) {
-                list.innerHTML = `<div class="text-center py-3 bg-indigo-50/50 rounded-xl"><p class="text-[8px] text-indigo-400 italic">Belum ada aktivitas</p></div>`;
-                return;
-            }
-            
-            const recentLogs = [...logs].reverse().slice(0, 15);
-            list.innerHTML = recentLogs.map(log => `
-                <div class="flex items-center gap-2 p-2 bg-indigo-50/30 rounded-xl">
+            const container = document.getElementById('activity-log-list');
+            if (!container) return;
+            if (logs.length === 0) { container.innerHTML = '<div class="text-center py-3 text-slate-400 text-[8px]">Belum ada aktivitas</div>'; return; }
+            container.innerHTML = logs.reverse().slice(0, 15).map(l => `
+                <div class="flex items-center gap-2 p-2 bg-indigo-50 rounded-xl">
                     <span class="text-[10px]">📌</span>
-                    <div class="flex-grow">
-                        <p class="text-[8px] font-bold text-slate-700">${log.action} - ${log.detail}</p>
-                        <p class="text-[6px] text-slate-400">${log.time}</p>
-                    </div>
+                    <div><p class="text-[8px] font-bold">${l.action} - ${l.detail}</p><p class="text-[6px] text-slate-400">${l.time}</p></div>
                 </div>
             `).join('');
         }
 
         async function saveRecord(type, note, txId = null) {
             const hist = JSON.parse(await getStorage('rocky_history') || "[]");
-            const record = { 
-                type, note, txId,
-                id: Date.now(),
-                time: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}),
-                date: new Date().toLocaleDateString('id-ID', {day:'2-digit', month:'short'}),
-                rawDate: new Date().toISOString()
-            };
+            const record = { type, note, txId, id: Date.now(), time: new Date().toLocaleTimeString('id-ID'), date: new Date().toLocaleDateString('id-ID'), rawDate: new Date().toISOString() };
             hist.push(record);
             await setStorage('rocky_history', JSON.stringify(hist));
-            
-            if (type !== 'Transaksi') {
-                lastAbsenData = record;
-                await saveActivityLog(type, note);
-            }
-            
-            await renderHistory();
+            if (type !== 'Transaksi') await saveActivityLog(type, note);
+            renderHistory();
         }
 
         async function saveTxRecord(id, items, total) {
             const txHist = JSON.parse(await getStorage('rocky_tx_history') || "[]");
-            txHist.push({
-                id: id,
-                date: new Date().toLocaleDateString('id-ID'),
-                time: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}),
-                items: JSON.parse(JSON.stringify(items)),
-                total: total,
-                rawDate: new Date().toISOString()
-            });
+            txHist.push({ id, date: new Date().toLocaleDateString('id-ID'), time: new Date().toLocaleTimeString('id-ID'), items, total, rawDate: new Date().toISOString() });
             await setStorage('rocky_tx_history', JSON.stringify(txHist));
-            await renderTxHistory();
+            renderTxHistory();
             await saveActivityLog('Transaksi', `Penjualan Rp ${total.toLocaleString()}`);
-            updateRewardSystem();
         }
 
         async function renderHistory() {
             const hist = JSON.parse(await getStorage('rocky_history') || "[]");
-            const list = document.getElementById('history-list');
-            const absensiHist = hist.filter(h => h.type !== 'Transaksi');
-            if (list) {
-                list.innerHTML = absensiHist.reverse().slice(0, 5).map(h => `
-                    <div class="relative flex items-center gap-3 p-3 bg-gradient-to-r from-white to-slate-50 rounded-2xl border border-slate-100">
-                        <button onclick="confirmDeleteHistory(${h.id})" class="absolute top-1 right-1 w-6 h-6 bg-white rounded-full shadow flex items-center justify-center text-red-400 hover:text-red-600">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                        </button>
-                        <div class="w-8 h-8 rounded-lg ${h.type === 'Hadir' ? 'bg-gradient-to-br from-green-50 to-green-100 text-green-600' : 'bg-gradient-to-br from-orange-50 to-orange-100 text-orange-600'} flex items-center justify-center text-[10px] font-bold">${h.type[0]}</div>
-                        <div class="flex-grow min-w-0 pr-6">
-                            <p class="text-[9px] font-bold text-slate-700">${h.type} <span class="text-slate-300 ml-1">${h.time}</span></p>
-                            <p class="text-[8px] text-slate-400 truncate">${h.note}</p>
-                        </div>
-                    </div>
-                `).join('');
-            }
+            const container = document.getElementById('history-list');
+            const absensi = hist.filter(h => h.type !== 'Transaksi').reverse().slice(0, 5);
+            if (!container) return;
+            if (absensi.length === 0) { container.innerHTML = '<div class="text-center py-3 text-slate-400 text-[8px]">Belum ada riwayat</div>'; return; }
+            container.innerHTML = absensi.map(h => `
+                <div class="flex items-center gap-3 p-3 bg-white rounded-2xl border relative">
+                    <button onclick="confirmDeleteHistory(${h.id})" class="absolute top-1 right-1 w-6 h-6 bg-white rounded-full shadow flex items-center justify-center text-red-400">🗑️</button>
+                    <div class="w-8 h-8 rounded-lg ${h.type === 'Hadir' ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-orange-600'} flex items-center justify-center">${h.type[0]}</div>
+                    <div><p class="text-[9px] font-bold">${h.type} <span class="text-slate-300">${h.time}</span></p><p class="text-[8px] text-slate-400">${h.note}</p></div>
+                </div>
+            `).join('');
         }
 
         async function renderTxHistory() {
             const txHist = JSON.parse(await getStorage('rocky_tx_history') || "[]");
-            const list = document.getElementById('tx-history-list');
-            if (txHist.length === 0) { 
-                if (list) list.innerHTML = `<p class="text-center text-[9px] text-slate-300 py-6 bg-slate-50/50 rounded-2xl">Belum ada transaksi</p>`; 
-                return; 
-            }
-            if (list) {
-                list.innerHTML = txHist.reverse().map(tx => `
-                    <div class="p-4 bg-gradient-to-r from-white to-indigo-50/30 rounded-2xl border border-indigo-100/50 relative">
-                        <button onclick="openSecurityModal(${tx.id})" class="absolute top-4 right-4 text-red-300 hover:text-red-500">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                        </button>
-                        <p class="text-[10px] font-black text-slate-800">#${tx.id.toString().slice(-4)} <span class="text-[8px] text-slate-300">${tx.date}</span></p>
-                        <p class="text-[11px] font-black text-indigo-600 mb-2">Rp ${tx.total.toLocaleString()}</p>
-                    </div>
-                `).join('');
-            }
+            const container = document.getElementById('tx-history-list');
+            if (!container) return;
+            if (txHist.length === 0) { container.innerHTML = '<div class="text-center py-6 text-slate-300 text-[9px]">Belum ada transaksi</div>'; return; }
+            container.innerHTML = txHist.reverse().map(tx => `
+                <div class="p-4 bg-white rounded-2xl border relative">
+                    <button onclick="openSecurityModal(${tx.id})" class="absolute top-3 right-3 text-red-300">🗑️</button>
+                    <p class="text-[10px] font-bold">#${tx.id.toString().slice(-4)} <span class="text-slate-300">${tx.date}</span></p>
+                    <p class="text-[11px] font-bold text-indigo-600">Rp ${tx.total.toLocaleString()}</p>
+                </div>
+            `).join('');
         }
 
         async function hasTodayAttendance() {
             const hist = JSON.parse(await getStorage('rocky_history') || "[]");
             const today = new Date().toLocaleDateString('id-ID');
-            return hist.some(h => {
-                if (h.type === 'Transaksi') return false;
-                return new Date(h.rawDate).toLocaleDateString('id-ID') === today;
-            });
+            return hist.some(h => h.type !== 'Transaksi' && new Date(h.rawDate).toLocaleDateString('id-ID') === today);
         }
 
         async function hasTodayPresent() {
             const hist = JSON.parse(await getStorage('rocky_history') || "[]");
             const today = new Date().toLocaleDateString('id-ID');
-            return hist.some(h => {
-                if (h.type !== 'Hadir') return false;
-                return new Date(h.rawDate).toLocaleDateString('id-ID') === today;
-            });
+            return hist.some(h => h.type === 'Hadir' && new Date(h.rawDate).toLocaleDateString('id-ID') === today);
         }
 
         async function checkTodayAbsen() {
-            const hist = JSON.parse(await getStorage('rocky_history') || "[]");
-            const today = new Date().toLocaleDateString('id-ID');
-            
-            const todayAttendance = hist.find(h => {
-                if (h.type === 'Transaksi') return false;
-                return new Date(h.rawDate).toLocaleDateString('id-ID') === today;
-            });
-            
+            const hasAbsen = await hasTodayAttendance();
             const btnAbsen = document.getElementById('btn-absensi');
             const btnIzin = document.getElementById('btn-izin-trigger');
-            const resendContainer = document.getElementById('resend-container');
             
-            if (todayAttendance) {
-                if (btnAbsen) {
-                    btnAbsen.disabled = true;
-                    btnAbsen.className = "w-full py-5 bg-gradient-to-r from-green-400 to-green-500 text-white rounded-3xl font-bold text-lg mb-4 shadow-lg";
-                    lastAbsenData = todayAttendance;
-                    if (resendContainer) resendContainer.classList.remove('hidden');
-                    
-                    if (todayAttendance.type === 'Hadir') {
-                        btnAbsen.innerText = "✅ SUDAH ABSEN HARI INI";
-                    } else {
-                        btnAbsen.innerText = "📝 SUDAH IZIN/SAKIT";
-                    }
-                }
-                if (btnIzin) {
-                    btnIzin.disabled = true;
-                    btnIzin.classList.add('opacity-50', 'cursor-not-allowed');
-                }
+            if (hasAbsen) {
+                if (btnAbsen) { btnAbsen.disabled = true; btnAbsen.innerText = "✅ SUDAH ABSEN HARI INI"; btnAbsen.className = "w-full py-5 bg-green-400 text-white rounded-3xl font-bold text-lg mb-4"; }
+                if (btnIzin) btnIzin.disabled = true;
             } else {
                 if (btnAbsen) btnAbsen.innerText = "📍 ABSEN MASUK";
-                if (btnIzin) {
-                    btnIzin.disabled = false;
-                    btnIzin.classList.remove('opacity-50', 'cursor-not-allowed');
-                }
-                if (resendContainer) resendContainer.classList.add('hidden');
-                
+                if (btnIzin) btnIzin.disabled = false;
                 if (userPos.lat !== 0 && btnAbsen) {
                     const dist = calculateDistance(userPos.lat, userPos.lng, TARGET_LOC.lat, TARGET_LOC.lng);
                     if (dist <= RADIUS) {
                         btnAbsen.disabled = false;
-                        btnAbsen.className = "w-full py-5 gradient-blue text-white rounded-3xl font-bold text-lg mb-4 shadow-lg hover:shadow-xl transition-all btn-press";
+                        btnAbsen.className = "w-full py-5 gradient-blue text-white rounded-3xl font-bold text-lg mb-4 hover:shadow-xl transition-all btn-press";
                     } else {
                         btnAbsen.disabled = true;
                         btnAbsen.className = "w-full py-5 bg-slate-200 text-slate-400 rounded-3xl font-bold text-lg mb-4";
@@ -1626,356 +863,57 @@
         }
 
         async function updateTransactionAccess() {
-            const hasPresent = await hasTodayPresent();
-            const withinRadius = isWithinRadius();
-            const canTransact = hasPresent && withinRadius;
-            
+            const canTransact = await hasTodayPresent() && isWithinRadius();
             const inputs = ['tx-nama', 'tx-kode', 'tx-qty', 'tx-harga'].map(id => document.getElementById(id));
             const btnAdd = document.getElementById('btn-add-cart');
-            const btnClear = document.getElementById('btn-clear-cart');
             const btnCheckout = document.getElementById('btn-checkout');
-            const btnDeleteAll = document.getElementById('btn-delete-all');
-            const btnReport = document.getElementById('btn-report-trigger');
             
             if (canTransact) {
-                inputs.forEach(i => { if(i) { i.disabled = false; i.classList.remove('bg-slate-50'); i.classList.add('bg-white'); }});
-                if (btnAdd) { btnAdd.disabled = false; btnAdd.className = "w-full py-3.5 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-xl font-bold text-xs shadow-md hover:shadow-lg transition-all btn-press"; }
-                if (btnClear) { btnClear.disabled = false; btnClear.className = "text-[9px] font-bold text-red-400 hover:text-red-600"; }
-                if (btnCheckout) { btnCheckout.disabled = false; btnCheckout.className = "w-full py-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-2xl font-black text-sm shadow-lg hover:shadow-xl transition-all btn-press"; }
-                if (btnDeleteAll) { btnDeleteAll.disabled = false; btnDeleteAll.className = "text-[9px] font-bold text-red-500 hover:text-red-700"; }
-                if (btnReport) { btnReport.disabled = false; btnReport.className = "w-full mb-6 py-3.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-2xl flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transition-all btn-press"; }
+                inputs.forEach(i => { if(i) i.disabled = false; });
+                if (btnAdd) { btnAdd.disabled = false; btnAdd.className = "w-full py-3.5 bg-indigo-500 text-white rounded-xl font-bold text-xs hover:shadow-lg"; }
+                if (btnCheckout) { btnCheckout.disabled = false; btnCheckout.className = "w-full py-4 bg-indigo-500 text-white rounded-2xl font-bold hover:shadow-lg"; }
             } else {
-                inputs.forEach(i => { if(i) { i.disabled = true; i.classList.remove('bg-white'); i.classList.add('bg-slate-50'); }});
-                if (btnAdd) { btnAdd.disabled = true; btnAdd.className = "w-full py-3.5 bg-slate-300 text-slate-500 rounded-xl font-bold text-xs cursor-not-allowed"; }
-                if (btnClear) { btnClear.disabled = true; btnClear.className = "text-[9px] font-bold text-red-300 cursor-not-allowed"; }
-                if (btnCheckout) { btnCheckout.disabled = true; btnCheckout.className = "w-full py-4 bg-slate-300 text-slate-500 rounded-2xl font-black text-sm cursor-not-allowed"; }
-                if (btnDeleteAll) { btnDeleteAll.disabled = true; btnDeleteAll.className = "text-[9px] font-bold text-red-300 cursor-not-allowed"; }
-                if (btnReport) { btnReport.disabled = true; btnReport.className = "w-full mb-6 py-3.5 bg-slate-100 rounded-2xl opacity-50 cursor-not-allowed"; }
+                inputs.forEach(i => { if(i) i.disabled = true; });
+                if (btnAdd) { btnAdd.disabled = true; btnAdd.className = "w-full py-3.5 bg-slate-300 text-slate-500 rounded-xl font-bold text-xs"; }
+                if (btnCheckout) { btnCheckout.disabled = true; btnCheckout.className = "w-full py-4 bg-slate-300 text-slate-500 rounded-2xl font-bold"; }
             }
         }
-
-        function updateRewardSystem() {
-            document.getElementById('reward-bonus').innerText = '+ Rp 0';
-            document.getElementById('reward-total-sales').innerText = 'Rp 0';
-        }
-
-        async function updateDataStats() {
-            const txHist = JSON.parse(await getStorage('rocky_tx_history') || "[]");
-            const absHist = JSON.parse(await getStorage('rocky_history') || "[]");
-            
-            document.getElementById('stat-tx').innerText = txHist.length;
-            document.getElementById('stat-absen').innerText = absHist.length;
-        }
-
-        // Register
-        document.getElementById('btn-register').onclick = async () => {
-            const n = document.getElementById('reg-name').value.trim();
-            const d = document.getElementById('reg-domicile').value.trim();
-            const w = document.getElementById('reg-wa').value.trim();
-            
-            if(!n || !d || !w) return showToast("❌ Lengkapi semua data!");
-            if (!/^62\d+$/.test(w)) return showToast("❌ Format WA harus 628xxx");
-            
-            showLoading();
-            try {
-                if (isTrialMode) {
-                    await setStorage('rocky_user_name', n);
-                    await setStorage('rocky_user_dom', d);
-                    await setStorage('rocky_user_wa', w);
-                    userData = { name: n, domicile: d, wa: w }; 
-                } else {
-                    const savedName = await getStorage('rocky_user_name');
-                    if (savedName) {
-                        if (savedName !== n) return showToast("Nama tidak bisa diubah!");
-                        userData = { name: savedName, domicile: d, wa: w };
-                        await setStorage('rocky_user_dom', d);
-                        await setStorage('rocky_user_wa', w);
-                    } else {
-                        await setStorage('rocky_user_name', n);
-                        await setStorage('rocky_user_dom', d);
-                        await setStorage('rocky_user_wa', w);
-                        userData = { name: n, domicile: d, wa: w };
-                    }
-                }
-                
-                document.getElementById('view-registration').classList.add('hidden');
-                document.getElementById('main-nav').classList.remove('hidden');
-                document.getElementById('view-attendance').classList.remove('hidden');
-                document.getElementById('user-display-name').innerText = userData.name;
-                document.getElementById('user-display-domicile').innerHTML = `<span class="w-1 h-1 bg-indigo-400 rounded-full"></span> ${userData.domicile}`;
-                document.getElementById('user-display-wa').innerHTML = `<span>📱</span> ${userData.wa}`;
-                
-                if (isTrialMode) {
-                    document.getElementById('trial-badge').classList.remove('hidden');
-                } else {
-                    document.getElementById('trial-badge').classList.add('hidden');
-                }
-                
-                await renderHistory();
-                await renderTxHistory();
-                await renderActivityLog();
-                startGPS();
-                checkTodayAbsen();
-                updateTransactionAccess();
-                updateDataStats();
-                await updatePendingDisplay();
-                
-            } finally {
-                hideLoading();
-            }
-        };
-
-        // Absen masuk
-        document.getElementById('btn-absensi').onclick = async () => {
-            if (await hasTodayAttendance()) return showToast("Anda sudah absen hari ini!");
-            if (calculateDistance(userPos.lat, userPos.lng, TARGET_LOC.lat, TARGET_LOC.lng) > RADIUS) {
-                return showToast("Anda di luar area!");
-            }
-            
-            await saveRecord('Hadir', 'Absen Masuk');
-            
-            const waktu = new Date().toLocaleString('id-ID');
-            const msg = `✅ ABSENSI\n👤 ${userData.name}\n📍 ${userData.domicile}\n📱 ${userData.wa}\n🕐 ${waktu}`;
-            
-            window.location.href = `https://api.whatsapp.com/send?phone=${WA_ADMIN}&text=${encodeURIComponent(msg)}`;
-            
-            setTimeout(checkTodayAbsen, 500);
-        };
-
-        // Submit izin
-        document.getElementById('btn-submit-izin').onclick = async () => {
-            if (await hasTodayAttendance()) {
-                showToast("Anda sudah absen/izin hari ini!");
-                closeModal('modal-izin');
-                return;
-            }
-            
-            const type = document.getElementById('izin-type').value;
-            const reason = document.getElementById('izin-reason').value.trim() || 'Tanpa alasan';
-            
-            await saveRecord(type, reason);
-            
-            const waktu = new Date().toLocaleString('id-ID');
-            const msg = `📋 *IZIN/SAKIT*\n👤 ${userData.name}\n📍 ${userData.domicile}\n📱 ${userData.wa}\n📌 ${type}\n📝 ${reason}\n🕐 ${waktu}`;
-            
-            window.location.href = `https://api.whatsapp.com/send?phone=${WA_ADMIN}&text=${encodeURIComponent(msg)}`;
-            closeModal('modal-izin');
-            showToast("✅ Izin berhasil dikirim");
-            setTimeout(checkTodayAbsen, 500);
-        };
-
-        // Transaction
-        document.getElementById('btn-add-cart').onclick = () => {
-            const nama = document.getElementById('tx-nama').value;
-            const qty = parseInt(document.getElementById('tx-qty').value);
-            const harga = parseInt(document.getElementById('tx-harga').value);
-            if (!nama || !qty || !harga) return showToast("Data tidak lengkap!");
-            
-            cart.push({ id: Date.now(), nama, qty, harga, subtotal: qty * harga });
-            document.getElementById('tx-nama').value = "";
-            document.getElementById('tx-qty').value = "";
-            document.getElementById('tx-harga').value = "";
-            renderCart();
-            showToast("✅ Barang masuk keranjang");
-        };
-
-        document.getElementById('btn-checkout').onclick = async () => {
-            if (cart.length === 0) return showToast("Pilih barang dulu!");
-            
-            let total = 0;
-            cart.forEach(item => total += item.subtotal);
-            const recordId = Date.now();
-            await saveTxRecord(recordId, cart, total);
-            await saveRecord('Transaksi', `Penjualan: Rp ${total.toLocaleString()}`, recordId);
-            cart = [];
-            renderCart();
-            showToast("✅ Penjualan Berhasil!");
-        };
 
         function renderCart() {
-            const list = document.getElementById('cart-list');
+            const container = document.getElementById('cart-list');
             const totalEl = document.getElementById('cart-total');
+            if (!container) return;
             if (cart.length === 0) {
-                if (list) list.innerHTML = `<div class="text-center py-8 border-2 border-dashed border-slate-200 rounded-2xl"><p class="text-[10px] text-slate-400 italic">Keranjang kosong</p></div>`;
+                container.innerHTML = '<div class="text-center py-8 border-2 border-dashed rounded-2xl"><p class="text-[10px] text-slate-400">Keranjang kosong</p></div>';
                 if (totalEl) totalEl.innerText = "Rp 0";
                 return;
             }
             let total = 0;
-            if (list) {
-                list.innerHTML = cart.map((item) => {
-                    total += item.subtotal;
-                    return `<div class="flex items-center justify-between p-3 bg-gradient-to-r from-white to-slate-50 rounded-2xl border border-slate-100">
-                        <div><p class="text-[10px] font-bold">${item.nama}</p><p class="text-[8px] text-slate-500">${item.qty} x Rp ${item.harga.toLocaleString()}</p></div>
-                        <button onclick="removeItem(${item.id})" class="text-red-400 hover:text-red-600 text-[10px]">🗑️</button>
-                    </div>`;
-                }).join('');
-            }
+            container.innerHTML = cart.map(item => {
+                total += item.subtotal;
+                return `<div class="flex justify-between p-3 bg-white rounded-2xl"><div><p class="text-[10px] font-bold">${item.nama}</p><p class="text-[8px]">${item.qty} x Rp ${item.harga.toLocaleString()}</p></div><button onclick="removeItem(${item.id})" class="text-red-400">🗑️</button></div>`;
+            }).join('');
             if (totalEl) totalEl.innerText = `Rp ${total.toLocaleString()}`;
         }
 
         function removeItem(id) { cart = cart.filter(i => i.id !== id); renderCart(); }
         function clearCart() { cart = []; renderCart(); }
 
-        // Start trial mode
-        async function startTrialMode() {
-            closeModal('modal-menu');
-            if (confirm("Mode Trial akan menghapus data sementara. Lanjutkan?")) {
-                showLoading();
-                try {
-                    isTrialMode = true;
-                    sessionStorage.setItem('rocky_session_id', 'session_' + Date.now());
-                    userData = { name: "", domicile: "", wa: "" };
-                    
-                    document.getElementById('trial-badge').classList.remove('hidden');
-                    document.getElementById('main-nav').classList.add('hidden');
-                    document.getElementById('view-attendance').classList.add('hidden');
-                    document.getElementById('view-transaction').classList.add('hidden');
-                    document.getElementById('view-registration').classList.remove('hidden');
-                    
-                    document.getElementById('reg-name').disabled = false;
-                    document.getElementById('reg-domicile').disabled = false;
-                    document.getElementById('reg-wa').disabled = false;
-                    document.getElementById('reg-name').value = "";
-                    document.getElementById('reg-domicile').value = "";
-                    document.getElementById('reg-wa').value = "";
-                    
-                    showToast("Mode Trial aktif!");
-                    setTimeout(() => openModal('modal-tutorial'), 500);
-                } finally {
-                    hideLoading();
-                }
-            }
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371e3;
+            const p1 = lat1 * Math.PI/180;
+            const p2 = lat2 * Math.PI/180;
+            const dp = (lat2-lat1) * Math.PI/180;
+            const dl = (lon2-lon1) * Math.PI/180;
+            const a = Math.sin(dp/2)**2 + Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)**2;
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         }
 
-        // Backup via WA
-        async function backupViaWA() {
-            if (!userData.wa) {
-                showToast("❌ Nomor WA belum terdaftar!");
-                return;
-            }
-            
-            showLoading();
-            try {
-                const attendance = await getAllFromStore(STORES.ATTENDANCE) || [];
-                const transactions = await getAllFromStore(STORES.TRANSACTIONS) || [];
-                
-                const data = {
-                    u: userData.name,
-                    d: userData.domicile,
-                    w: userData.wa,
-                    a: attendance,
-                    t: transactions
-                };
-                
-                const encoded = btoa(JSON.stringify(data));
-                const msg = `🔐 BACKUP ROCKY\n${userData.name}\n\n${encoded}`;
-                
-                window.location.href = `https://api.whatsapp.com/send?phone=${userData.wa}&text=${encodeURIComponent(msg)}`;
-                showToast("✅ Backup terkirim!");
-                closeModal('modal-menu');
-            } catch (error) {
-                showToast("❌ Gagal backup!");
-            } finally {
-                hideLoading();
-            }
+        function isWithinRadius() {
+            if (userPos.lat === 0) return false;
+            return calculateDistance(userPos.lat, userPos.lng, TARGET_LOC.lat, TARGET_LOC.lng) <= RADIUS;
         }
 
-        // Restore from WA
-        async function restoreFromWA() {
-            const input = prompt("Tempel kode backup:");
-            if (!input) return;
-            
-            showLoading();
-            try {
-                const lines = input.split('\n');
-                let base64 = '';
-                for (const line of lines) {
-                    if (line.length > 100 && /^[A-Za-z0-9+/=]+$/.test(line.trim())) {
-                        base64 = line.trim();
-                        break;
-                    }
-                }
-                
-                if (!base64) throw new Error("Kode tidak valid");
-                
-                const data = JSON.parse(atob(base64));
-                if (data.u && data.t && data.a) {
-                    userData = { name: data.u, domicile: data.d || '', wa: data.w || '' };
-                    
-                    await clearStore(STORES.ATTENDANCE);
-                    for (const item of data.a) await addToStore(STORES.ATTENDANCE, item);
-                    
-                    await clearStore(STORES.TRANSACTIONS);
-                    for (const item of data.t) await addToStore(STORES.TRANSACTIONS, item);
-                    
-                    await setStorage('rocky_user_name', data.u);
-                    await setStorage('rocky_user_dom', data.d || '');
-                    await setStorage('rocky_user_wa', data.w || '');
-                    
-                    showToast("✅ Restore berhasil!");
-                    setTimeout(() => location.reload(), 1500);
-                }
-            } catch (e) {
-                showToast("❌ Gagal restore!");
-            } finally {
-                hideLoading();
-            }
-        }
-
-        // Export/Import
-        async function exportData() {
-            showLoading();
-            try {
-                const attendance = await getAllFromStore(STORES.ATTENDANCE) || [];
-                const transactions = await getAllFromStore(STORES.TRANSACTIONS) || [];
-                
-                const data = {
-                    user: userData,
-                    history: attendance,
-                    tx_history: transactions
-                };
-                
-                navigator.clipboard.writeText(JSON.stringify(data));
-                showToast("✅ Backup disalin!");
-            } finally {
-                hideLoading();
-            }
-        }
-
-        async function importData() {
-            const json = document.getElementById('import-json').value.trim();
-            if (!json) return showToast("❌ Tempel kode!");
-            
-            showLoading();
-            try {
-                const data = JSON.parse(json);
-                if (data.user) {
-                    userData = data.user;
-                    await setStorage('rocky_user_name', data.user.name || '');
-                    await setStorage('rocky_user_dom', data.user.domicile || '');
-                    await setStorage('rocky_user_wa', data.user.wa || '');
-                }
-                
-                if (data.history) {
-                    await clearStore(STORES.ATTENDANCE);
-                    for (const item of data.history) await addToStore(STORES.ATTENDANCE, item);
-                }
-                
-                if (data.tx_history) {
-                    await clearStore(STORES.TRANSACTIONS);
-                    for (const item of data.tx_history) await addToStore(STORES.TRANSACTIONS, item);
-                }
-                
-                showToast("✅ Berhasil!");
-                setTimeout(() => location.reload(), 1500);
-            } catch (e) {
-                showToast("❌ Data rusak!");
-            } finally {
-                hideLoading();
-            }
-        }
-
-        // GPS
         function startGPS() {
             if (!navigator.geolocation) return;
             navigator.geolocation.watchPosition(p => {
@@ -1992,7 +930,7 @@
                 }
                 
                 if (dist <= RADIUS) {
-                    if (indicator) indicator.className = "w-2.5 h-2.5 rounded-full bg-green-500 animate-ping";
+                    if (indicator) indicator.className = "w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse";
                     if (text) text.innerHTML = `<span class="text-green-600 font-bold">✅ Dalam Area</span>`;
                 } else {
                     if (indicator) indicator.className = "w-2.5 h-2.5 rounded-full bg-red-500";
@@ -2003,78 +941,255 @@
             }, null, { enableHighAccuracy: true });
         }
 
-        function calculateDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371e3;
-            const p1 = lat1 * Math.PI/180;
-            const p2 = lat2 * Math.PI/180;
-            const dp = (lat2-lat1) * Math.PI/180;
-            const dl = (lon2-lon1) * Math.PI/180;
-            const a = Math.sin(dp/2) * Math.sin(dp/2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl/2) * Math.sin(dl/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            return R * c;
+        // ==================== EVENT HANDLERS ====================
+        document.getElementById('btn-register').onclick = async () => {
+            const n = document.getElementById('reg-name').value.trim();
+            const d = document.getElementById('reg-domicile').value.trim();
+            const w = document.getElementById('reg-wa').value.trim();
+            if (!n || !d || !w) return showToast("❌ Lengkapi semua data!");
+            if (!/^62\d+$/.test(w)) return showToast("❌ Format WA harus 628xxx");
+            
+            showLoading();
+            try {
+                if (isTrialMode) {
+                    await setStorage('rocky_user_name', n);
+                    await setStorage('rocky_user_dom', d);
+                    await setStorage('rocky_user_wa', w);
+                    userData = { name: n, domicile: d, wa: w };
+                } else {
+                    const savedName = await getStorage('rocky_user_name');
+                    if (savedName && savedName !== n) return showToast("Nama tidak bisa diubah!");
+                    await setStorage('rocky_user_name', n);
+                    await setStorage('rocky_user_dom', d);
+                    await setStorage('rocky_user_wa', w);
+                    userData = { name: n, domicile: d, wa: w };
+                }
+                
+                document.getElementById('view-registration').classList.add('hidden');
+                document.getElementById('main-nav').classList.remove('hidden');
+                document.getElementById('view-attendance').classList.remove('hidden');
+                document.getElementById('user-display-name').innerText = userData.name;
+                document.getElementById('user-display-domicile').innerHTML = `<span class="w-1 h-1 bg-indigo-400 rounded-full"></span> ${userData.domicile}`;
+                document.getElementById('user-display-wa').innerHTML = `📱 ${userData.wa}`;
+                
+                if (isTrialMode) document.getElementById('trial-badge').classList.remove('hidden');
+                else document.getElementById('trial-badge').classList.add('hidden');
+                
+                await renderHistory();
+                await renderTxHistory();
+                await renderActivityLog();
+                startGPS();
+                checkTodayAbsen();
+                updateTransactionAccess();
+                await updatePendingDisplay();
+            } finally { hideLoading(); }
+        };
+
+        document.getElementById('btn-absensi').onclick = async () => {
+            if (await hasTodayAttendance()) return showToast("Anda sudah absen hari ini!");
+            if (calculateDistance(userPos.lat, userPos.lng, TARGET_LOC.lat, TARGET_LOC.lng) > RADIUS) return showToast("Anda di luar area!");
+            await saveRecord('Hadir', 'Absen Masuk');
+            const waktu = new Date().toLocaleString('id-ID');
+            const msg = `✅ ABSENSI\n👤 ${userData.name}\n📍 ${userData.domicile}\n📱 ${userData.wa}\n🕐 ${waktu}`;
+            window.open(`https://api.whatsapp.com/send?phone=${WA_ADMIN}&text=${encodeURIComponent(msg)}`, '_blank');
+            setTimeout(checkTodayAbsen, 500);
+        };
+
+        document.getElementById('btn-submit-izin').onclick = async () => {
+            if (await hasTodayAttendance()) { showToast("Sudah absen hari ini!"); closeModal('modal-izin'); return; }
+            const type = document.getElementById('izin-type').value;
+            const reason = document.getElementById('izin-reason').value.trim() || 'Tanpa alasan';
+            await saveRecord(type, reason);
+            const waktu = new Date().toLocaleString('id-ID');
+            const msg = `📋 IZIN/SAKIT\n👤 ${userData.name}\n📌 ${type}\n📝 ${reason}\n🕐 ${waktu}`;
+            window.open(`https://api.whatsapp.com/send?phone=${WA_ADMIN}&text=${encodeURIComponent(msg)}`, '_blank');
+            closeModal('modal-izin');
+            showToast("✅ Izin terkirim");
+            setTimeout(checkTodayAbsen, 500);
+        };
+
+        document.getElementById('btn-add-cart').onclick = () => {
+            const nama = document.getElementById('tx-nama').value;
+            const qty = parseInt(document.getElementById('tx-qty').value);
+            const harga = parseInt(document.getElementById('tx-harga').value);
+            if (!nama || !qty || !harga) return showToast("Data tidak lengkap!");
+            cart.push({ id: Date.now(), nama, qty, harga, subtotal: qty * harga });
+            document.getElementById('tx-nama').value = "";
+            document.getElementById('tx-qty').value = "";
+            document.getElementById('tx-harga').value = "";
+            renderCart();
+            showToast("✅ Barang masuk keranjang");
+        };
+
+        document.getElementById('btn-checkout').onclick = async () => {
+            if (cart.length === 0) return showToast("Keranjang kosong!");
+            let total = 0;
+            cart.forEach(i => total += i.subtotal);
+            const recordId = Date.now();
+            await saveTxRecord(recordId, cart, total);
+            await saveRecord('Transaksi', `Penjualan: Rp ${total.toLocaleString()}`, recordId);
+            cart = [];
+            renderCart();
+            showToast("✅ Transaksi berhasil!");
+        };
+
+        async function startTrialMode() {
+            closeModal('modal-menu');
+            if (confirm("Mode Trial akan menghapus data sementara. Lanjutkan?")) {
+                showLoading();
+                try {
+                    isTrialMode = true;
+                    sessionStorage.setItem('rocky_session_id', 'session_' + Date.now());
+                    userData = { name: "", domicile: "", wa: "" };
+                    document.getElementById('trial-badge').classList.remove('hidden');
+                    document.getElementById('main-nav').classList.add('hidden');
+                    document.getElementById('view-attendance').classList.add('hidden');
+                    document.getElementById('view-transaction').classList.add('hidden');
+                    document.getElementById('view-registration').classList.remove('hidden');
+                    document.getElementById('reg-name').disabled = false;
+                    document.getElementById('reg-domicile').disabled = false;
+                    document.getElementById('reg-wa').disabled = false;
+                    document.getElementById('reg-name').value = "";
+                    document.getElementById('reg-domicile').value = "";
+                    document.getElementById('reg-wa').value = "";
+                    showToast("Mode Trial aktif!");
+                    setTimeout(() => document.getElementById('modal-tutorial').classList.remove('hidden'), 500);
+                } finally { hideLoading(); }
+            }
         }
 
-        function isWithinRadius() {
-            if (userPos.lat === 0) return false;
-            return calculateDistance(userPos.lat, userPos.lng, TARGET_LOC.lat, TARGET_LOC.lng) <= RADIUS;
+        async function backupViaWA() {
+            if (!userData.wa) { showToast("❌ Nomor WA belum terdaftar!"); return; }
+            showLoading();
+            try {
+                const attendance = await getAllFromStore(STORES.ATTENDANCE) || [];
+                const transactions = await getAllFromStore(STORES.TRANSACTIONS) || [];
+                const data = { u: userData.name, d: userData.domicile, w: userData.wa, a: attendance, t: transactions };
+                const encoded = btoa(JSON.stringify(data));
+                window.open(`https://api.whatsapp.com/send?phone=${userData.wa}&text=${encodeURIComponent("🔐 BACKUP ROCKY\n" + userData.name + "\n\n" + encoded)}`, '_blank');
+                showToast("✅ Backup terkirim!");
+                closeModal('modal-menu');
+            } finally { hideLoading(); }
         }
 
-        // Modal functions
-        function openModal(id) { 
-            document.getElementById(id).classList.remove('hidden');
-            document.getElementById(id).classList.add('flex');
-        }
-        function closeModal(id) { 
-            document.getElementById(id).classList.add('hidden');
-            document.getElementById(id).classList.remove('flex');
+        async function restoreFromWA() {
+            const input = prompt("Tempel kode backup:");
+            if (!input) return;
+            showLoading();
+            try {
+                const lines = input.split('\n');
+                let base64 = '';
+                for (const line of lines) {
+                    if (line.length > 100 && /^[A-Za-z0-9+/=]+$/.test(line.trim())) {
+                        base64 = line.trim(); break;
+                    }
+                }
+                if (!base64) throw new Error("Kode tidak valid");
+                const data = JSON.parse(atob(base64));
+                if (data.u) {
+                    await clearStore(STORES.ATTENDANCE);
+                    for (const item of data.a) await addToStore(STORES.ATTENDANCE, item);
+                    await clearStore(STORES.TRANSACTIONS);
+                    for (const item of data.t) await addToStore(STORES.TRANSACTIONS, item);
+                    await setStorage('rocky_user_name', data.u);
+                    await setStorage('rocky_user_dom', data.d || '');
+                    await setStorage('rocky_user_wa', data.w || '');
+                    showToast("✅ Restore berhasil!");
+                    setTimeout(() => location.reload(), 1500);
+                }
+            } catch(e) { showToast("❌ Gagal restore!"); }
+            finally { hideLoading(); }
         }
 
-        function openMenuModal() { updateDataStats(); openModal('modal-menu'); }
-        function openEditModal() {
-            document.getElementById('edit-name-display').innerText = userData.name;
-            document.getElementById('edit-domicile').value = userData.domicile;
-            document.getElementById('edit-wa').value = userData.wa;
-            openModal('modal-edit');
+        async function exportData() {
+            showLoading();
+            try {
+                const attendance = await getAllFromStore(STORES.ATTENDANCE) || [];
+                const transactions = await getAllFromStore(STORES.TRANSACTIONS) || [];
+                const data = { user: userData, history: attendance, tx_history: transactions };
+                navigator.clipboard.writeText(JSON.stringify(data));
+                showToast("✅ Backup disalin!");
+            } finally { hideLoading(); }
         }
-        function openRekapBulanModal() { openModal('modal-rekap-bulan'); }
-        function openSecurityModal(id) { pendingDeleteAction = id; openModal('modal-security'); }
-        function openResetModal() { openModal('modal-reset'); }
-        function openBackupModalFromMenu() { closeModal('modal-menu'); openModal('modal-backup'); }
-        function openResetModalFromMenu() { closeModal('modal-menu'); openModal('modal-reset'); }
-        function openLogoutModal() { closeModal('modal-menu'); openModal('modal-logout'); }
 
-        // Save edit profile
+        async function importData() {
+            const json = document.getElementById('import-json').value.trim();
+            if (!json) return showToast("❌ Tempel kode!");
+            showLoading();
+            try {
+                const data = JSON.parse(json);
+                if (data.user) {
+                    await setStorage('rocky_user_name', data.user.name || '');
+                    await setStorage('rocky_user_dom', data.user.domicile || '');
+                    await setStorage('rocky_user_wa', data.user.wa || '');
+                }
+                if (data.history) {
+                    await clearStore(STORES.ATTENDANCE);
+                    for (const item of data.history) await addToStore(STORES.ATTENDANCE, item);
+                }
+                if (data.tx_history) {
+                    await clearStore(STORES.TRANSACTIONS);
+                    for (const item of data.tx_history) await addToStore(STORES.TRANSACTIONS, item);
+                }
+                showToast("✅ Berhasil!");
+                setTimeout(() => location.reload(), 1500);
+            } catch(e) { showToast("❌ Data rusak!"); }
+            finally { hideLoading(); }
+        }
+
+        async function sendReport(period) {
+            if (!await hasTodayPresent()) { showToast("Anda harus absen HADIR hari ini!"); return; }
+            const txHist = JSON.parse(await getStorage('rocky_tx_history') || "[]");
+            let filtered = [], title = "";
+            if (period === 'today') {
+                const today = new Date().toLocaleDateString('id-ID');
+                filtered = txHist.filter(tx => tx.date === today);
+                title = "HARIAN";
+            } else {
+                const now = new Date();
+                filtered = txHist.filter(tx => {
+                    const d = new Date(tx.rawDate);
+                    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+                });
+                title = "BULANAN";
+            }
+            if (filtered.length === 0) return showToast("Tidak ada data!");
+            const total = filtered.reduce((s, tx) => s + tx.total, 0);
+            const msg = `📊 LAPORAN ${title}\n👤 ${userData.name}\n💰 Rp ${total.toLocaleString()}\n📦 ${filtered.length} transaksi`;
+            window.open(`https://api.whatsapp.com/send?phone=${WA_ADMIN}&text=${encodeURIComponent(msg)}`, '_blank');
+            closeModal('modal-report');
+        }
+
+        async function kirimRekapBulanan() {
+            showToast("Fitur dalam pengembangan");
+            closeModal('modal-rekap-bulan');
+        }
+
         async function saveEditProfile() {
             const d = document.getElementById('edit-domicile').value.trim();
             const w = document.getElementById('edit-wa').value.trim();
             if (!d || !w) return showToast("❌ Isi semua data!");
             if (!/^62\d+$/.test(w)) return showToast("❌ Format WA harus 628xxx");
-            
             userData.domicile = d;
             userData.wa = w;
             await setStorage('rocky_user_dom', d);
             await setStorage('rocky_user_wa', w);
-            
             document.getElementById('user-display-domicile').innerHTML = `<span class="w-1 h-1 bg-indigo-400 rounded-full"></span> ${d}`;
-            document.getElementById('user-display-wa').innerHTML = `<span>📱</span> ${w}`;
-            
+            document.getElementById('user-display-wa').innerHTML = `📱 ${w}`;
             closeModal('modal-edit');
             showToast("✅ Profil diperbarui");
         }
 
-        // Logout
         async function logout() {
             showLoading();
             try {
                 userData = { name: "", domicile: "", wa: "" };
                 isTrialMode = false;
-                
                 document.getElementById('main-nav').classList.add('hidden');
                 document.getElementById('view-attendance').classList.add('hidden');
                 document.getElementById('view-transaction').classList.add('hidden');
                 document.getElementById('view-registration').classList.remove('hidden');
                 document.getElementById('trial-badge').classList.add('hidden');
-                
                 const savedName = await getStorage('rocky_user_name');
                 if (savedName) {
                     document.getElementById('reg-name').value = savedName;
@@ -2091,20 +1206,15 @@
                     document.getElementById('reg-wa').value = "";
                     document.getElementById('btn-register').innerText = "DAFTAR / LOGIN";
                 }
-                
                 closeModal('modal-logout');
                 closeModal('modal-menu');
                 showToast("Berhasil keluar");
-            } finally {
-                hideLoading();
-            }
+            } finally { hideLoading(); }
         }
 
-        // Delete verification
         document.getElementById('btn-verify-delete').onclick = async () => {
             const pin = document.getElementById('security-pin').value;
             if (pin !== SECURITY_PIN) return showToast("❌ PIN Salah!");
-            
             showLoading();
             try {
                 if (pendingDeleteAction === 'clear_all') {
@@ -2120,26 +1230,20 @@
                     let txHist = JSON.parse(await getStorage('rocky_tx_history') || "[]");
                     txHist = txHist.filter(tx => tx.id !== pendingDeleteAction);
                     await setStorage('rocky_tx_history', JSON.stringify(txHist));
-                    
                     let hist = JSON.parse(await getStorage('rocky_history') || "[]");
                     hist = hist.filter(h => h.txId !== pendingDeleteAction);
                     await setStorage('rocky_history', JSON.stringify(hist));
                 }
-                
                 await renderHistory();
                 await renderTxHistory();
                 closeModal('modal-security');
                 showToast("✅ Data dihapus");
-            } finally {
-                hideLoading();
-            }
+            } finally { hideLoading(); }
         };
 
-        // Reset data
         document.getElementById('btn-confirm-reset').onclick = async () => {
             const pin = document.getElementById('reset-pin').value;
             if (pin !== SECURITY_PIN) return showToast("❌ PIN Salah!");
-            
             showLoading();
             try {
                 await clearStore(STORES.ATTENDANCE);
@@ -2147,72 +1251,54 @@
                 await clearStore(STORES.ACTIVITY_LOGS);
                 await clearStore(STORES.USER_DATA);
                 await clearStore(STORES.PENDING_SYNC);
-                
                 pendingSync = [];
                 cart = [];
-                
                 closeModal('modal-reset');
                 closeModal('modal-menu');
                 showToast("✅ Semua data direset!");
                 setTimeout(() => location.reload(), 1500);
-            } finally {
-                hideLoading();
-            }
+            } finally { hideLoading(); }
         };
 
-        // Send report
-        async function sendReport(period) {
-            if (!await hasTodayPresent()) {
-                showToast("Anda harus absen HADIR hari ini!");
-                return;
-            }
-            
-            const txHist = JSON.parse(await getStorage('rocky_tx_history') || "[]");
-            let filtered = [];
-            let title = "";
-            
-            if (period === 'today') {
-                const today = new Date().toLocaleDateString('id-ID');
-                filtered = txHist.filter(tx => tx.date === today);
-                title = "HARIAN";
-            } else {
-                const now = new Date();
-                filtered = txHist.filter(tx => {
-                    const d = new Date(tx.rawDate);
-                    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-                });
-                title = "BULANAN";
-            }
-            
-            if (filtered.length === 0) return showToast("Tidak ada data!");
-            
-            let total = filtered.reduce((s, tx) => s + tx.total, 0);
-            let msg = `📊 LAPORAN ${title}\n👤 ${userData.name}\n💰 Rp ${total.toLocaleString()}\n📦 ${filtered.length} transaksi`;
-            
-            window.location.href = `https://api.whatsapp.com/send?phone=${WA_ADMIN}&text=${encodeURIComponent(msg)}`;
-            closeModal('modal-report');
+        // ==================== MODAL FUNCTIONS ====================
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+        function openMenuModal() { openModal('modal-menu'); }
+        function openEditModal() {
+            document.getElementById('edit-name-display').innerText = userData.name;
+            document.getElementById('edit-domicile').value = userData.domicile;
+            document.getElementById('edit-wa').value = userData.wa;
+            openModal('modal-edit');
+        }
+        function openRekapBulanModal() { openModal('modal-rekap-bulan'); }
+        function openSecurityModal(id) { pendingDeleteAction = id; openModal('modal-security'); }
+        function openResetModal() { openModal('modal-reset'); }
+        function openBackupModal() { closeModal('modal-menu'); openModal('modal-backup'); }
+        function openLogoutModal() { closeModal('modal-menu'); openModal('modal-logout'); }
+        function confirmDeleteHistory(id) { pendingDeleteAction = id; openModal('modal-security'); }
+        function switchTab(tab) {
+            document.getElementById('view-attendance').classList.toggle('hidden', tab !== 'absensi');
+            document.getElementById('view-transaction').classList.toggle('hidden', tab !== 'transaksi');
+            document.getElementById('tab-absensi').className = `flex-1 py-2.5 text-xs font-bold transition-all rounded-xl ${tab === 'absensi' ? 'active-tab bg-indigo-50 text-indigo-600' : 'text-slate-400'}`;
+            document.getElementById('tab-transaksi').className = `flex-1 py-2.5 text-xs font-bold transition-all rounded-xl ${tab === 'transaksi' ? 'active-tab bg-indigo-50 text-indigo-600' : 'text-slate-400'}`;
         }
 
-        // Kirim rekap bulanan
-        async function kirimRekapBulanan() {
-            const bulan = document.getElementById('rekap-bulan').value;
-            const tahun = document.getElementById('rekap-tahun').value;
-            showToast("Fitur dalam pengembangan");
-            closeModal('modal-rekap-bulan');
-        }
-
-        // Initialize
+        // ==================== INITIALIZE ====================
         window.onload = async () => {
-            document.getElementById('current-date').innerText = new Date().toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long' });
+            document.getElementById('current-date').innerText = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' });
+            
+            // Isi tahun untuk dropdown
+            const tahunSelect = document.getElementById('rekap-tahun');
+            if (tahunSelect) {
+                const thn = new Date().getFullYear();
+                for (let t = thn; t >= thn-4; t--) tahunSelect.innerHTML += `<option value="${t}">${t}</option>`;
+            }
             
             showLoading();
             try {
                 await initDB();
-                
-                // Load pending sync
                 await loadPendingSync();
                 
-                // Connection status
                 window.addEventListener('online', () => { isOnline = true; updatePendingDisplay(); });
                 window.addEventListener('offline', () => { isOnline = false; updatePendingDisplay(); });
                 isOnline = navigator.onLine;
@@ -2228,13 +1314,12 @@
                     document.getElementById('reg-domicile').value = userData.domicile;
                     document.getElementById('reg-wa').value = userData.wa;
                     
-                    // Auto init
                     document.getElementById('view-registration').classList.add('hidden');
                     document.getElementById('main-nav').classList.remove('hidden');
                     document.getElementById('view-attendance').classList.remove('hidden');
                     document.getElementById('user-display-name').innerText = userData.name;
                     document.getElementById('user-display-domicile').innerHTML = `<span class="w-1 h-1 bg-indigo-400 rounded-full"></span> ${userData.domicile}`;
-                    document.getElementById('user-display-wa').innerHTML = `<span>📱</span> ${userData.wa}`;
+                    document.getElementById('user-display-wa').innerHTML = `📱 ${userData.wa}`;
                     
                     await renderHistory();
                     await renderTxHistory();
@@ -2242,43 +1327,10 @@
                     startGPS();
                     checkTodayAbsen();
                     updateTransactionAccess();
-                    updateDataStats();
                     await updatePendingDisplay();
                 }
-                
-                // Isi tahun
-                const tahunSelect = document.getElementById('rekap-tahun');
-                if (tahunSelect) {
-                    const thn = new Date().getFullYear();
-                    tahunSelect.innerHTML = '';
-                    for (let t = thn; t >= thn-4; t--) {
-                        tahunSelect.innerHTML += `<option value="${t}">${t}</option>`;
-                    }
-                }
-                
-            } finally {
-                hideLoading();
-            }
+            } finally { hideLoading(); }
         };
-
-        // Utility functions
-        function switchTab(tab) {
-            document.getElementById('view-attendance').classList.toggle('hidden', tab !== 'absensi');
-            document.getElementById('view-transaction').classList.toggle('hidden', tab !== 'transaksi');
-            document.getElementById('tab-absensi').className = `flex-1 py-2.5 text-xs font-bold transition-all rounded-xl ${tab === 'absensi' ? 'active-tab bg-indigo-50 text-indigo-600' : 'text-slate-400'}`;
-            document.getElementById('tab-transaksi').className = `flex-1 py-2.5 text-xs font-bold transition-all rounded-xl ${tab === 'transaksi' ? 'active-tab bg-indigo-50 text-indigo-600' : 'text-slate-400'}`;
-        }
-
-        function copyKoordinat() {
-            const text = document.getElementById('koordinat-text').innerText;
-            navigator.clipboard.writeText(text);
-            showToast("✅ Koordinat disalin!");
-        }
-
-        async function confirmDeleteHistory(id) {
-            pendingDeleteAction = id;
-            openModal('modal-security');
-        }
     </script>
 </body>
 </html>
