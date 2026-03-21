@@ -127,13 +127,6 @@
             white-space: normal;
             word-break: break-word;
         }
-        .btn-doa .arabic-text {
-            font-size: 18px;
-        }
-        .btn-doa .small-text {
-            font-size: 11px;
-            font-weight: normal;
-        }
     </style>
 </head>
 <body class="bg-pattern">
@@ -228,7 +221,6 @@
                 <button onclick="openEditModal()" class="ml-auto p-2 bg-white rounded-full shadow-md">✏️</button>
             </div>
 
-            <!-- GPS Status -->
             <div id="gps-container" class="mb-4 p-5 rounded-2xl bg-slate-50 shadow-md">
                 <div class="flex items-center gap-3 mb-3">
                     <div id="gps-indicator" class="w-2.5 h-2.5 rounded-full bg-slate-300"></div>
@@ -239,23 +231,20 @@
                 </div>
             </div>
 
-            <!-- Mode Trial Info -->
             <div id="trial-info" class="mb-4 p-3 bg-orange-50 border border-orange-200 rounded-xl hidden">
                 <p class="text-[8px] text-orange-700 flex items-center gap-2">
-                    <span>⚠️</span> Mode Trial: Semua fitur bisa diakses tanpa batasan lokasi, data tidak akan tersimpan ke cloud.
+                    <span>⚠️</span> Mode Trial: Data hanya untuk testing, TIDAK akan masuk ke cloud dan akan hilang jika keluar dari mode trial.
                 </p>
             </div>
 
             <button id="btn-absensi" disabled class="w-full py-5 bg-slate-200 text-slate-400 rounded-3xl font-bold text-lg mb-4">Absen Masuk</button>
 
-            <!-- Tombol Kirim Ulang Absensi via WA -->
             <div id="resend-container" class="hidden mb-4">
                 <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-2">
                     <p class="text-[9px] font-bold text-blue-700 flex items-center gap-1">
                         <span>🕐</span> Data Absen Asli:
                     </p>
                     <p id="original-absen-info" class="text-[8px] text-blue-600 mt-1"></p>
-                    <p class="text-[7px] text-blue-500 mt-1 italic">*Waktu ini adalah waktu asli saat Anda absen, bukan waktu kirim ulang</p>
                 </div>
                 <button id="btn-resend-absen" onclick="resendAbsenViaWA()" class="w-full py-3.5 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-2xl text-[10px] font-bold flex items-center justify-center gap-2 hover:shadow-md transition-all">
                     <span class="animate-pulse">🔄</span> KIRIM ULANG ABSEN/IZIN KE WHATSAPP
@@ -288,11 +277,10 @@
 
             <div id="trial-info-tx" class="mb-4 p-3 bg-orange-50 border border-orange-200 rounded-xl hidden">
                 <p class="text-[8px] text-orange-700 flex items-center gap-2">
-                    <span>⚠️</span> Mode Trial: Data tidak akan tersimpan ke cloud.
+                    <span>⚠️</span> Mode Trial: Data hanya untuk testing, TIDAK akan masuk ke cloud.
                 </p>
             </div>
 
-            <!-- BONUS CARD -->
             <div class="bg-gradient-to-br from-white to-indigo-50 rounded-3xl p-5 mb-6 shadow-xl border border-indigo-100 overflow-hidden relative">
                 <div class="absolute top-0 right-0 p-3 opacity-10">
                     <svg class="w-20 h-20 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
@@ -379,7 +367,7 @@
                         <span id="stat-pending" class="font-bold text-orange-600">0</span>
                     </div>
                 </div>
-                <button onclick="manualSync()" class="w-full p-4 bg-green-50 border border-green-200 rounded-2xl text-left font-bold">🔄 Sync Manual</button>
+                <button onclick="manualSync()" id="btn-manual-sync" class="w-full p-4 bg-green-50 border border-green-200 rounded-2xl text-left font-bold">🔄 Sync Manual</button>
                 <button onclick="startTrialMode()" class="w-full p-4 bg-orange-50 border border-orange-200 rounded-2xl text-left font-bold">🔄 Mode Trial</button>
                 <button onclick="backupViaWA()" class="w-full p-4 bg-green-50 border border-green-200 rounded-2xl text-left font-bold">📤 Backup via WA</button>
                 <button onclick="restoreFromWA()" class="w-full p-4 bg-purple-50 border border-purple-200 rounded-2xl text-left font-bold">🔄 Restore dari WA</button>
@@ -412,11 +400,16 @@
 
     <div id="modal-security" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-6 z-50">
         <div class="bg-white rounded-[2rem] p-8 w-full max-w-sm text-center">
-            <h3 class="text-xl font-bold mb-4">VERIFIKASI ADMIN</h3>
-            <input type="password" id="security-pin" placeholder="Sandi Admin" class="w-full p-3 bg-slate-50 rounded-xl text-center mb-4">
+            <div class="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-2xl flex items-center justify-center">
+                <span class="text-3xl">🗑️</span>
+            </div>
+            <h3 class="text-xl font-bold text-slate-800 mb-2">Hapus Data?</h3>
+            <p class="text-[10px] text-red-600 mb-4">Data akan dihapus dari aplikasi dan cloud (Google Sheets)</p>
+            <p class="text-[9px] text-slate-500 mb-4">Masukkan sandi admin untuk melanjutkan</p>
+            <input type="password" id="security-pin" placeholder="Sandi Admin" class="w-full p-3 bg-slate-50 rounded-xl text-center mb-4" autocomplete="off">
             <div class="flex gap-2">
-                <button onclick="closeModal('modal-security')" class="flex-1 py-3 text-slate-400">Batal</button>
-                <button id="btn-verify-delete" class="flex-1 py-3 bg-red-500 text-white rounded-xl">Konfirmasi</button>
+                <button onclick="closeModal('modal-security')" class="flex-1 py-3 text-slate-400 font-bold text-xs uppercase">Batal</button>
+                <button id="btn-confirm-delete" class="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold text-xs uppercase">Hapus</button>
             </div>
         </div>
     </div>
@@ -472,7 +465,7 @@
     <div id="modal-tutorial" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-6 z-50">
         <div class="bg-white rounded-[2rem] p-8 w-full max-w-sm">
             <h3 class="text-xl font-bold text-center mb-4">Mode Trial</h3>
-            <p class="text-xs text-slate-600 mb-4">Mode Trial memungkinkan Anda mencoba semua fitur tanpa batasan lokasi. Data tidak akan tersimpan ke cloud dan akan hilang jika refresh halaman.</p>
+            <p class="text-xs text-slate-600 mb-4">Mode Trial untuk testing. Data TIDAK akan tersimpan ke cloud dan akan HILANG saat Anda keluar dari mode trial.</p>
             <button onclick="closeModal('modal-tutorial')" class="w-full py-3 bg-indigo-500 text-white rounded-xl font-bold">Mulai Trial</button>
         </div>
     </div>
@@ -481,7 +474,7 @@
 
     <script>
         // ==================== KONFIGURASI ====================
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbxZuabEzoYoADVvc-laQL6s7-YoY4NCDv1-UBZdkeo8wzl06ne-DfwSurpD1rrEx8Rg9w/exec';
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbxO04dkzFKLkV2yVU70qXzuH2x2y-I_8JoBGnGgwrXzuRJMQv6OOrht33PiB6YuUO3I/exec';
         const WA_ADMIN = "6285172107731";
         const TARGET_LOC = { lat: -6.767845, lng: 106.801203 };
         const RADIUS = 100;
@@ -490,19 +483,20 @@
         const BONUS_PER_10JT = 150000;
         const BONUS_MULTIPLIER = 10000000;
 
-        // DOA dan UCAPAN untuk TAMPILAN APLIKASI (tombol)
         const DOA_HADIR = "بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ";
         const UCAPAN_SAKIT = "SEMOGA CEPAT SEMBUH YA KA 🤲";
         const UCAPAN_IZIN = "SEMOGA HARIMU MENYENANGKAN 😊";
 
         let cart = [];
-        let userData = { name: "", domicile: "", wa: "", lastAbsenRecord: null };
+        let userData = { name: "", domicile: "", wa: "" };
         let userPos = { lat: 0, lng: 0 };
-        let pendingDeleteAction = null;
+        let pendingDeleteId = null;
+        let pendingDeleteType = null;
         let isTrialMode = false;
         let isOnline = true;
         let pendingSync = [];
         let isSyncing = false;
+        let currentSessionId = null;
 
         const DB_NAME = 'RockyHijabDB';
         const DB_VERSION = 2;
@@ -545,6 +539,135 @@
 
         function hideLoading() {
             document.getElementById('loading-overlay').classList.add('hidden');
+        }
+
+        // ==================== FUNGSI DELETE ====================
+        function openSecurityModal(id, type) {
+            pendingDeleteId = id;
+            pendingDeleteType = type;
+            document.getElementById('security-pin').value = '';
+            openModal('modal-security');
+        }
+
+        async function confirmDelete() {
+            const pin = document.getElementById('security-pin').value;
+            
+            if (pin !== SECURITY_PIN) {
+                showToast("❌ PIN Salah!");
+                return;
+            }
+            
+            if (!pendingDeleteId) {
+                showToast("❌ Tidak ada data yang dipilih!");
+                closeModal('modal-security');
+                return;
+            }
+            
+            showLoading("Menghapus data...");
+            
+            try {
+                let success = false;
+                
+                if (pendingDeleteType === 'transaction') {
+                    // Hanya kirim ke cloud jika bukan mode trial
+                    if (!isTrialMode) {
+                        const formData = new URLSearchParams();
+                        formData.append('action', 'deleteTransaction');
+                        formData.append('id', pendingDeleteId);
+                        formData.append('pin', SECURITY_PIN);
+                        
+                        await fetch(GAS_URL, {
+                            method: 'POST',
+                            body: formData,
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+                        });
+                    }
+                    
+                    // Hapus dari storage lokal
+                    let txHist = JSON.parse(await getStorage('rocky_tx_history') || "[]");
+                    txHist = txHist.filter(tx => tx.id != pendingDeleteId);
+                    await setStorage('rocky_tx_history', JSON.stringify(txHist));
+                    
+                    let hist = JSON.parse(await getStorage('rocky_history') || "[]");
+                    hist = hist.filter(h => h.txId != pendingDeleteId);
+                    await setStorage('rocky_history', JSON.stringify(hist));
+                    
+                    await renderTxHistory();
+                    await renderHistory();
+                    await updateBonusDisplay();
+                    
+                    showToast("✅ Transaksi berhasil dihapus!");
+                    success = true;
+                } 
+                else if (pendingDeleteType === 'attendance') {
+                    if (!isTrialMode) {
+                        const formData = new URLSearchParams();
+                        formData.append('action', 'deleteAttendance');
+                        formData.append('id', pendingDeleteId);
+                        formData.append('pin', SECURITY_PIN);
+                        
+                        await fetch(GAS_URL, {
+                            method: 'POST',
+                            body: formData,
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+                        });
+                    }
+                    
+                    let hist = JSON.parse(await getStorage('rocky_history') || "[]");
+                    hist = hist.filter(h => h.id != pendingDeleteId);
+                    await setStorage('rocky_history', JSON.stringify(hist));
+                    
+                    await renderHistory();
+                    await checkTodayAbsen();
+                    
+                    showToast("✅ Absensi berhasil dihapus!");
+                    success = true;
+                }
+                
+                if (success) {
+                    await updateBonusDisplay();
+                }
+                
+            } catch (error) {
+                console.error("Delete error:", error);
+                showToast("❌ Error: " + error.message);
+            } finally {
+                hideLoading();
+                closeModal('modal-security');
+                pendingDeleteId = null;
+                pendingDeleteType = null;
+            }
+        }
+
+        // ==================== KIRIM ULANG ABSEN VIA WA ====================
+        async function resendAbsenViaWA() {
+            const hist = JSON.parse(await getStorage('rocky_history') || "[]");
+            const today = new Date().toLocaleDateString('id-ID');
+            const todayAbsen = hist.find(h => {
+                if (h.type === 'Transaksi') return false;
+                return new Date(h.rawDate).toLocaleDateString('id-ID') === today;
+            });
+            
+            if (!todayAbsen) {
+                showToast("❌ Tidak ada absen/izin hari ini");
+                return;
+            }
+            
+            const waktuAsli = formatTanggalWaktu(todayAbsen.rawDate);
+            
+            let msg = "";
+            
+            if (todayAbsen.type === 'Hadir') {
+                msg = `✅ ABSENSI (KIRIM ULANG)\n\n👤 Nama: ${userData.name}\n📍 Domisili: ${userData.domicile}\n📱 WA: ${userData.wa}\n\n🕐 WAKTU ASLI ABSEN: ${waktuAsli}\n\n📌 Catatan: Pengiriman ini adalah kirim ulang karena jaringan bermasalah pada saat absen.\n\n_Dikirim ulang pada: ${new Date().toLocaleString('id-ID')}_`;
+            } else if (todayAbsen.type === 'Sakit') {
+                msg = `📋 IZIN SAKIT (KIRIM ULANG)\n\n👤 Nama: ${userData.name}\n📍 Domisili: ${userData.domicile}\n📱 WA: ${userData.wa}\n📌 Jenis: ${todayAbsen.type}\n📝 Alasan: ${todayAbsen.note}\n\n🕐 WAKTU ASLI IZIN: ${waktuAsli}\n\n📌 Catatan: Pengiriman ini adalah kirim ulang karena jaringan bermasalah.\n\n_Dikirim ulang pada: ${new Date().toLocaleString('id-ID')}_`;
+            } else {
+                msg = `📋 IZIN KEPERLUAN (KIRIM ULANG)\n\n👤 Nama: ${userData.name}\n📍 Domisili: ${userData.domicile}\n📱 WA: ${userData.wa}\n📌 Jenis: ${todayAbsen.type}\n📝 Alasan: ${todayAbsen.note}\n\n🕐 WAKTU ASLI IZIN: ${waktuAsli}\n\n📌 Catatan: Pengiriman ini adalah kirim ulang karena jaringan bermasalah.\n\n_Dikirim ulang pada: ${new Date().toLocaleString('id-ID')}_`;
+            }
+            
+            window.open(`https://api.whatsapp.com/send?phone=${WA_ADMIN}&text=${encodeURIComponent(msg)}`, '_blank');
+            showToast("✅ Pesan dikirim ke WA Admin dengan waktu asli absen");
+            await saveActivityLog('Kirim Ulang', `${todayAbsen.type} dikirim ulang ke WA`);
         }
 
         // ==================== BONUS SYSTEM ====================
@@ -609,59 +732,6 @@
                     if (!isNaN(value)) this.value = value.toLocaleString('id-ID');
                 });
             }
-        }
-
-        // ==================== KIRIM ULANG ABSEN VIA WA (tanpa doa) ====================
-        async function resendAbsenViaWA() {
-            const hist = JSON.parse(await getStorage('rocky_history') || "[]");
-            const today = new Date().toLocaleDateString('id-ID');
-            const todayAbsen = hist.find(h => {
-                if (h.type === 'Transaksi') return false;
-                return new Date(h.rawDate).toLocaleDateString('id-ID') === today;
-            });
-            
-            if (!todayAbsen) {
-                showToast("❌ Tidak ada absen/izin hari ini");
-                return;
-            }
-            
-            const waktuAsli = formatTanggalWaktu(todayAbsen.rawDate);
-            
-            let msg = "";
-            
-            if (todayAbsen.type === 'Hadir') {
-                msg = `✅ ABSENSI (KIRIM ULANG)\n\n` +
-                      `👤 Nama: ${userData.name}\n` +
-                      `📍 Domisili: ${userData.domicile}\n` +
-                      `📱 WA: ${userData.wa}\n\n` +
-                      `🕐 WAKTU ASLI ABSEN: ${waktuAsli}\n\n` +
-                      `📌 Catatan: Pengiriman ini adalah kirim ulang karena jaringan bermasalah pada saat absen.\n\n` +
-                      `_Dikirim ulang pada: ${new Date().toLocaleString('id-ID')}_`;
-            } else if (todayAbsen.type === 'Sakit') {
-                msg = `📋 IZIN SAKIT (KIRIM ULANG)\n\n` +
-                      `👤 Nama: ${userData.name}\n` +
-                      `📍 Domisili: ${userData.domicile}\n` +
-                      `📱 WA: ${userData.wa}\n` +
-                      `📌 Jenis: ${todayAbsen.type}\n` +
-                      `📝 Alasan: ${todayAbsen.note}\n\n` +
-                      `🕐 WAKTU ASLI IZIN: ${waktuAsli}\n\n` +
-                      `📌 Catatan: Pengiriman ini adalah kirim ulang karena jaringan bermasalah.\n\n` +
-                      `_Dikirim ulang pada: ${new Date().toLocaleString('id-ID')}_`;
-            } else {
-                msg = `📋 IZIN KEPERLUAN (KIRIM ULANG)\n\n` +
-                      `👤 Nama: ${userData.name}\n` +
-                      `📍 Domisili: ${userData.domicile}\n` +
-                      `📱 WA: ${userData.wa}\n` +
-                      `📌 Jenis: ${todayAbsen.type}\n` +
-                      `📝 Alasan: ${todayAbsen.note}\n\n` +
-                      `🕐 WAKTU ASLI IZIN: ${waktuAsli}\n\n` +
-                      `📌 Catatan: Pengiriman ini adalah kirim ulang karena jaringan bermasalah.\n\n` +
-                      `_Dikirim ulang pada: ${new Date().toLocaleString('id-ID')}_`;
-            }
-            
-            window.open(`https://api.whatsapp.com/send?phone=${WA_ADMIN}&text=${encodeURIComponent(msg)}`, '_blank');
-            showToast("✅ Pesan dikirim ke WA Admin dengan waktu asli absen");
-            await saveActivityLog('Kirim Ulang', `${todayAbsen.type} dikirim ulang ke WA`);
         }
 
         // ==================== INDEXEDDB ====================
@@ -731,11 +801,12 @@
             });
         }
 
-        // ==================== STORAGE ====================
+        // ==================== STORAGE - TERPISAH ANTARA TRIAL DAN NORMAL ====================
         async function getStorage(key, defaultValue = "[]") {
             try {
+                // MODE TRIAL: pakai sessionStorage + IndexedDB dengan sessionId
                 if (isTrialMode) {
-                    const sessionId = sessionStorage.getItem('rocky_session_id') || 'default';
+                    const sessionId = currentSessionId || sessionStorage.getItem('rocky_session_id') || 'default';
                     if (key === 'rocky_user_name') return sessionStorage.getItem(key) || '';
                     if (key === 'rocky_user_dom') return sessionStorage.getItem(key) || '';
                     if (key === 'rocky_user_wa') return sessionStorage.getItem(key) || '';
@@ -752,7 +823,9 @@
                         return JSON.stringify(data.filter(i => i.sessionId === sessionId));
                     }
                     return sessionStorage.getItem(key) || defaultValue;
-                } else {
+                } 
+                // MODE NORMAL: pakai localStorage + IndexedDB tanpa sessionId
+                else {
                     if (key === 'rocky_user_name') {
                         const users = await getAllFromStore(STORES.USER_DATA);
                         return users.length > 0 ? users[0].name : '';
@@ -777,8 +850,9 @@
 
         async function setStorage(key, value) {
             try {
+                // MODE TRIAL: simpan ke sessionStorage + IndexedDB dengan sessionId
                 if (isTrialMode) {
-                    const sessionId = sessionStorage.getItem('rocky_session_id') || 'default';
+                    const sessionId = currentSessionId || sessionStorage.getItem('rocky_session_id') || 'default';
                     if (key === 'rocky_history') {
                         const items = JSON.parse(value);
                         const existing = await getAllFromStore(STORES.ATTENDANCE);
@@ -804,7 +878,9 @@
                     } else {
                         sessionStorage.setItem(key, value);
                     }
-                } else {
+                } 
+                // MODE NORMAL: simpan ke IndexedDB + tambah ke pending sync
+                else {
                     if (key === 'rocky_history') {
                         const items = JSON.parse(value);
                         await clearStore(STORES.ATTENDANCE);
@@ -860,7 +936,11 @@
 
         // ==================== PENDING SYNC ====================
         async function addToPending(action, data) {
-            if (isTrialMode) return;
+            // JIKA MODE TRIAL, LANGSUNG RETURN TANPA TAMBAH KE PENDING
+            if (isTrialMode) {
+                console.log("Mode trial aktif, data tidak akan disync ke cloud");
+                return;
+            }
             const item = { id: Date.now() + Math.random(), action, data, timestamp: new Date().toISOString(), retries: 0 };
             pendingSync.push(item);
             await savePendingSync();
@@ -890,21 +970,36 @@
         async function updatePendingDisplay() {
             const count = pendingSync.length;
             const indicator = document.getElementById('sync-indicator');
+            const statPending = document.getElementById('stat-pending');
+            const btnManualSync = document.getElementById('btn-manual-sync');
+            
+            // Di mode trial, sembunyikan indikator sync
+            if (isTrialMode) {
+                if (indicator) indicator.classList.add('hidden');
+                if (statPending) statPending.innerText = "0 (Trial)";
+                if (btnManualSync) btnManualSync.disabled = true;
+                return;
+            }
+            
             if (indicator) {
-                if (count > 0 && !isTrialMode) {
+                if (count > 0) {
                     indicator.innerText = count > 9 ? '9+' : count;
                     indicator.classList.remove('hidden');
                 } else {
                     indicator.classList.add('hidden');
                 }
             }
-            const statPending = document.getElementById('stat-pending');
             if (statPending) statPending.innerText = count;
+            if (btnManualSync) btnManualSync.disabled = false;
         }
 
         // ==================== SYNC MANUAL ====================
         async function manualSync() {
-            if (isTrialMode) { showToast("❌ Mode trial tidak bisa sync"); return; }
+            if (isTrialMode) { 
+                showToast("❌ Mode trial tidak bisa sync ke cloud"); 
+                closeModal('modal-menu');
+                return; 
+            }
             if (!isOnline) { showToast("❌ Tidak ada koneksi internet"); return; }
             if (pendingSync.length === 0) { showToast("📦 Tidak ada data pending"); return; }
             if (!confirm(`Sync ${pendingSync.length} data ke cloud?`)) return;
@@ -956,7 +1051,6 @@
                     if (responseData.success !== false) {
                         success++;
                         await removeFromPending(item.id);
-                        console.log(`✅ Sync success: ${item.action} - ${item.id}`);
                     } else {
                         throw new Error(responseData.message || "Server error");
                     }
@@ -967,9 +1061,6 @@
                     console.error(`❌ Sync failed: ${item.action} - ${item.id}`, error);
                     item.retries = (item.retries || 0) + 1;
                     if (item.retries < 3) {
-                        failed.push(item);
-                    } else {
-                        console.warn(`Data ${item.id} gagal sync setelah 3 kali percobaan`);
                         failed.push(item);
                     }
                 }
@@ -1015,7 +1106,6 @@
             await setStorage('rocky_history', JSON.stringify(hist));
             if (type !== 'Transaksi') {
                 await saveActivityLog(type, note);
-                userData.lastAbsenRecord = record;
                 const resendContainer = document.getElementById('resend-container');
                 const originalInfo = document.getElementById('original-absen-info');
                 if (resendContainer && originalInfo) {
@@ -1049,7 +1139,7 @@
                 else icon = "😊";
                 return `
                 <div class="flex items-center gap-3 p-3 bg-white rounded-2xl border relative">
-                    <button onclick="confirmDeleteHistory(${h.id})" class="absolute top-1 right-1 w-6 h-6 bg-white rounded-full shadow flex items-center justify-center text-red-400">🗑️</button>
+                    <button onclick="openSecurityModal(${h.id}, 'attendance')" class="absolute top-1 right-1 w-6 h-6 bg-white rounded-full shadow flex items-center justify-center text-red-400 hover:text-red-600">🗑️</button>
                     <div class="w-8 h-8 rounded-lg ${h.type === 'Hadir' ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-orange-600'} flex items-center justify-center text-[14px]">${icon}</div>
                     <div><p class="text-[9px] font-bold">${h.type} <span class="text-slate-300">${h.time}</span></p><p class="text-[8px] text-slate-400">${h.note}</p></div>
                 </div>
@@ -1063,7 +1153,7 @@
             if (txHist.length === 0) { container.innerHTML = '<div class="text-center py-6 text-slate-300 text-[9px]">Belum ada transaksi</div>'; return; }
             container.innerHTML = txHist.reverse().map(tx => `
                 <div class="p-4 bg-white rounded-2xl border relative">
-                    <button onclick="openSecurityModal(${tx.id})" class="absolute top-3 right-3 text-red-300">🗑️</button>
+                    <button onclick="openSecurityModal(${tx.id}, 'transaction')" class="absolute top-3 right-3 w-8 h-8 bg-white rounded-full shadow flex items-center justify-center text-red-400 hover:text-red-600">🗑️</button>
                     <p class="text-[10px] font-bold">#${tx.id.toString().slice(-4)} <span class="text-slate-300">${tx.date}</span></p>
                     <p class="text-[11px] font-bold text-indigo-600">${formatRupiah(tx.total)}</p>
                 </div>
@@ -1103,13 +1193,12 @@
                     btnAbsen.disabled = true;
                     btnAbsen.className = "w-full py-5 bg-green-400 text-white rounded-3xl font-bold text-lg mb-4";
                     
-                    // Tampilkan doa/ucapan sesuai jenis absen
                     if (todayAbsen && todayAbsen.type === 'Hadir') {
                         btnAbsen.innerHTML = `<div class="btn-doa"><span class="arabic-text">${DOA_HADIR}</span></div>`;
                     } else if (todayAbsen && todayAbsen.type === 'Sakit') {
-                        btnAbsen.innerHTML = `<div class="btn-doa"><span></span><span class="small-text">${UCAPAN_SAKIT}</span></div>`;
+                        btnAbsen.innerHTML = `<div class="btn-doa"><span>✅ SUDAH ABSEN</span><span class="small-text">${UCAPAN_SAKIT}</span></div>`;
                     } else if (todayAbsen && (todayAbsen.type === 'Izin' || todayAbsen.type === 'Setengah Hari')) {
-                        btnAbsen.innerHTML = `<div class="btn-doa"><span></span><span class="small-text">${UCAPAN_IZIN}</span></div>`;
+                        btnAbsen.innerHTML = `<div class="btn-doa"><span>✅ SUDAH ABSEN</span><span class="small-text">${UCAPAN_IZIN}</span></div>`;
                     } else {
                         btnAbsen.innerText = "✅ SUDAH ABSEN HARI INI";
                     }
@@ -1238,11 +1327,13 @@
             showLoading();
             try {
                 if (isTrialMode) {
-                    await setStorage('rocky_user_name', n);
-                    await setStorage('rocky_user_dom', d);
-                    await setStorage('rocky_user_wa', w);
+                    // Trial mode: simpan ke sessionStorage
+                    sessionStorage.setItem('rocky_user_name', n);
+                    sessionStorage.setItem('rocky_user_dom', d);
+                    sessionStorage.setItem('rocky_user_wa', w);
                     userData = { name: n, domicile: d, wa: w };
                 } else {
+                    // Normal mode: cek duplikat nama
                     const savedName = await getStorage('rocky_user_name');
                     if (savedName && savedName !== n) return showToast("Nama tidak bisa diubah!");
                     await setStorage('rocky_user_name', n);
@@ -1301,7 +1392,6 @@
             
             await saveRecord('Hadir', 'Absen Masuk');
             const waktu = new Date().toLocaleString('id-ID');
-            // WhatsApp tanpa doa
             const msg = `✅ ABSENSI\n👤 ${userData.name}\n📍 ${userData.domicile}\n📱 ${userData.wa}\n🕐 ${waktu}`;
             window.open(`https://api.whatsapp.com/send?phone=${WA_ADMIN}&text=${encodeURIComponent(msg)}`, '_blank');
             setTimeout(checkTodayAbsen, 500);
@@ -1313,7 +1403,6 @@
             const reason = document.getElementById('izin-reason').value.trim() || 'Tanpa alasan';
             await saveRecord(type, reason);
             const waktu = new Date().toLocaleString('id-ID');
-            // WhatsApp tanpa doa
             const msg = `📋 IZIN/SAKIT\n👤 ${userData.name}\n📍 ${userData.domicile}\n📱 ${userData.wa}\n📌 ${type}\n📝 ${reason}\n🕐 ${waktu}`;
             window.open(`https://api.whatsapp.com/send?phone=${WA_ADMIN}&text=${encodeURIComponent(msg)}`, '_blank');
             closeModal('modal-izin');
@@ -1348,14 +1437,33 @@
 
         async function startTrialMode() {
             closeModal('modal-menu');
-            if (confirm("Mode Trial akan menghapus data sementara. Lanjutkan?")) {
+            if (confirm("Mode Trial akan menghapus data trial sebelumnya. Lanjutkan?")) {
                 showLoading();
                 try {
+                    // Bersihkan data trial sebelumnya
+                    const oldSessionId = sessionStorage.getItem('rocky_session_id');
+                    if (oldSessionId) {
+                        // Hapus data trial lama dari IndexedDB
+                        const attendanceData = await getAllFromStore(STORES.ATTENDANCE);
+                        for (const item of attendanceData) {
+                            if (item.sessionId === oldSessionId) {
+                                await deleteFromStore(STORES.ATTENDANCE, item.id);
+                            }
+                        }
+                        const transactionData = await getAllFromStore(STORES.TRANSACTIONS);
+                        for (const item of transactionData) {
+                            if (item.sessionId === oldSessionId) {
+                                await deleteFromStore(STORES.TRANSACTIONS, item.id);
+                            }
+                        }
+                    }
+                    
                     isTrialMode = true;
-                    sessionStorage.setItem('rocky_session_id', 'session_' + Date.now());
-                    sessionStorage.setItem('rocky_user_name', '');
-                    sessionStorage.setItem('rocky_user_dom', '');
-                    sessionStorage.setItem('rocky_user_wa', '');
+                    currentSessionId = 'session_' + Date.now();
+                    sessionStorage.setItem('rocky_session_id', currentSessionId);
+                    sessionStorage.removeItem('rocky_user_name');
+                    sessionStorage.removeItem('rocky_user_dom');
+                    sessionStorage.removeItem('rocky_user_wa');
                     userData = { name: "", domicile: "", wa: "" };
                     
                     document.getElementById('trial-badge').classList.remove('hidden');
@@ -1370,7 +1478,9 @@
                     document.getElementById('reg-domicile').value = "";
                     document.getElementById('reg-wa').value = "";
                     
-                    showToast("Mode Trial aktif! Semua fitur bisa diakses tanpa batasan.");
+                    await updatePendingDisplay();
+                    
+                    showToast("Mode Trial aktif! Data TIDAK akan tersimpan ke cloud.");
                     setTimeout(() => document.getElementById('modal-tutorial').classList.remove('hidden'), 500);
                 } finally { hideLoading(); }
             }
@@ -1382,7 +1492,14 @@
             try {
                 const attendance = await getAllFromStore(STORES.ATTENDANCE) || [];
                 const transactions = await getAllFromStore(STORES.TRANSACTIONS) || [];
-                const data = { u: userData.name, d: userData.domicile, w: userData.wa, a: attendance, t: transactions };
+                // Filter data sesuai session (untuk trial)
+                let filteredAttendance = attendance;
+                let filteredTransactions = transactions;
+                if (isTrialMode && currentSessionId) {
+                    filteredAttendance = attendance.filter(a => a.sessionId === currentSessionId);
+                    filteredTransactions = transactions.filter(t => t.sessionId === currentSessionId);
+                }
+                const data = { u: userData.name, d: userData.domicile, w: userData.wa, a: filteredAttendance, t: filteredTransactions };
                 const encoded = btoa(JSON.stringify(data));
                 window.open(`https://api.whatsapp.com/send?phone=${userData.wa}&text=${encodeURIComponent("🔐 BACKUP ROCKY\n" + userData.name + "\n\n" + encoded)}`, '_blank');
                 showToast("✅ Backup terkirim!");
@@ -1405,13 +1522,23 @@
                 if (!base64) throw new Error("Kode tidak valid");
                 const data = JSON.parse(atob(base64));
                 if (data.u) {
-                    await clearStore(STORES.ATTENDANCE);
-                    for (const item of data.a) await addToStore(STORES.ATTENDANCE, item);
-                    await clearStore(STORES.TRANSACTIONS);
-                    for (const item of data.t) await addToStore(STORES.TRANSACTIONS, item);
-                    await setStorage('rocky_user_name', data.u);
-                    await setStorage('rocky_user_dom', data.d || '');
-                    await setStorage('rocky_user_wa', data.w || '');
+                    if (isTrialMode && currentSessionId) {
+                        // Trial mode: restore dengan sessionId
+                        for (const item of data.a) { item.sessionId = currentSessionId; await addToStore(STORES.ATTENDANCE, item); }
+                        for (const item of data.t) { item.sessionId = currentSessionId; await addToStore(STORES.TRANSACTIONS, item); }
+                        sessionStorage.setItem('rocky_user_name', data.u);
+                        sessionStorage.setItem('rocky_user_dom', data.d || '');
+                        sessionStorage.setItem('rocky_user_wa', data.w || '');
+                    } else {
+                        // Normal mode: restore langsung
+                        await clearStore(STORES.ATTENDANCE);
+                        for (const item of data.a) await addToStore(STORES.ATTENDANCE, item);
+                        await clearStore(STORES.TRANSACTIONS);
+                        for (const item of data.t) await addToStore(STORES.TRANSACTIONS, item);
+                        await setStorage('rocky_user_name', data.u);
+                        await setStorage('rocky_user_dom', data.d || '');
+                        await setStorage('rocky_user_wa', data.w || '');
+                    }
                     showToast("✅ Restore berhasil!");
                     setTimeout(() => location.reload(), 1500);
                 }
@@ -1424,7 +1551,13 @@
             try {
                 const attendance = await getAllFromStore(STORES.ATTENDANCE) || [];
                 const transactions = await getAllFromStore(STORES.TRANSACTIONS) || [];
-                const data = { user: userData, history: attendance, tx_history: transactions };
+                let filteredAttendance = attendance;
+                let filteredTransactions = transactions;
+                if (isTrialMode && currentSessionId) {
+                    filteredAttendance = attendance.filter(a => a.sessionId === currentSessionId);
+                    filteredTransactions = transactions.filter(t => t.sessionId === currentSessionId);
+                }
+                const data = { user: userData, history: filteredAttendance, tx_history: filteredTransactions };
                 navigator.clipboard.writeText(JSON.stringify(data));
                 showToast("✅ Backup disalin!");
             } finally { hideLoading(); }
@@ -1437,17 +1570,31 @@
             try {
                 const data = JSON.parse(json);
                 if (data.user) {
-                    await setStorage('rocky_user_name', data.user.name || '');
-                    await setStorage('rocky_user_dom', data.user.domicile || '');
-                    await setStorage('rocky_user_wa', data.user.wa || '');
+                    if (isTrialMode && currentSessionId) {
+                        sessionStorage.setItem('rocky_user_name', data.user.name || '');
+                        sessionStorage.setItem('rocky_user_dom', data.user.domicile || '');
+                        sessionStorage.setItem('rocky_user_wa', data.user.wa || '');
+                    } else {
+                        await setStorage('rocky_user_name', data.user.name || '');
+                        await setStorage('rocky_user_dom', data.user.domicile || '');
+                        await setStorage('rocky_user_wa', data.user.wa || '');
+                    }
                 }
                 if (data.history) {
-                    await clearStore(STORES.ATTENDANCE);
-                    for (const item of data.history) await addToStore(STORES.ATTENDANCE, item);
+                    if (isTrialMode && currentSessionId) {
+                        for (const item of data.history) { item.sessionId = currentSessionId; await addToStore(STORES.ATTENDANCE, item); }
+                    } else {
+                        await clearStore(STORES.ATTENDANCE);
+                        for (const item of data.history) await addToStore(STORES.ATTENDANCE, item);
+                    }
                 }
                 if (data.tx_history) {
-                    await clearStore(STORES.TRANSACTIONS);
-                    for (const item of data.tx_history) await addToStore(STORES.TRANSACTIONS, item);
+                    if (isTrialMode && currentSessionId) {
+                        for (const item of data.tx_history) { item.sessionId = currentSessionId; await addToStore(STORES.TRANSACTIONS, item); }
+                    } else {
+                        await clearStore(STORES.TRANSACTIONS);
+                        for (const item of data.tx_history) await addToStore(STORES.TRANSACTIONS, item);
+                    }
                 }
                 showToast("✅ Berhasil!");
                 setTimeout(() => location.reload(), 1500);
@@ -1491,8 +1638,13 @@
             if (!/^62\d+$/.test(w)) return showToast("❌ Format WA harus 628xxx");
             userData.domicile = d;
             userData.wa = w;
-            await setStorage('rocky_user_dom', d);
-            await setStorage('rocky_user_wa', w);
+            if (isTrialMode) {
+                sessionStorage.setItem('rocky_user_dom', d);
+                sessionStorage.setItem('rocky_user_wa', w);
+            } else {
+                await setStorage('rocky_user_dom', d);
+                await setStorage('rocky_user_wa', w);
+            }
             document.getElementById('user-display-domicile').innerHTML = `<span class="w-1 h-1 bg-indigo-400 rounded-full"></span> ${d}`;
             document.getElementById('user-display-wa').innerHTML = `📱 ${w}`;
             closeModal('modal-edit');
@@ -1502,13 +1654,33 @@
         async function logout() {
             showLoading();
             try {
+                // Jika sedang trial, hapus data trial
+                if (isTrialMode && currentSessionId) {
+                    const attendanceData = await getAllFromStore(STORES.ATTENDANCE);
+                    for (const item of attendanceData) {
+                        if (item.sessionId === currentSessionId) {
+                            await deleteFromStore(STORES.ATTENDANCE, item.id);
+                        }
+                    }
+                    const transactionData = await getAllFromStore(STORES.TRANSACTIONS);
+                    for (const item of transactionData) {
+                        if (item.sessionId === currentSessionId) {
+                            await deleteFromStore(STORES.TRANSACTIONS, item.id);
+                        }
+                    }
+                    sessionStorage.clear();
+                }
+                
                 userData = { name: "", domicile: "", wa: "" };
                 isTrialMode = false;
+                currentSessionId = null;
+                
                 document.getElementById('main-nav').classList.add('hidden');
                 document.getElementById('view-attendance').classList.add('hidden');
                 document.getElementById('view-transaction').classList.add('hidden');
                 document.getElementById('view-registration').classList.remove('hidden');
                 document.getElementById('trial-badge').classList.add('hidden');
+                
                 const savedName = await getStorage('rocky_user_name');
                 if (savedName) {
                     document.getElementById('reg-name').value = savedName;
@@ -1525,57 +1697,49 @@
                     document.getElementById('reg-wa').value = "";
                     document.getElementById('btn-register').innerText = "DAFTAR / LOGIN";
                 }
+                
                 closeModal('modal-logout');
                 closeModal('modal-menu');
                 showToast("Berhasil keluar");
             } finally { hideLoading(); }
         }
 
-        document.getElementById('btn-verify-delete').onclick = async () => {
-            const pin = document.getElementById('security-pin').value;
-            if (pin !== SECURITY_PIN) return showToast("❌ PIN Salah!");
-            showLoading();
-            try {
-                if (pendingDeleteAction === 'clear_all') {
-                    await setStorage('rocky_tx_history', "[]");
-                    let hist = JSON.parse(await getStorage('rocky_history') || "[]");
-                    hist = hist.filter(h => h.type !== 'Transaksi');
-                    await setStorage('rocky_history', JSON.stringify(hist));
-                } else if (typeof pendingDeleteAction === 'number') {
-                    let hist = JSON.parse(await getStorage('rocky_history') || "[]");
-                    hist = hist.filter(h => h.id !== pendingDeleteAction);
-                    await setStorage('rocky_history', JSON.stringify(hist));
-                } else {
-                    let txHist = JSON.parse(await getStorage('rocky_tx_history') || "[]");
-                    txHist = txHist.filter(tx => tx.id !== pendingDeleteAction);
-                    await setStorage('rocky_tx_history', JSON.stringify(txHist));
-                    let hist = JSON.parse(await getStorage('rocky_history') || "[]");
-                    hist = hist.filter(h => h.txId !== pendingDeleteAction);
-                    await setStorage('rocky_history', JSON.stringify(hist));
-                }
-                await renderHistory();
-                await renderTxHistory();
-                await updateBonusDisplay();
-                closeModal('modal-security');
-                showToast("✅ Data dihapus");
-            } finally { hideLoading(); }
-        };
+        document.getElementById('btn-confirm-delete').onclick = confirmDelete;
 
         document.getElementById('btn-confirm-reset').onclick = async () => {
             const pin = document.getElementById('reset-pin').value;
             if (pin !== SECURITY_PIN) return showToast("❌ PIN Salah!");
             showLoading();
             try {
-                await clearStore(STORES.ATTENDANCE);
-                await clearStore(STORES.TRANSACTIONS);
-                await clearStore(STORES.ACTIVITY_LOGS);
-                await clearStore(STORES.USER_DATA);
-                await clearStore(STORES.PENDING_SYNC);
-                pendingSync = [];
+                if (isTrialMode && currentSessionId) {
+                    // Trial mode: hapus data trial saja
+                    const attendanceData = await getAllFromStore(STORES.ATTENDANCE);
+                    for (const item of attendanceData) {
+                        if (item.sessionId === currentSessionId) {
+                            await deleteFromStore(STORES.ATTENDANCE, item.id);
+                        }
+                    }
+                    const transactionData = await getAllFromStore(STORES.TRANSACTIONS);
+                    for (const item of transactionData) {
+                        if (item.sessionId === currentSessionId) {
+                            await deleteFromStore(STORES.TRANSACTIONS, item.id);
+                        }
+                    }
+                    sessionStorage.clear();
+                    sessionStorage.setItem('rocky_session_id', currentSessionId);
+                } else {
+                    // Normal mode: hapus semua data
+                    await clearStore(STORES.ATTENDANCE);
+                    await clearStore(STORES.TRANSACTIONS);
+                    await clearStore(STORES.ACTIVITY_LOGS);
+                    await clearStore(STORES.USER_DATA);
+                    await clearStore(STORES.PENDING_SYNC);
+                    pendingSync = [];
+                }
                 cart = [];
                 closeModal('modal-reset');
                 closeModal('modal-menu');
-                showToast("✅ Semua data direset!");
+                showToast("✅ Data direset!");
                 setTimeout(() => location.reload(), 1500);
             } finally { hideLoading(); }
         };
@@ -1591,11 +1755,9 @@
             openModal('modal-edit');
         }
         function openRekapBulanModal() { openModal('modal-rekap-bulan'); }
-        function openSecurityModal(id) { pendingDeleteAction = id; openModal('modal-security'); }
         function openResetModal() { openModal('modal-reset'); }
         function openBackupModal() { closeModal('modal-menu'); openModal('modal-backup'); }
         function openLogoutModal() { closeModal('modal-menu'); openModal('modal-logout'); }
-        function confirmDeleteHistory(id) { pendingDeleteAction = id; openModal('modal-security'); }
         function switchTab(tab) {
             document.getElementById('view-attendance').classList.toggle('hidden', tab !== 'absensi');
             document.getElementById('view-transaction').classList.toggle('hidden', tab !== 'transaksi');
@@ -1624,6 +1786,7 @@
                 window.addEventListener('offline', () => { isOnline = false; updatePendingDisplay(); });
                 isOnline = navigator.onLine;
                 
+                // Cek apakah ada user tersimpan di mode normal
                 const savedName = await getStorage('rocky_user_name');
                 if (savedName) {
                     isTrialMode = false;
