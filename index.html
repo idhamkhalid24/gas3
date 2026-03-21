@@ -1107,9 +1107,9 @@
                     if (todayAbsen && todayAbsen.type === 'Hadir') {
                         btnAbsen.innerHTML = `<div class="btn-doa"><span class="arabic-text">${DOA_HADIR}</span></div>`;
                     } else if (todayAbsen && todayAbsen.type === 'Sakit') {
-                        btnAbsen.innerHTML = `<div class="btn-doa"><span>✅ SUDAH ABSEN</span><span class="small-text">${UCAPAN_SAKIT}</span></div>`;
+                        btnAbsen.innerHTML = `<div class="btn-doa"><span></span><span class="small-text">${UCAPAN_SAKIT}</span></div>`;
                     } else if (todayAbsen && (todayAbsen.type === 'Izin' || todayAbsen.type === 'Setengah Hari')) {
-                        btnAbsen.innerHTML = `<div class="btn-doa"><span>✅ SUDAH ABSEN</span><span class="small-text">${UCAPAN_IZIN}</span></div>`;
+                        btnAbsen.innerHTML = `<div class="btn-doa"><span></span><span class="small-text">${UCAPAN_IZIN}</span></div>`;
                     } else {
                         btnAbsen.innerText = "✅ SUDAH ABSEN HARI INI";
                     }
