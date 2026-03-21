@@ -17,6 +17,7 @@
             padding: 1rem;
         }
         .gradient-blue { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); }
+        .gradient-green { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
         .gradient-orange { background: linear-gradient(135deg, #fb923c 0%, #ea580c 100%); }
         .custom-shadow { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
         .hide-scroll::-webkit-scrollbar { display: none; }
@@ -110,8 +111,14 @@
             pointer-events: none;
         }
         .toast.show { opacity: 1; transform: translateX(-50%) translateY(-10px); }
-        .resend-btn {
-            background: linear-gradient(135deg, #3b82f6, #2563eb);
+        .arabic-text {
+            font-family: 'Traditional Arabic', 'Amiri', 'Noto Naskh Arabic', serif;
+            font-size: 18px;
+            direction: rtl;
+        }
+        .doa-card {
+            background: linear-gradient(135deg, #fef9e6, #fff4e0);
+            border-right: 4px solid #f59e0b;
         }
     </style>
 </head>
@@ -227,7 +234,7 @@
 
             <button id="btn-absensi" disabled class="w-full py-5 bg-slate-200 text-slate-400 rounded-3xl font-bold text-lg mb-4">Absen Masuk</button>
 
-            <!-- Tombol Kirim Ulang Absensi via WA dengan Info Waktu Asli -->
+            <!-- Tombol Kirim Ulang Absensi via WA -->
             <div id="resend-container" class="hidden mb-4">
                 <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-2">
                     <p class="text-[9px] font-bold text-blue-700 flex items-center gap-1">
@@ -236,7 +243,7 @@
                     <p id="original-absen-info" class="text-[8px] text-blue-600 mt-1"></p>
                     <p class="text-[7px] text-blue-500 mt-1 italic">*Waktu ini adalah waktu asli saat Anda absen, bukan waktu kirim ulang</p>
                 </div>
-                <button id="btn-resend-absen" onclick="resendAbsenViaWA()" class="w-full py-3.5 resend-btn text-white rounded-2xl text-[10px] font-bold flex items-center justify-center gap-2 hover:shadow-md transition-all">
+                <button id="btn-resend-absen" onclick="resendAbsenViaWA()" class="w-full py-3.5 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-2xl text-[10px] font-bold flex items-center justify-center gap-2 hover:shadow-md transition-all">
                     <span class="animate-pulse">🔄</span> KIRIM ULANG ABSEN/IZIN KE WHATSAPP
                 </button>
             </div>
@@ -330,12 +337,14 @@
         </div>
     </div>
 
-    <!-- MODALS (sama seperti sebelumnya, tidak berubah) -->
+    <!-- MODALS -->
     <div id="modal-izin" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-6 z-50">
         <div class="bg-white rounded-[2rem] p-8 w-full max-w-sm">
             <h3 class="text-xl font-bold text-center mb-4">Form Izin / Sakit</h3>
             <select id="izin-type" class="w-full p-3 bg-slate-50 rounded-xl mb-3">
-                <option>Sakit</option><option>Izin Keperluan</option><option>Setengah Hari</option>
+                <option value="Sakit">Sakit</option>
+                <option value="Izin">Izin Keperluan</option>
+                <option value="Setengah Hari">Setengah Hari</option>
             </select>
             <textarea id="izin-reason" placeholder="Alasan..." class="w-full p-3 bg-slate-50 rounded-xl h-24 mb-4"></textarea>
             <div class="flex gap-2">
@@ -467,6 +476,11 @@
         const BONUS_PER_10JT = 150000;
         const BONUS_MULTIPLIER = 10000000;
 
+        // Doa dan ucapan
+        const DOA_HADIR = "بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ";
+        const UCAPAN_SAKIT = "Semoga cepat sembuh ya ka 🤲";
+        const UCAPAN_IZIN = "Semoga harimu menyenangkan 😊";
+
         let cart = [];
         let userData = { name: "", domicile: "", wa: "", lastAbsenRecord: null };
         let userPos = { lat: 0, lng: 0 };
@@ -583,7 +597,7 @@
             }
         }
 
-        // ==================== KIRIM ULANG ABSEN VIA WA dengan WAKTU ASLI ====================
+        // ==================== KIRIM ULANG ABSEN VIA WA ====================
         async function resendAbsenViaWA() {
             const hist = JSON.parse(await getStorage('rocky_history') || "[]");
             const today = new Date().toLocaleDateString('id-ID');
@@ -597,25 +611,28 @@
                 return;
             }
             
-            // Gunakan waktu ASLI saat absen, bukan waktu sekarang
             const waktuAsli = formatTanggalWaktu(todayAbsen.rawDate);
             const waktuAsliShort = new Date(todayAbsen.rawDate).toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
             const tanggalAsli = new Date(todayAbsen.rawDate).toLocaleDateString('id-ID', { day:'2-digit', month:'long', year:'numeric' });
             
             let msg = "";
+            let doa = "";
             
             if (todayAbsen.type === 'Hadir') {
+                doa = DOA_HADIR;
                 msg = `✅ *ABSENSI (KIRIM ULANG)*\n\n` +
                       `👤 *Nama:* ${userData.name}\n` +
                       `📍 *Domisili:* ${userData.domicile}\n` +
                       `📱 *WA:* ${userData.wa}\n\n` +
                       `🕐 *WAKTU ASLI ABSEN:* ${waktuAsli}\n` +
                       `📅 *Tanggal:* ${tanggalAsli}\n\n` +
+                      `*${doa}*\n\n` +
                       `*⏰ PENTING:* Waktu di atas adalah waktu asli saat Anda melakukan absen pertama kali.\n` +
                       `*📌 Catatan:* Pengiriman ini adalah kirim ulang karena jaringan bermasalah pada saat absen.\n\n` +
                       `_Dikirim ulang pada: ${new Date().toLocaleString('id-ID')}_`;
-            } else {
-                msg = `📋 *IZIN/SAKIT (KIRIM ULANG)*\n\n` +
+            } else if (todayAbsen.type === 'Sakit') {
+                doa = UCAPAN_SAKIT;
+                msg = `📋 *IZIN SAKIT (KIRIM ULANG)*\n\n` +
                       `👤 *Nama:* ${userData.name}\n` +
                       `📍 *Domisili:* ${userData.domicile}\n` +
                       `📱 *WA:* ${userData.wa}\n` +
@@ -623,6 +640,21 @@
                       `📝 *Alasan:* ${todayAbsen.note}\n\n` +
                       `🕐 *WAKTU ASLI IZIN:* ${waktuAsli}\n` +
                       `📅 *Tanggal:* ${tanggalAsli}\n\n` +
+                      `*${doa}*\n\n` +
+                      `*⏰ PENTING:* Waktu di atas adalah waktu asli saat Anda mengirim izin pertama kali.\n` +
+                      `*📌 Catatan:* Pengiriman ini adalah kirim ulang karena jaringan bermasalah.\n\n` +
+                      `_Dikirim ulang pada: ${new Date().toLocaleString('id-ID')}_`;
+            } else {
+                doa = UCAPAN_IZIN;
+                msg = `📋 *IZIN KEPERLUAN (KIRIM ULANG)*\n\n` +
+                      `👤 *Nama:* ${userData.name}\n` +
+                      `📍 *Domisili:* ${userData.domicile}\n` +
+                      `📱 *WA:* ${userData.wa}\n` +
+                      `📌 *Jenis:* ${todayAbsen.type}\n` +
+                      `📝 *Alasan:* ${todayAbsen.note}\n\n` +
+                      `🕐 *WAKTU ASLI IZIN:* ${waktuAsli}\n` +
+                      `📅 *Tanggal:* ${tanggalAsli}\n\n` +
+                      `*${doa}*\n\n` +
                       `*⏰ PENTING:* Waktu di atas adalah waktu asli saat Anda mengirim izin pertama kali.\n` +
                       `*📌 Catatan:* Pengiriman ini adalah kirim ulang karena jaringan bermasalah.\n\n` +
                       `_Dikirim ulang pada: ${new Date().toLocaleString('id-ID')}_`;
@@ -983,10 +1015,15 @@
             hist.push(record);
             await setStorage('rocky_history', JSON.stringify(hist));
             if (type !== 'Transaksi') {
-                await saveActivityLog(type, note);
-                // Simpan data absen terakhir untuk kirim ulang
+                // Tambahkan doa/ucapan ke log
+                let doaText = "";
+                if (type === 'Hadir') doaText = DOA_HADIR;
+                else if (type === 'Sakit') doaText = UCAPAN_SAKIT;
+                else if (type === 'Izin') doaText = UCAPAN_IZIN;
+                else if (type === 'Setengah Hari') doaText = UCAPAN_IZIN;
+                
+                await saveActivityLog(type, `${note} ${doaText}`);
                 userData.lastAbsenRecord = record;
-                // Tampilkan tombol kirim ulang dengan info waktu asli
                 const resendContainer = document.getElementById('resend-container');
                 const originalInfo = document.getElementById('original-absen-info');
                 if (resendContainer && originalInfo) {
@@ -994,6 +1031,11 @@
                     const waktuAsli = formatTanggalWaktu(record.rawDate);
                     originalInfo.innerHTML = `<strong>${type}</strong> pada ${waktuAsli}`;
                 }
+                
+                // Tampilkan doa/ucapan di toast
+                if (type === 'Hadir') showToast(`✨ ${DOA_HADIR}`);
+                else if (type === 'Sakit') showToast(`🤲 ${UCAPAN_SAKIT}`);
+                else if (type === 'Izin' || type === 'Setengah Hari') showToast(`😊 ${UCAPAN_IZIN}`);
             }
             renderHistory();
         }
@@ -1013,13 +1055,18 @@
             const absensi = hist.filter(h => h.type !== 'Transaksi').reverse().slice(0, 5);
             if (!container) return;
             if (absensi.length === 0) { container.innerHTML = '<div class="text-center py-3 text-slate-400 text-[8px]">Belum ada riwayat</div>'; return; }
-            container.innerHTML = absensi.map(h => `
+            container.innerHTML = absensi.map(h => {
+                let doaIcon = "";
+                if (h.type === 'Hadir') doaIcon = "🤲";
+                else if (h.type === 'Sakit') doaIcon = "💊";
+                else doaIcon = "😊";
+                return `
                 <div class="flex items-center gap-3 p-3 bg-white rounded-2xl border relative">
                     <button onclick="confirmDeleteHistory(${h.id})" class="absolute top-1 right-1 w-6 h-6 bg-white rounded-full shadow flex items-center justify-center text-red-400">🗑️</button>
-                    <div class="w-8 h-8 rounded-lg ${h.type === 'Hadir' ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-orange-600'} flex items-center justify-center">${h.type[0]}</div>
+                    <div class="w-8 h-8 rounded-lg ${h.type === 'Hadir' ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-orange-600'} flex items-center justify-center text-[14px]">${doaIcon}</div>
                     <div><p class="text-[9px] font-bold">${h.type} <span class="text-slate-300">${h.time}</span></p><p class="text-[8px] text-slate-400">${h.note}</p></div>
                 </div>
-            `).join('');
+            `}).join('');
         }
 
         async function renderTxHistory() {
@@ -1061,14 +1108,17 @@
             const originalInfo = document.getElementById('original-absen-info');
             
             if (hasAbsen) {
-                // Cari data absen hari ini untuk ditampilkan
                 const hist = JSON.parse(await getStorage('rocky_history') || "[]");
                 const today = new Date().toLocaleDateString('id-ID');
                 const todayAbsen = hist.find(h => h.type !== 'Transaksi' && new Date(h.rawDate).toLocaleDateString('id-ID') === today);
                 
                 if (btnAbsen) { 
                     btnAbsen.disabled = true; 
-                    btnAbsen.innerText = "✅ SUDAH ABSEN HARI INI"; 
+                    if (todayAbsen && todayAbsen.type === 'Hadir') {
+                        btnAbsen.innerText = `✅ SUDAH ABSEN HARI INI\n${DOA_HADIR}`;
+                    } else {
+                        btnAbsen.innerText = "✅ SUDAH ABSEN HARI INI"; 
+                    }
                     btnAbsen.className = "w-full py-5 bg-green-400 text-white rounded-3xl font-bold text-lg mb-4";
                 }
                 if (btnIzin) btnIzin.disabled = true;
@@ -1255,7 +1305,7 @@
             
             await saveRecord('Hadir', 'Absen Masuk');
             const waktu = new Date().toLocaleString('id-ID');
-            const msg = `✅ ABSENSI\n👤 ${userData.name}\n📍 ${userData.domicile}\n📱 ${userData.wa}\n🕐 ${waktu}`;
+            const msg = `✅ ABSENSI\n👤 ${userData.name}\n📍 ${userData.domicile}\n📱 ${userData.wa}\n🕐 ${waktu}\n\n${DOA_HADIR}`;
             window.open(`https://api.whatsapp.com/send?phone=${WA_ADMIN}&text=${encodeURIComponent(msg)}`, '_blank');
             setTimeout(checkTodayAbsen, 500);
         };
@@ -1266,10 +1316,12 @@
             const reason = document.getElementById('izin-reason').value.trim() || 'Tanpa alasan';
             await saveRecord(type, reason);
             const waktu = new Date().toLocaleString('id-ID');
-            const msg = `📋 IZIN/SAKIT\n👤 ${userData.name}\n📍 ${userData.domicile}\n📱 ${userData.wa}\n📌 ${type}\n📝 ${reason}\n🕐 ${waktu}`;
+            let doa = "";
+            if (type === 'Sakit') doa = UCAPAN_SAKIT;
+            else doa = UCAPAN_IZIN;
+            const msg = `📋 IZIN/SAKIT\n👤 ${userData.name}\n📍 ${userData.domicile}\n📱 ${userData.wa}\n📌 ${type}\n📝 ${reason}\n🕐 ${waktu}\n\n${doa}`;
             window.open(`https://api.whatsapp.com/send?phone=${WA_ADMIN}&text=${encodeURIComponent(msg)}`, '_blank');
             closeModal('modal-izin');
-            showToast("✅ Izin terkirim");
             setTimeout(checkTodayAbsen, 500);
         };
 
